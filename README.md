@@ -8,7 +8,7 @@ graph, run them from a component, and drive your VR UI from the events they fire
 
 Built for UE **5.6** (also compiles on 5.4/5.5 — see *Engine compatibility* below).
 
-**Full documentation:** reyvanair.github.io/SimFlow/ 
+**Full documentation:** [`reyvanair.github.io/SimFlow/`](reyvanair.github.io/SimFlow/)
 The Markdown cheat sheet is in
 [`docs/Cheatsheet.md`](docs/Cheatsheet.md).
 
