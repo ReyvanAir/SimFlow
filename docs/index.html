@@ -192,6 +192,28 @@ kbd {
 .call.warn  { background:var(--alert-soft); border-color:var(--alert); }
 .call.warn .lbl { color:var(--alert); }
 
+/* -------------------------------------------------------------- example */
+
+.ex {
+  border:1px solid var(--rule); border-left:3px solid var(--accent);
+  border-radius:0 7px 7px 0; background:var(--surface);
+  padding:13px 16px 14px; margin:0 0 20px;
+}
+.ex > .lbl {
+  font-family:"IBM Plex Mono", monospace; font-size:10px; font-weight:600;
+  letter-spacing:.13em; text-transform:uppercase; color:var(--accent);
+  display:block; margin-bottom:8px;
+}
+.ex p { margin:0 0 10px; font-size:.93rem; }
+.ex p:last-child { margin-bottom:0; }
+.ex pre { background:var(--surface-2); margin:0 0 10px; }
+.ex pre:last-child { margin-bottom:0; }
+
+pre.wire {
+  font-size:.79rem; line-height:1.75; white-space:pre; tab-size:4;
+  color:var(--ink); overflow-x:auto;
+}
+
 /* ------------------------------------------------------------- pin list */
 
 .pins { display:flex; flex-wrap:wrap; gap:6px; margin:0 0 14px; }
@@ -318,16 +340,54 @@ footer {
 
     <section class="chunk" id="u-nodes">
       <h2>Node reference</h2>
+      <p>A node is the box in the graph. It is woken through one of its <strong>input</strong> pins, does its job, then pushes execution out of one <strong>output</strong> pin and goes back to sleep &mdash; whatever is wired to that output wakes next. A few nodes deliberately stay awake after firing (Parallel, Loop, a racing Join), which is how more than one part of the graph runs at the same time.</p>
+      <p>Every node, whatever its type, also carries a <strong>Node Comment</strong> drawn on the node in the graph, and every node is duplicated per running flow &mdash; so two trainees running the same asset never share node state.</p>
 
+      <div class="tbl"><table>
+        <thead><tr><th>Node</th><th>Category</th><th>Its one job</th></tr></thead>
+        <tr><td>Start</td><td>Flow Control</td><td>Where a run begins. Several per graph, each named</td></tr>
+        <tr><td>Task</td><td>Tasks</td><td>Run one step and route on how it ended</td></tr>
+        <tr><td>Delay</td><td>Flow Control</td><td>Wait, then carry on</td></tr>
+        <tr><td>Branch</td><td>Flow Control</td><td>Take one road out of several, by condition</td></tr>
+        <tr><td>Random Branch</td><td>Flow Control</td><td>Take one road at random, optionally weighted</td></tr>
+        <tr><td>Parallel</td><td>Flow Control</td><td>Take every road at once</td></tr>
+        <tr><td>Join</td><td>Flow Control</td><td>Bring those roads back together, or race them</td></tr>
+        <tr><td>Loop</td><td>Flow Control</td><td>Repeat a section</td></tr>
+        <tr><td>Sub Flow</td><td>Composition</td><td>Run another flow asset as a child</td></tr>
+        <tr><td>Checkpoint</td><td>Persistence</td><td>Name a point in the run, optionally save there</td></tr>
+        <tr><td>Set Blackboard Value</td><td>Data</td><td>Write a key inline, without a task</td></tr>
+        <tr><td>Finish</td><td>Flow Control</td><td>End the whole run with a verdict</td></tr>
+      </table></div>
+
+      <p>Each entry below gives the pins, the properties and a worked example. In the sketches, an indented name is the output pin execution leaves through, and <code>&#9654;</code> points at what it is wired to.</p>
+
+      <!-- ------------------------------------------------------------ Start -->
       <h3>Start <span class="version">Flow Control</span></h3>
-      <p>Where execution begins. A graph may hold several with different names &mdash; useful for a full scenario and a practice mode in one asset.</p>
+      <p>Where execution begins. It has <em>no</em> input pin &mdash; nothing in the graph can jump back to a Start node, which is why re-entering a section means looping, not restarting.</p>
+      <p>A graph may hold several Starts with different names. <em>Start Flow</em> uses whichever entry the component's <strong>Entry Name</strong> property names (<code>Default</code> out of the box); <em>Start Flow From Entry</em> overrides it per call. That is how a single asset serves a full scenario, a practice run and an assessment run without duplicating the content &mdash; each entry sets up differently and then dives into the same shared body.</p>
+      <div class="pins"><span class="pin out-ok">Out</span></div>
       <div class="tbl"><table>
         <thead><tr><th>Property</th><th>Default</th><th>Meaning</th></tr></thead>
         <tr><td>Entry Name</td><td class="num">Default</td><td>Pass this to <em>Start Flow From Entry</em> to begin here</td></tr>
       </table></div>
+      <div class="ex"><span class="lbl">Example &mdash; one asset, three ways in</span>
+        <p>The scenario body lives in a Sub Flow. Each entry decides what the trainee gets before it.</p>
+        <pre class="wire">[Start  "Default"]
+    Out &#9654; [Task  Safety briefing] &#9654; [Sub Flow  Valve_Procedure]
 
+[Start  "Practice"]
+    Out &#9654; [Set Blackboard  bShowHints = true] &#9654; [Sub Flow  Valve_Procedure]
+
+[Start  "Assessment"]
+    Out &#9654; [Set Blackboard  bShowHints = false]
+        &#9654; [Checkpoint  Assessment begins] &#9654; [Sub Flow  Valve_Procedure]</pre>
+        <p>From Blueprint: <code>Start Flow From Entry ("Practice")</code> on the SimFlow Component. The hint tasks inside the shared body sit behind a Branch on <code>bShowHints</code>.</p>
+      </div>
+
+      <!-- ------------------------------------------------------------- Task -->
       <h3>Task <span class="version">Tasks</span></h3>
-      <p>Runs one task. The node you will use most.</p>
+      <p>Runs one task and routes on how it ended. This is the node you will place most, and the only one that shows up as a step to the trainee.</p>
+      <p>The split is worth holding on to: the <strong>node</strong> owns how the flow treats this step &mdash; the time limit, the retries, the early-out &mdash; and the <strong>task</strong> nested inside it owns what the step actually is. Swap the task and the routing survives.</p>
       <div class="pins"><span class="pin">In</span><span class="pin out-ok">Completed</span><span class="pin out-bad">Failed</span><span class="pin">Skipped</span><span class="pin">TimedOut</span></div>
       <div class="tbl"><table>
         <thead><tr><th>Property</th><th>Default</th><th>Meaning</th></tr></thead>
@@ -340,24 +400,77 @@ footer {
         <tr><td>Abort Condition</td><td class="num">none</td><td>Checked every frame; when it passes the task ends early</td></tr>
         <tr><td>Abort Result</td><td class="num">Failed</td><td>Which pin an aborted task leaves through</td></tr>
       </table></div>
-      <p><em>Fallback to Completed</em> is what keeps linear flows tidy &mdash; wire only <code>Completed</code> and the rest falls through. Turn it off when a failure must genuinely stop the flow.</p>
+      <p>Each frame the node ticks the task, then evaluates the Abort Condition, then checks the time limit. When the task reports a result the node considers an auto retry <em>first</em>, and only leaves through a pin if it is not retrying &mdash; so a retried task never fires the <code>Failed</code> branch. Auto retry also respects the task's own <strong>Allow Retry</strong> box, so a task marked one-shot stays one-shot.</p>
+      <p><em>Fallback to Completed</em> is what keeps linear flows tidy &mdash; wire only <code>Completed</code> and the rest falls through. It only redirects pins with <em>no</em> link at all. Turn it off when a failure must genuinely stop the flow.</p>
+      <div class="call warn"><span class="lbl">A Task node with no task passes straight through</span>
+        <p>It fires <code>Completed</code> immediately and logs a warning to <code>LogSimFlow</code>. A scenario that races to the end is usually a row of empty Task nodes.</p>
+      </div>
+      <div class="ex"><span class="lbl">Example &mdash; a step that can time out into a hint</span>
+        <p>Forty-five seconds to find and put on the gloves. A failure retries itself twice before the flow ever sees it; a timeout sends the trainee round again through a hint.</p>
+        <pre class="wire">[Task  Don the gloves]
+    Task                   Wait For Event  (Sim.Equip.Gloves)
+    Time Limit             45 s
+    Auto Retry on Failure  &#10003;  limit 2
 
+        Completed &#9654; [Checkpoint  Geared up]
+        TimedOut  &#9654; [Task  Log "The gloves are on the shelf by the door"]
+                          Completed &#9654; back into [Task  Don the gloves] . In
+        Failed    &#9654; (unwired &mdash; falls through to Completed)</pre>
+        <p>Wiring a <code>TimedOut</code> hint back into the same node's <code>In</code> is the standard nudge loop. Bound it with the task's Max Retries or with a Loop node around the pair, or a trainee who never finds the gloves never leaves.</p>
+      </div>
+
+      <!-- ------------------------------------------------------------ Delay -->
       <h3>Delay <span class="version">Flow Control</span></h3>
+      <p>Waits, then continues. The graph's beat &mdash; a pause between two lines of voice-over, a moment for an animation to land, a settling time before you test a gauge.</p>
+      <p>It counts flow time, not wall time: a paused flow does not tick, so a 10 second Delay is 10 seconds of the trainee actually running. A Duration of <code>0</code> passes through on the same frame.</p>
+      <div class="pins"><span class="pin">In</span><span class="pin out-ok">Out</span></div>
       <div class="tbl"><table>
         <thead><tr><th>Property</th><th>Default</th><th>Meaning</th></tr></thead>
         <tr><td>Duration</td><td class="num">1.0</td><td>Seconds to wait. Respects pause</td></tr>
       </table></div>
+      <div class="call note"><span class="lbl">Delay node or Delay task?</span>
+        <p>The <strong>node</strong> is invisible scheduling &mdash; it is not a step, so it never appears in the UI or counts toward progress. The <strong>task</strong> is a step the trainee is waiting through, so it shows up, can be skipped, and offers a random extra. Use the node for timing, the task for "hold for 30 seconds while it depressurises".</p>
+      </div>
+      <div class="ex"><span class="lbl">Example &mdash; letting a cutscene breathe</span>
+        <pre class="wire">[Task  Play alarm VO]
+    Completed &#9654; [Delay  2.0 s] &#9654; [Task  Play supervisor VO]
+                                       Completed &#9654; [Delay  0.5 s]
+                                                 &#9654; [Task  Evacuate the area]</pre>
+      </div>
 
+      <!-- ----------------------------------------------------------- Branch -->
       <h3>Branch <span class="version">Flow Control</span></h3>
-      <p>Condition-based routing. Cases evaluate top to bottom; the first that passes wins. A case with no condition never passes.</p>
+      <p>The graph's if / else-if / else. Cases evaluate top to bottom and the <em>first</em> that passes wins; if none do, execution leaves through <code>Default</code>. Pin labels fall back to the condition's own description, so a well-configured condition labels its pin for free.</p>
+      <div class="pins"><span class="pin">In</span><span class="pin out-ok">Case 0</span><span class="pin out-ok">Case 1</span><span class="pin">Default</span></div>
       <div class="tbl"><table>
         <thead><tr><th>Property</th><th>Default</th><th>Meaning</th></tr></thead>
         <tr><td>Cases</td><td class="num">2 empty</td><td>Ordered list; each has a Label and a Condition</td></tr>
         <tr><td>Fire All Matching Cases</td><td class="num">off</td><td>Fire every passing case &mdash; a conditional fan-out</td></tr>
         <tr><td>Has Default Pin</td><td class="num">on</td><td>Show a <code>Default</code> pin for when nothing matched</td></tr>
       </table></div>
+      <p>With <strong>Fire All Matching Cases</strong> on, the Branch becomes a Parallel with entry requirements: every passing case fires at once. The number of live branches then varies at runtime, so do not converge them on a <em>Wait For All</em> Join &mdash; it waits for a fixed count that may never arrive.</p>
+      <p>Turn <strong>Has Default Pin</strong> off and a Branch that matches nothing simply ends that thread of execution. That is a deliberate dead end, and a useful one at the tail of a fan-out.</p>
+      <div class="call warn"><span class="lbl">An empty case is a dead pin, not a "true"</span>
+        <p>A case with no condition never passes. If your Branch always takes <code>Default</code>, check that every case actually has a condition object assigned.</p>
+      </div>
+      <div class="ex"><span class="lbl">Example &mdash; grading at the end of a scenario</span>
+        <pre class="wire">[Branch  3 cases]
+    Case 0  "Distinction"  Score Threshold  &#8805; 90
+        &#9654; [Task  Log "Distinction"] &#9654; [Complete Flow]
 
+    Case 1  "Pass"         Score Threshold  &#8805; 60
+        &#9654; [Task  Log "Pass"] &#9654; [Complete Flow]
+
+    Default
+        &#9654; [Sub Flow  Remediation_Debrief] &#9654; [Fail Flow]</pre>
+        <p>Order is the whole trick. Put <code>&#8805; 60</code> first and it swallows every distinction, because the first match wins.</p>
+      </div>
+
+      <!-- ---------------------------------------------------- Random Branch -->
       <h3>Random Branch <span class="version">Flow Control</span></h3>
+      <p>Picks one output at random. This is how a scenario stops being memorisable &mdash; run it three times and the fault is different each time, so the trainee has to diagnose rather than recall.</p>
+      <p>Weights are optional and positional: a missing entry counts as <code>1</code>, and a weight of <code>0</code> is never picked. If every weight resolves to zero it falls back to an even pick rather than stalling. <strong>Avoid Repeats</strong> zeroes out whatever came up last, so back-to-back passes through the node &mdash; loop iterations, for instance &mdash; always differ. That memory lasts for the run and resets when the flow restarts.</p>
+      <div class="pins"><span class="pin">In</span><span class="pin out-ok">Out 0</span><span class="pin out-ok">Out 1</span><span class="pin out-ok">&hellip;</span></div>
       <div class="tbl"><table>
         <thead><tr><th>Property</th><th>Default</th><th>Meaning</th></tr></thead>
         <tr><td>Num Outputs</td><td class="num">2</td><td>2&ndash;16 output pins</td></tr>
@@ -365,14 +478,45 @@ footer {
         <tr><td>Avoid Repeats</td><td class="num">off</td><td>Never pick the same output twice in a row</td></tr>
       </table></div>
       <p>Resolves on the server only, so all clients agree.</p>
+      <div class="ex"><span class="lbl">Example &mdash; three drills, three different faults</span>
+        <p>The common fault comes up twice as often as the exotic ones, and no trainee gets the same fault twice running.</p>
+        <pre class="wire">[Loop  Iterations 3]
+    Loop Body &#9654; [Random Branch  3 outputs
+                                  weights 2 / 1 / 1
+                                  Avoid Repeats &#10003;]
+                      Out 0 &#9654; [Sub Flow  Fault_StuckValve]  &#9472;&#9488;
+                      Out 1 &#9654; [Sub Flow  Fault_LeakingSeal] &#9472;&#9508;
+                      Out 2 &#9654; [Sub Flow  Fault_BadGauge]    &#9472;&#9496;
+                                                            &#9654; [Loop] . Continue
+    Completed &#9654; [Branch  graded?]</pre>
+      </div>
 
+      <!-- --------------------------------------------------------- Parallel -->
       <h3>Parallel <span class="version">Flow Control</span></h3>
+      <p>Fires every <em>wired</em> output in the same frame, and each becomes an independent live branch with its own active nodes, all ticking together. Unwired pins cost nothing, so leaving Num Outputs at 4 and using two is fine. If nothing at all is wired, the node just ends that thread of execution.</p>
+      <p>The branches share one blackboard. Two branches writing the same key is a race, and it is yours to arrange &mdash; give each branch its own keys unless you mean them to collide.</p>
+      <div class="pins"><span class="pin">In</span><span class="pin out-ok">Out 0</span><span class="pin out-ok">Out 1</span><span class="pin out-ok">&hellip;</span></div>
       <div class="tbl"><table>
         <thead><tr><th>Property</th><th>Default</th><th>Meaning</th></tr></thead>
         <tr><td>Num Outputs</td><td class="num">2</td><td>2&ndash;16 branches, all fired at once. Unwired outputs are skipped</td></tr>
       </table></div>
+      <div class="ex"><span class="lbl">Example &mdash; two hands, one procedure</span>
+        <p>The trainee has to keep the gauge in view while turning the valve. Either order is fine; both must happen.</p>
+        <pre class="wire">[Parallel  2 branches]
+    Out 0 &#9654; [Task  Turn the isolation valve] &#9654; [Join] . In 0
+    Out 1 &#9654; [Task  Keep the gauge in view]   &#9654; [Join] . In 1
 
+[Join  Wait For All]
+    Out &#9654; [Task  Report the reading]</pre>
+        <p>Without a Join the two branches just run to their own ends &mdash; acceptable if each finishes in its own Finish node, but the first one reached with <em>Stop Other Branches</em> on will kill the other mid-task.</p>
+      </div>
+
+      <!-- ------------------------------------------------------------- Join -->
       <h3>Join <span class="version">Flow Control</span></h3>
+      <p>Brings parallel branches back together. <em>Wait For All</em> converges; <em>Wait For Any</em> races.</p>
+      <p><em>Wait For All</em> counts <strong>distinct input pins</strong>, not arrivals &mdash; two hits on <code>In 0</code> still count as one. Give every branch its own pin. When the last one lands the node fires and deactivates, which resets the count, and that is exactly what makes a Join safe to sit inside a Loop.</p>
+      <p><em>Wait For Any</em> fires on the first arrival and then stays alive on purpose, so the losing branch's arrival is swallowed and the section downstream can never run twice.</p>
+      <div class="pins"><span class="pin">In 0</span><span class="pin">In 1</span><span class="pin">&hellip;</span><span class="pin out-ok">Out</span></div>
       <div class="tbl"><table>
         <thead><tr><th>Property</th><th>Default</th><th>Meaning</th></tr></thead>
         <tr><td>Num Inputs</td><td class="num">2</td><td>2&ndash;16 input pins</td></tr>
@@ -381,8 +525,26 @@ footer {
       <div class="call warn"><span class="lbl">Wait For Any leaves the loser running</span>
         <p>The Join stays alive to swallow the late arrival so downstream cannot fire twice &mdash; but the losing branch's task keeps running until the flow ends. For a timeout on a <em>single</em> task, the Task node's own Time Limit is better.</p>
       </div>
+      <div class="ex"><span class="lbl">Example &mdash; putting a clock on a whole section</span>
+        <p>Two minutes to complete the shutdown. The Join does not report which arm won, so the work arm raises a flag before it arrives and a Branch reads it afterwards.</p>
+        <pre class="wire">[Parallel  2 branches]
+    Out 0 &#9654; [Sub Flow  Shutdown_Procedure]
+              Completed &#9654; [Set Blackboard  bInTime = true] &#9654; [Join] . In 0
+    Out 1 &#9654; [Delay  120 s] &#9654; [Join] . In 1
 
+[Join  Wait For Any]
+    Out &#9654; [Branch]
+              Case 0  "In time"  Blackboard Compare  bInTime == true
+                  &#9654; [Complete Flow]
+              Default
+                  &#9654; [Fail Flow]</pre>
+      </div>
+
+      <!-- ------------------------------------------------------------- Loop -->
       <h3>Loop <span class="version">Flow Control</span></h3>
+      <p>Repeats a section. Its two inputs do different jobs: <code>In</code> starts a fresh loop and resets the counter to zero, <code>Continue</code> advances it by one. Wire the tail of the body back into <code>Continue</code> &mdash; forget that and the body runs exactly once and the graph stalls.</p>
+      <p>Each pass it checks, in order: the Max Iterations safety valve, then the iteration count, then the Break Condition; then it writes the current 0-based iteration to the blackboard key if you gave one, and finally fires <code>Loop Body</code>. Because the break is checked <em>before</em> each pass including the first, a condition that is already true means the body never runs at all.</p>
+      <p>Set Iterations to <code>0</code> to mean "until the break condition passes". With <code>0</code> and no break condition you are relying on Max Iterations, and you get a warning in <code>LogSimFlow</code> when it trips.</p>
       <div class="pins"><span class="pin">In</span><span class="pin">Continue</span><span class="pin out-ok">Loop Body</span><span class="pin out-ok">Completed</span></div>
       <div class="tbl"><table>
         <thead><tr><th>Property</th><th>Default</th><th>Meaning</th></tr></thead>
@@ -391,10 +553,28 @@ footer {
         <tr><td>Max Iterations</td><td class="num">1000</td><td>Safety valve so a bad loop cannot hang the game</td></tr>
         <tr><td>Iteration Blackboard Key</td><td class="num">none</td><td>Writes the current 0-based iteration here</td></tr>
       </table></div>
-      <p>Wire <code>Loop Body</code> into the section, and the end of the section back into <code>Continue</code>.</p>
+      <div class="ex"><span class="lbl">Example &mdash; three practice reps, with an early exit</span>
+        <p>Up to three attempts, but a clean run ends it early. The iteration is written to <code>Rep</code> so a task's instruction text can say which attempt this is.</p>
+        <pre class="wire">[Loop  Iterations 3
+       Iteration Blackboard Key  "Rep"
+       Break Condition  Blackboard Compare  CleanRun == true]
 
+    Loop Body &#9654; [Task  Perform the isolation check]
+                    Completed &#9654; [Set Blackboard  CleanRun = true]
+                                &#9654; [Loop] . Continue
+                    Failed    &#9654; [Task  Show the hint]
+                                &#9654; [Loop] . Continue
+
+    Completed &#9654; [Branch  did they get a clean run?]</pre>
+        <p>Both result pins route back into <code>Continue</code>, so a failed rep still counts as a rep. Route only <code>Failed</code> back and you get "retry until correct" instead.</p>
+      </div>
+
+      <!-- --------------------------------------------------------- Sub Flow -->
       <h3>Sub Flow <span class="version">Composition</span></h3>
-      <p>Runs another flow asset as a child. This is what makes procedures reusable &mdash; build "put on the PPE" once, drop it into every scenario.</p>
+      <p>Runs another flow asset as a child. This is what makes procedures reusable &mdash; build "put on the PPE" once, drop it into every scenario, fix it in one place.</p>
+      <p>The node owns the child completely: it ticks it, pauses and resumes with it, and stops it if the parent stops. Sub Flows may nest, and each level is a real instance, so the debug HUD shows both.</p>
+      <p>The two blackboard boxes decide how much the child sees. Both on and parent and child share state. Both off and the child is a sealed box &mdash; the right choice for a reusable procedure whose scratch keys should not leak into every scenario that uses it.</p>
+      <div class="pins"><span class="pin">In</span><span class="pin out-ok">Completed</span><span class="pin out-bad">Failed</span></div>
       <div class="tbl"><table>
         <thead><tr><th>Property</th><th>Default</th><th>Meaning</th></tr></thead>
         <tr><td>Sub Flow</td><td class="num">none</td><td>The flow asset to run</td></tr>
@@ -402,26 +582,79 @@ footer {
         <tr><td>Inherit Blackboard</td><td class="num">on</td><td>Copy the parent's blackboard into the child at start</td></tr>
         <tr><td>Write Back Blackboard</td><td class="num">on</td><td>Copy the child's back when it ends</td></tr>
       </table></div>
+      <p>The child's final state picks the pin: <code>Completed</code> for a completed child, <code>Failed</code> for a failed or aborted one. An unwired <code>Failed</code> falls through to <code>Completed</code>, the same as on a Task node. Skipping the node from the UI stops the child and leaves via <code>Completed</code>.</p>
+      <div class="ex"><span class="lbl">Example &mdash; a PPE procedure used by every scenario</span>
+        <p><code>PPE_Donning</code> is its own asset with its own Start, its own tasks, and its own Complete and Fail nodes. Every scenario opens with it.</p>
+        <pre class="wire">[Start]
+    Out &#9654; [Sub Flow  PPE_Donning]
+              Entry Name          "Default"
+              Inherit Blackboard  &#10003;   (child can read bShowHints)
+              Write Back          &#10003;   (Score and Mistakes come home)
 
+                  Completed &#9654; [Checkpoint  Geared up]
+                              &#9654; [Sub Flow  Valve_Procedure]
+                  Failed    &#9654; [Task  Log "Fix your PPE and try again"]
+                              &#9654; back into [Sub Flow  PPE_Donning] . In</pre>
+      </div>
+
+      <!-- ------------------------------------------------------- Checkpoint -->
       <h3>Checkpoint <span class="version">Persistence</span></h3>
+      <p>Does two things and then gets out of the way. It announces that a named point in the run has been reached &mdash; the instance broadcasts it, so your UI can say "Section 2 of 4" or an analytics hook can log the time &mdash; and it can optionally write a save right there.</p>
+      <p>It passes through the same frame and costs essentially nothing, so be liberal with them: at each phase boundary, and after anything expensive to redo.</p>
+      <div class="pins"><span class="pin">In</span><span class="pin out-ok">Out</span></div>
       <div class="tbl"><table>
         <thead><tr><th>Property</th><th>Default</th><th>Meaning</th></tr></thead>
         <tr><td>Checkpoint Id</td><td class="num">none</td><td>Your name for this point</td></tr>
         <tr><td>Auto Save</td><td class="num">off</td><td>Write a save the moment this node is reached</td></tr>
         <tr><td>Save Slot Name</td><td class="num">empty</td><td>Blank uses the component's default slot</td></tr>
-        <tr><td>Save User Index</td><td class="num">0</td><td></td></tr>
+        <tr><td>Save User Index</td><td class="num">0</td><td>SaveGame user index</td></tr>
       </table></div>
+      <div class="call note"><span class="lbl">Saving is server-only</span>
+        <p>In multiplayer an Auto Save on a client does nothing. Put the checkpoint wherever you like; the write happens on the authority.</p>
+      </div>
+      <div class="ex"><span class="lbl">Example &mdash; a long scenario that survives a crash</span>
+        <pre class="wire">[Sub Flow  PPE_Donning]
+    Completed &#9654; [Checkpoint  "Phase1_Geared"   Auto Save &#10003;]
+                &#9654; [Sub Flow  Valve_Procedure]
+                     Completed &#9654; [Checkpoint  "Phase2_Isolated"  Auto Save &#10003;]
+                                 &#9654; [Sub Flow  Handover]</pre>
+        <p>A resumed session picks up at the last checkpoint written rather than at the start of a forty-minute run.</p>
+      </div>
 
+      <!-- --------------------------------------------- Set Blackboard Value -->
       <h3>Set Blackboard Value <span class="version">Data</span></h3>
+      <p>Writes a key inline, no task object needed. A pair of these plus a Branch is how most scenario state gets managed.</p>
+      <p><strong>Add</strong> accumulates onto the existing value instead of replacing it &mdash; the cheap way to count mistakes, points or attempts.</p>
+      <div class="pins"><span class="pin">In</span><span class="pin out-ok">Out</span></div>
       <div class="tbl"><table>
         <thead><tr><th>Property</th><th>Default</th><th>Meaning</th></tr></thead>
         <tr><td>Key</td><td class="num">none</td><td>Which key to write</td></tr>
         <tr><td>Value</td><td class="num">none</td><td>Bool, Int, Float, String, Name, Vector or Object</td></tr>
         <tr><td>Add</td><td class="num">off</td><td>Add to the existing value instead of replacing</td></tr>
       </table></div>
+      <div class="call note"><span class="lbl">Node or task?</span>
+        <p>Use the <strong>node</strong> for bookkeeping the trainee should not see &mdash; it is not a step, so it never appears in the UI or in progress. Use the <strong>Set Blackboard Value task</strong> when the write genuinely is a step in the procedure.</p>
+      </div>
+      <div class="ex"><span class="lbl">Example &mdash; counting mistakes and gating on them</span>
+        <pre class="wire">[Task  Quiz  "Which valve isolates the line?"]
+    Completed &#9654; [Task  Quiz  Q2]
+    Failed    &#9654; [Set Blackboard  Mistakes += 1   (Add &#10003;)]
+                &#9654; [Task  Show the correct answer] &#9654; [Task  Quiz  Q2]
 
+    &hellip; later &hellip;
+
+[Branch]
+    Case 0  "Too many mistakes"  Blackboard Compare  Mistakes &#8805; 3
+        &#9654; [Fail Flow]
+    Default
+        &#9654; [Complete Flow]</pre>
+      </div>
+
+      <!-- ----------------------------------------------------------- Finish -->
       <h3>Finish <span class="version">Flow Control</span></h3>
-      <p>Listed in the menu as <strong>Complete Flow</strong> &mdash; that is the node under its default mode.</p>
+      <p>Ends the whole run with a verdict. It has an input pin and nothing else &mdash; nothing runs after it.</p>
+      <p>The mode sets the run's final state, which is what <em>On Flow Finished</em> reports to Blueprint and what a parent Sub Flow node reads to choose between its <code>Completed</code> and <code>Failed</code> pins. Changing the mode retitles and recolours the node in the graph.</p>
+      <div class="pins"><span class="pin">In</span></div>
       <div class="tbl"><table>
         <thead><tr><th>Property</th><th>Default</th><th>Meaning</th></tr></thead>
         <tr><td>Finish Mode</td><td class="num">Complete</td><td>Complete / Fail / Abort. Changing it recolours and retitles the node</td></tr>
@@ -429,6 +662,17 @@ footer {
       </table></div>
       <div class="call note"><span class="lbl">Why the menu only lists one</span>
         <p>There is no separate "Fail Flow" entry to add &mdash; change <strong>Finish Mode</strong> on a placed node instead.</p>
+      </div>
+      <p>A flow can also end without ever reaching one: when the last live branch runs out of wired outputs the instance completes on its own and logs that it hit a dead end. A Finish node is how you end a run <em>deliberately</em>, and the only way to end one as a failure.</p>
+      <div class="ex"><span class="lbl">Example &mdash; a pass / fail terminal</span>
+        <pre class="wire">[Branch  graded?]
+    Case 0  "Pass"  Score Threshold &#8805; 60
+        &#9654; [Task  Log "Scenario complete"]
+          &#9654; [Complete Flow   Stop Other Branches &#10003;]
+    Default
+        &#9654; [Task  Log "Scenario failed - see the debrief"]
+          &#9654; [Fail Flow       Stop Other Branches &#10003;]</pre>
+        <p>With <em>Stop Other Branches</em> on, a monitoring branch still watching a gauge somewhere in the graph is torn down cleanly instead of ticking on past the end of the run.</p>
       </div>
     </section>
 
