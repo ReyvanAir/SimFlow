@@ -25,6 +25,7 @@ DECLARE_DYNAMIC_MULTICAST_DELEGATE_TwoParams(FSimFlowTaskSignature, USimFlowNode
 DECLARE_DYNAMIC_MULTICAST_DELEGATE_ThreeParams(FSimFlowTaskResultSignature, USimFlowNode_Task*, Node, USimFlowTask*, Task, ESimFlowResult, Result);
 DECLARE_DYNAMIC_MULTICAST_DELEGATE_OneParam(FSimFlowCheckpointSignature, USimFlowNode_Checkpoint*, Checkpoint);
 DECLARE_DYNAMIC_MULTICAST_DELEGATE_OneParam(FSimFlowQuizSignature, USimFlowTask_Quiz*, Quiz);
+DECLARE_DYNAMIC_MULTICAST_DELEGATE_OneParam(FSimFlowMistakeSignature, const FSimFlowMistake&, Mistake);
 
 /**
  * A running copy of a USimFlowAsset.
@@ -53,6 +54,7 @@ public:
 	UPROPERTY(BlueprintAssignable, Category = "SimFlow") FSimFlowCheckpointSignature	OnCheckpointReached;
 	UPROPERTY(BlueprintAssignable, Category = "SimFlow") FSimFlowQuizSignature		OnQuizPresented;
 	UPROPERTY(BlueprintAssignable, Category = "SimFlow") FSimFlowEventSignature		OnEventRaised;
+	UPROPERTY(BlueprintAssignable, Category = "SimFlow") FSimFlowMistakeSignature	OnMistakeRecorded;
 
 	// -------------------------------------------------------------- Lifecycle
 
@@ -103,6 +105,31 @@ public:
 
 	UFUNCTION(BlueprintCallable, Category = "SimFlow")
 	void ClearRaisedEvents();
+
+	// ------------------------------------------------------------- Mistakes
+
+	/**
+	 * Logs something the trainee got wrong.
+	 *
+	 * Also bumps the "Mistakes" blackboard key, so conditions written against that
+	 * counter keep working - the array is the richer record a debrief screen needs.
+	 */
+	UFUNCTION(BlueprintCallable, Category = "SimFlow|Mistakes")
+	void RecordMistake(FGameplayTag Kind, UObject* Involved, const FText& Description,
+		ESimFlowMatchQuality Severity = ESimFlowMatchQuality::NoMatch, FName TaskId = NAME_None);
+
+	UFUNCTION(BlueprintPure, Category = "SimFlow|Mistakes")
+	const TArray<FSimFlowMistake>& GetMistakes() const { return Mistakes; }
+
+	UFUNCTION(BlueprintPure, Category = "SimFlow|Mistakes")
+	int32 GetMistakeCount() const { return Mistakes.Num(); }
+
+	/** Mistakes of one kind, e.g. everything tagged SimFlow.Mistake.WrongItem. */
+	UFUNCTION(BlueprintPure, Category = "SimFlow|Mistakes")
+	TArray<FSimFlowMistake> GetMistakesOfKind(FGameplayTag Kind, bool bMatchChildTags = true) const;
+
+	UFUNCTION(BlueprintCallable, Category = "SimFlow|Mistakes")
+	void ClearMistakes();
 
 	// ---------------------------------------------------------- Save & load
 
@@ -206,6 +233,9 @@ private:
 
 	UPROPERTY(Transient)
 	TSet<FGuid> CompletedTaskNodes;
+
+	UPROPERTY(Transient)
+	TArray<FSimFlowMistake> Mistakes;
 
 	TMap<FGuid, TObjectPtr<USimFlowNode>> NodeLookup;
 	TArray<FPendingActivation> PendingActivations;

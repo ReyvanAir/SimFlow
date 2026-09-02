@@ -121,6 +121,19 @@ public:
 	UFUNCTION(BlueprintPure, Category = "SimFlow|Task")
 	FText GetDisplayNameText() const;
 
+	/** Logs something the trainee got wrong against this task. */
+	UFUNCTION(BlueprintCallable, Category = "SimFlow|Task")
+	void RecordMistake(FGameplayTag Kind, UObject* Involved, const FText& Description,
+		ESimFlowMatchQuality Severity = ESimFlowMatchQuality::NoMatch);
+
+	/**
+	 * Shared handling for "the right event arrived carrying the wrong object".
+	 * Returns true when the policy ended the task, so callers can stop early.
+	 */
+	UFUNCTION(BlueprintCallable, Category = "SimFlow|Task")
+	bool ApplyMismatchPolicy(ESimFlowMismatchPolicy Policy, FGameplayTag MistakeKind, UObject* Involved,
+		const FText& Description, ESimFlowMatchQuality Severity);
+
 	// ------------------------------------------------------------ Blueprint hooks
 
 	/** Called when the task becomes active. Do your setup here. */

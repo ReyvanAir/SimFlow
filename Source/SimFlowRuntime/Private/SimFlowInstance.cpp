@@ -1,6 +1,8 @@
 // Copyright SimFlow. All Rights Reserved.
 
 #include "SimFlowInstance.h"
+#include "SimFlowIdentity.h"
+#include "SimFlowGameplayTags.h"
 #include "SimFlowAsset.h"
 #include "SimFlowNode.h"
 #include "SimFlowNodes.h"
@@ -81,6 +83,7 @@ bool USimFlowInstance::StartInstance(FName EntryName)
 	PendingActivations.Reset();
 	CompletedTaskNodes.Reset();
 	RaisedEvents.Reset();
+	Mistakes.Reset();
 	ElapsedTime = 0.f;
 	LastTaskResult = ESimFlowResult::Succeeded;
 	LastCheckpointGuid.Invalidate();
@@ -424,6 +427,72 @@ void USimFlowInstance::ClearRaisedEvents()
 
 // ---------------------------------------------------------------- Save/load
 
+
+// ------------------------------------------------------------------- Mistakes
+
+void USimFlowInstance::RecordMistake(FGameplayTag Kind, UObject* Involved, const FText& Description,
+	ESimFlowMatchQuality Severity, FName TaskId)
+{
+	FSimFlowMistake Mistake;
+	Mistake.Kind = Kind.IsValid() ? Kind : SimFlowTags::Mistake;
+	Mistake.Involved = Involved;
+	Mistake.Description = Description;
+	Mistake.Severity = Severity;
+	Mistake.TimeSeconds = ElapsedTime;
+	Mistake.TaskId = TaskId;
+
+	// Capture the name now: the pointer is dropped when the flow is saved.
+	if (const AActor* AsActor = Cast<AActor>(Involved))
+	{
+		Mistake.InvolvedName = USimFlowIdentityStatics::GetIdentityDisplayName(AsActor).ToString();
+	}
+	else if (Involved)
+	{
+		Mistake.InvolvedName = Involved->GetName();
+	}
+
+	Mistakes.Add(Mistake);
+
+	// Keep the legacy counter in step so existing conditions still work.
+	if (Blackboard)
+	{
+		Blackboard->AddToValue(SimFlowKeys::Mistakes, FSimFlowValue::MakeInt(1));
+	}
+
+	UE_LOG(LogSimFlow, Verbose, TEXT("Mistake recorded: %s (%s)"),
+		*Mistake.Description.ToString(), *Mistake.Kind.ToString());
+
+	OnMistakeRecorded.Broadcast(Mistake);
+}
+
+TArray<FSimFlowMistake> USimFlowInstance::GetMistakesOfKind(FGameplayTag Kind, bool bMatchChildTags) const
+{
+	TArray<FSimFlowMistake> Out;
+	if (!Kind.IsValid())
+	{
+		return Out;
+	}
+
+	for (const FSimFlowMistake& Mistake : Mistakes)
+	{
+		const bool bMatches = bMatchChildTags ? Mistake.Kind.MatchesTag(Kind) : (Mistake.Kind == Kind);
+		if (bMatches)
+		{
+			Out.Add(Mistake);
+		}
+	}
+	return Out;
+}
+
+void USimFlowInstance::ClearMistakes()
+{
+	Mistakes.Reset();
+	if (Blackboard)
+	{
+		Blackboard->SetInt(SimFlowKeys::Mistakes, 0);
+	}
+}
+
 FSimFlowSaveState USimFlowInstance::SaveInstanceState() const
 {
 	FSimFlowSaveState State;
@@ -451,6 +520,12 @@ FSimFlowSaveState USimFlowInstance::SaveInstanceState() const
 	for (const FGameplayTag& Tag : RaisedEvents)
 	{
 		State.RaisedEvents.Add(Tag.GetTagName());
+	}
+
+	State.Mistakes = Mistakes;
+	for (FSimFlowMistake& Mistake : State.Mistakes)
+	{
+		Mistake.StripObjectReferences();
 	}
 
 	for (const TObjectPtr<USimFlowNode>& Node : RuntimeNodes)
@@ -515,6 +590,8 @@ bool USimFlowInstance::LoadInstanceState(const FSimFlowSaveState& State, ESimFlo
 	{
 		Blackboard->FromEntries(State.Blackboard, true);
 	}
+
+	Mistakes = State.Mistakes;
 
 	RunState = ESimFlowRunState::Running;
 	OnFlowStarted.Broadcast();

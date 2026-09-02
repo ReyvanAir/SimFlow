@@ -4,6 +4,7 @@
 
 #include "CoreMinimal.h"
 #include "UObject/ObjectMacros.h"
+#include "GameplayTagContainer.h"
 #include "SimFlowTypes.generated.h"
 
 /** How a flow is kicked off by a USimFlowComponent. */
@@ -96,6 +97,97 @@ enum class ESimFlowLoadMode : uint8
 	ExactState			UMETA(DisplayName = "Exact State"),
 	/** Restore the blackboard, then re-run the flow from the last checkpoint that was passed. */
 	FromLastCheckpoint	UMETA(DisplayName = "From Last Checkpoint")
+};
+
+/**
+ * How well an actor answered a FSimFlowActorQuery.
+ *
+ * The middle value is the point of the enum: a foam extinguisher and a CO2
+ * extinguisher share a parent tag, so putting the CO2 one in the bay is a
+ * different kind of wrong from putting a wrench in it, and the feedback you
+ * give the trainee should say so.
+ */
+UENUM(BlueprintType)
+enum class ESimFlowMatchQuality : uint8
+{
+	/** Nothing in common with what the task asked for. */
+	NoMatch		UMETA(DisplayName = "No Match"),
+	/** Shares enough leading tag nodes to count as a near miss - right family, wrong item. */
+	Related		UMETA(DisplayName = "Related (Near Miss)"),
+	/** Satisfies the query outright. */
+	Exact		UMETA(DisplayName = "Exact Match")
+};
+
+/** What a task does when the right event arrives carrying the wrong object. */
+UENUM(BlueprintType)
+enum class ESimFlowMismatchPolicy : uint8
+{
+	/** Silently keep waiting. The wrong object is simply not the one we want. */
+	Ignore			UMETA(DisplayName = "Ignore (Keep Waiting)"),
+	/** Record a mistake and keep waiting, so the trainee can correct themselves. */
+	CountMistake	UMETA(DisplayName = "Count Mistake (Keep Waiting)"),
+	/** Record a mistake and fail the task, driving the node's Failed pin. */
+	FailTask		UMETA(DisplayName = "Count Mistake And Fail Task")
+};
+
+/** What an Ordered Sequence task does when the trainee acts out of turn. */
+UENUM(BlueprintType)
+enum class ESimFlowOutOfOrderPolicy : uint8
+{
+	/** Ignore anything that is not the expected step. */
+	Ignore			UMETA(DisplayName = "Ignore"),
+	/** Record a mistake but stay on the current step. */
+	CountMistake	UMETA(DisplayName = "Count Mistake (Stay On Step)"),
+	/** Record a mistake and send the trainee back to step one. */
+	RestartSequence	UMETA(DisplayName = "Count Mistake And Restart"),
+	/** Record a mistake and fail the task. */
+	FailTask		UMETA(DisplayName = "Count Mistake And Fail Task")
+};
+
+/**
+ * One thing the trainee got wrong.
+ *
+ * Recorded on the running instance rather than the blackboard, because a
+ * debrief needs the whole list with timings - not just a counter. Survives
+ * save/load; the hard object pointer does not, which is what InvolvedName is for.
+ */
+USTRUCT(BlueprintType)
+struct SIMFLOWRUNTIME_API FSimFlowMistake
+{
+	GENERATED_BODY()
+
+	/** TaskId of the task that was running, when it had one set. */
+	UPROPERTY(BlueprintReadWrite, Category = "SimFlow|Mistake")
+	FName TaskId = NAME_None;
+
+	/** What kind of mistake it was, e.g. SimFlow.Mistake.WrongItem. */
+	UPROPERTY(BlueprintReadWrite, Category = "SimFlow|Mistake")
+	FGameplayTag Kind;
+
+	/** Ready-to-show sentence, e.g. "Placed CO2 Extinguisher - expected Foam Extinguisher". */
+	UPROPERTY(BlueprintReadWrite, Category = "SimFlow|Mistake")
+	FText Description;
+
+	/** How wrong it was. Related means the trainee had the right idea. */
+	UPROPERTY(BlueprintReadWrite, Category = "SimFlow|Mistake")
+	ESimFlowMatchQuality Severity = ESimFlowMatchQuality::NoMatch;
+
+	/** The offending object. Runtime only - cleared when the flow is saved. */
+	UPROPERTY(BlueprintReadWrite, Category = "SimFlow|Mistake")
+	TObjectPtr<UObject> Involved = nullptr;
+
+	/** Display name of Involved, captured at record time so it survives a save. */
+	UPROPERTY(BlueprintReadWrite, Category = "SimFlow|Mistake")
+	FString InvolvedName;
+
+	/** Seconds into the run. */
+	UPROPERTY(BlueprintReadWrite, Category = "SimFlow|Mistake")
+	float TimeSeconds = 0.f;
+
+	FSimFlowMistake() = default;
+
+	/** Drops the hard object reference. Called before serialising into a SaveGame. */
+	void StripObjectReferences() { Involved = nullptr; }
 };
 
 /**
@@ -263,4 +355,8 @@ namespace SimFlowKeys
 	SIMFLOWRUNTIME_API extern const FName LastResult;
 	SIMFLOWRUNTIME_API extern const FName LastAnswerIndex;
 	SIMFLOWRUNTIME_API extern const FName LastAnswerCorrect;
+	/** Incremented every time a task rejects the wrong object. */
+	SIMFLOWRUNTIME_API extern const FName WrongAttempts;
+	/** Index of the step an Ordered Sequence task is currently waiting on. */
+	SIMFLOWRUNTIME_API extern const FName CurrentStep;
 }

@@ -1,6 +1,8 @@
 // Copyright SimFlow. All Rights Reserved.
 
 #include "SimFlowTasks.h"
+#include "SimFlowZone.h"
+#include "SimFlowGameplayTags.h"
 #include "SimFlowInstance.h"
 #include "SimFlowBlackboard.h"
 #include "SimFlowCondition.h"
@@ -98,10 +100,19 @@ void USimFlowTask_WaitForEvent::NativeTaskStart()
 		return;
 	}
 
-	if (bAcceptAlreadyRaised && FlowInstance && FlowInstance->WasEventRaised(EventTag))
+	// A past event kept only its tag, so there is no payload left to check against.
+	// Honouring bAcceptAlreadyRaised here would let the wrong object satisfy the task.
+	if (bAcceptAlreadyRaised && !ExpectedPayload.IsSet() && FlowInstance && FlowInstance->WasEventRaised(EventTag))
 	{
 		FinishTask(ESimFlowResult::Succeeded);
 		return;
+	}
+
+	if (bAcceptAlreadyRaised && ExpectedPayload.IsSet())
+	{
+		UE_LOG(LogSimFlow, Verbose,
+			TEXT("WaitForEvent '%s': bAcceptAlreadyRaised ignored because an expected payload is set."),
+			*GetDisplayNameText().ToString());
 	}
 
 	if (FlowInstance)
@@ -118,7 +129,7 @@ void USimFlowTask_WaitForEvent::NativeTaskEnd(ESimFlowResult /*Result*/)
 	}
 }
 
-void USimFlowTask_WaitForEvent::HandleEvent(FGameplayTag Tag, UObject* /*Payload*/)
+void USimFlowTask_WaitForEvent::HandleEvent(FGameplayTag Tag, UObject* Payload)
 {
 	if (!bIsRunning || bIsPaused)
 	{
@@ -126,10 +137,37 @@ void USimFlowTask_WaitForEvent::HandleEvent(FGameplayTag Tag, UObject* /*Payload
 	}
 
 	const bool bMatches = bMatchChildTags ? Tag.MatchesTag(EventTag) : (Tag == EventTag);
-	if (bMatches)
+	if (!bMatches)
 	{
-		FinishTask(ESimFlowResult::Succeeded);
+		return;
 	}
+
+	if (ExpectedPayload.IsSet())
+	{
+		const ESimFlowMatchQuality Quality = ExpectedPayload.MatchObject(Payload, FlowInstance);
+		if (Quality != ESimFlowMatchQuality::Exact)
+		{
+			OnPayloadRejected.Broadcast(Payload, Quality);
+
+			const FText Description = FText::Format(
+				LOCTEXT("WrongTargetMistake", "Interacted with {0} - expected {1}"),
+				USimFlowIdentityStatics::GetIdentityDisplayName(Cast<AActor>(Payload)),
+				ExpectedPayload.Describe());
+
+			ApplyMismatchPolicy(MismatchPolicy, SimFlowTags::Mistake_WrongTarget, Payload, Description, Quality);
+			return;
+		}
+	}
+
+	if (!PayloadToBlackboardKey.IsNone() && Payload)
+	{
+		if (USimFlowBlackboard* Blackboard = GetBlackboard())
+		{
+			Blackboard->SetObject(PayloadToBlackboardKey, Payload);
+		}
+	}
+
+	FinishTask(ESimFlowResult::Succeeded);
 }
 
 // ---------------------------------------------------------- WaitForCondition
@@ -291,10 +329,16 @@ void USimFlowTask_Quiz::SubmitAnswer(int32 OptionIndex)
 		{
 			Blackboard->SetInt(AnswerBlackboardKey, OptionIndex);
 		}
-		if (!bCorrect && bCountMistakes)
-		{
-			Blackboard->AddToValue(SimFlowKeys::Mistakes, FSimFlowValue::MakeInt(1));
-		}
+	}
+
+	if (!bCorrect && bCountMistakes)
+	{
+		// RecordMistake bumps the Mistakes key itself, so the quiz lands in the same
+		// debrief list as a wrong item or an out-of-order step.
+		RecordMistake(SimFlowTags::Mistake_WrongAnswer, this,
+			FText::Format(LOCTEXT("WrongAnswerMistake", "Answered option {0} - expected option {1}"),
+				FText::AsNumber(OptionIndex + 1), FText::AsNumber(CorrectOptionIndex + 1)),
+			ESimFlowMatchQuality::Related);
 	}
 
 	OnQuizAnswered.Broadcast(OptionIndex, bCorrect);
@@ -414,6 +458,295 @@ void USimFlowTask_ParallelGroup::HandleChildFinished(ESimFlowResult Result)
 	{
 		const bool bFailed = bAnyChildFailed && bFailIfAnyChildFails;
 		FinishTask(bFailed ? ESimFlowResult::Failed : ESimFlowResult::Succeeded);
+	}
+}
+
+// -------------------------------------------------------------- PlaceObject
+
+USimFlowTask_PlaceObject::USimFlowTask_PlaceObject()
+{
+	DisplayName = LOCTEXT("PlaceObjectName", "Place Object In Zone");
+}
+
+void USimFlowTask_PlaceObject::NativeTaskStart()
+{
+	ReportedWrongItems.Reset();
+
+	ResolvedZone = Cast<ASimFlowZone>(Zone.Resolve(FlowInstance));
+	if (!ResolvedZone)
+	{
+		UE_LOG(LogSimFlow, Warning,
+			TEXT("PlaceObject task '%s' could not resolve a SimFlow Zone from its Zone query (%s) - failing."),
+			*GetDisplayNameText().ToString(), *Zone.Describe().ToString());
+		FinishTask(ESimFlowResult::Failed);
+		return;
+	}
+
+	ResolvedZone->OnActorSettled.AddDynamic(this, &USimFlowTask_PlaceObject::HandleZoneSettled);
+	ResolvedZone->OnActorExited.AddDynamic(this, &USimFlowTask_PlaceObject::HandleZoneExited);
+
+	// The right item may already be sitting there before the task started.
+	EvaluateZoneContents();
+}
+
+void USimFlowTask_PlaceObject::NativeTaskEnd(ESimFlowResult /*Result*/)
+{
+	if (ResolvedZone)
+	{
+		ResolvedZone->OnActorSettled.RemoveDynamic(this, &USimFlowTask_PlaceObject::HandleZoneSettled);
+		ResolvedZone->OnActorExited.RemoveDynamic(this, &USimFlowTask_PlaceObject::HandleZoneExited);
+	}
+	ResolvedZone = nullptr;
+	ReportedWrongItems.Reset();
+}
+
+ESimFlowMatchQuality USimFlowTask_PlaceObject::JudgeItem(const AActor* Actor) const
+{
+	if (!Actor)
+	{
+		return ESimFlowMatchQuality::NoMatch;
+	}
+
+	// An explicit rejection always wins, so the one plausible-looking decoy can be
+	// called out even when it would otherwise pass the accepted-items query.
+	if (RejectedItems.IsSet() && RejectedItems.MatchActor(Actor, FlowInstance) == ESimFlowMatchQuality::Exact)
+	{
+		return ESimFlowMatchQuality::Related;
+	}
+
+	return AcceptedItems.MatchActor(Actor, FlowInstance);
+}
+
+int32 USimFlowTask_PlaceObject::GetAcceptedCount() const
+{
+	if (!ResolvedZone)
+	{
+		return 0;
+	}
+
+	const TArray<AActor*> Candidates = bRequireSettled
+		? ResolvedZone->GetSettledActors()
+		: ResolvedZone->GetContainedActors();
+
+	int32 Count = 0;
+	for (const AActor* Actor : Candidates)
+	{
+		if (JudgeItem(Actor) == ESimFlowMatchQuality::Exact)
+		{
+			++Count;
+		}
+	}
+	return Count;
+}
+
+void USimFlowTask_PlaceObject::HandleZoneSettled(ASimFlowZone* /*InZone*/, AActor* Actor)
+{
+	if (!bIsRunning || bIsPaused || !Actor)
+	{
+		return;
+	}
+
+	const ESimFlowMatchQuality Quality = JudgeItem(Actor);
+
+	if (Quality == ESimFlowMatchQuality::Exact)
+	{
+		if (!PlacedItemBlackboardKey.IsNone())
+		{
+			if (USimFlowBlackboard* Blackboard = GetBlackboard())
+			{
+				Blackboard->SetObject(PlacedItemBlackboardKey, Actor);
+			}
+		}
+
+		OnCorrectItemPlaced.Broadcast(Actor, GetAcceptedCount());
+		EvaluateZoneContents();
+		return;
+	}
+
+	// Wrong thing. Report it once per item unless the author asked for every attempt.
+	if (bReportEachWrongItemOnce && ReportedWrongItems.Contains(Actor))
+	{
+		return;
+	}
+	ReportedWrongItems.Add(Actor);
+
+	OnWrongItemPlaced.Broadcast(Actor, Quality);
+
+	const FText Description = FText::Format(
+		LOCTEXT("WrongItemMistake", "Placed {0} in {1} - expected {2}"),
+		USimFlowIdentityStatics::GetIdentityDisplayName(Actor),
+		ResolvedZone ? ResolvedZone->GetDisplayNameText() : LOCTEXT("TheZone", "the zone"),
+		AcceptedItems.Describe());
+
+	ApplyMismatchPolicy(WrongItemPolicy, SimFlowTags::Mistake_WrongItem, Actor, Description, Quality);
+}
+
+void USimFlowTask_PlaceObject::HandleZoneExited(ASimFlowZone* /*InZone*/, AActor* Actor)
+{
+	if (!bIsRunning || bIsPaused)
+	{
+		return;
+	}
+
+	// Taking a wrong item back out lets the trainee be told about it again.
+	ReportedWrongItems.Remove(Actor);
+}
+
+void USimFlowTask_PlaceObject::EvaluateZoneContents()
+{
+	if (!bIsRunning || bIsPaused)
+	{
+		return;
+	}
+
+	if (GetAcceptedCount() >= FMath::Max(1, RequiredCount))
+	{
+		FinishTask(ESimFlowResult::Succeeded);
+	}
+}
+
+// ----------------------------------------------------------- OrderedSequence
+
+USimFlowTask_OrderedSequence::USimFlowTask_OrderedSequence()
+{
+	DisplayName = LOCTEXT("OrderedSequenceName", "Ordered Sequence");
+}
+
+void USimFlowTask_OrderedSequence::NativeTaskStart()
+{
+	if (Steps.Num() == 0)
+	{
+		UE_LOG(LogSimFlow, Warning, TEXT("Ordered Sequence task has no steps - finishing immediately."));
+		FinishTask(ESimFlowResult::Succeeded);
+		return;
+	}
+
+	if (!EventTag.IsValid())
+	{
+		UE_LOG(LogSimFlow, Warning, TEXT("Ordered Sequence task has no event tag set - failing."));
+		FinishTask(ESimFlowResult::Failed);
+		return;
+	}
+
+	SetCurrentStep(0);
+
+	if (FlowInstance)
+	{
+		FlowInstance->OnEventRaised.AddDynamic(this, &USimFlowTask_OrderedSequence::HandleEvent);
+	}
+}
+
+void USimFlowTask_OrderedSequence::NativeTaskEnd(ESimFlowResult /*Result*/)
+{
+	if (FlowInstance)
+	{
+		FlowInstance->OnEventRaised.RemoveDynamic(this, &USimFlowTask_OrderedSequence::HandleEvent);
+	}
+}
+
+void USimFlowTask_OrderedSequence::SetCurrentStep(int32 NewStep)
+{
+	CurrentStep = NewStep;
+
+	if (USimFlowBlackboard* Blackboard = GetBlackboard())
+	{
+		Blackboard->SetInt(SimFlowKeys::CurrentStep, CurrentStep);
+
+		if (!StepBlackboardKey.IsNone())
+		{
+			Blackboard->SetInt(StepBlackboardKey, CurrentStep);
+		}
+	}
+}
+
+FText USimFlowTask_OrderedSequence::GetCurrentStepInstruction() const
+{
+	return Steps.IsValidIndex(CurrentStep) ? Steps[CurrentStep].Instruction : FText::GetEmpty();
+}
+
+void USimFlowTask_OrderedSequence::HandleEvent(FGameplayTag Tag, UObject* Payload)
+{
+	if (!bIsRunning || bIsPaused || !Steps.IsValidIndex(CurrentStep))
+	{
+		return;
+	}
+
+	const bool bTagMatches = bMatchChildTags ? Tag.MatchesTag(EventTag) : (Tag == EventTag);
+	if (!bTagMatches)
+	{
+		return;
+	}
+
+	// The step we are actually waiting for.
+	if (Steps[CurrentStep].Target.MatchObject(Payload, FlowInstance) == ESimFlowMatchQuality::Exact)
+	{
+		OnStepCompleted.Broadcast(CurrentStep, Cast<AActor>(Payload));
+
+		const int32 NextStep = CurrentStep + 1;
+		SetCurrentStep(NextStep);
+
+		if (NextStep >= Steps.Num())
+		{
+			FinishTask(ESimFlowResult::Succeeded);
+		}
+		return;
+	}
+
+	// Not the expected step. Is it one of the other steps, or something unrelated?
+	bool bBelongsToSequence = false;
+	for (int32 Index = 0; Index < Steps.Num(); ++Index)
+	{
+		if (Index != CurrentStep && Steps[Index].Target.MatchObject(Payload, FlowInstance) == ESimFlowMatchQuality::Exact)
+		{
+			bBelongsToSequence = true;
+			break;
+		}
+	}
+
+	if (!bBelongsToSequence && !bUnlistedInputIsMistake)
+	{
+		return;
+	}
+
+	if (OutOfOrderPolicy == ESimFlowOutOfOrderPolicy::Ignore)
+	{
+		return;
+	}
+
+	OnWrongInput.Broadcast(Payload, CurrentStep);
+
+	const FText Description = FText::Format(
+		LOCTEXT("WrongOrderMistake", "Step {0}: used {1} - expected {2}"),
+		FText::AsNumber(CurrentStep + 1),
+		USimFlowIdentityStatics::GetIdentityDisplayName(Cast<AActor>(Payload)),
+		Steps[CurrentStep].Target.Describe());
+
+	// A step of the procedure done at the wrong moment is a near miss; a prop that
+	// was never part of it at all is not.
+	const ESimFlowMatchQuality Severity = bBelongsToSequence
+		? ESimFlowMatchQuality::Related
+		: ESimFlowMatchQuality::NoMatch;
+
+	RecordMistake(SimFlowTags::Mistake_WrongOrder, Payload, Description, Severity);
+
+	if (USimFlowBlackboard* Blackboard = GetBlackboard())
+	{
+		Blackboard->AddToValue(SimFlowKeys::WrongAttempts, FSimFlowValue::MakeInt(1));
+	}
+
+	switch (OutOfOrderPolicy)
+	{
+	case ESimFlowOutOfOrderPolicy::RestartSequence:
+		SetCurrentStep(0);
+		break;
+
+	case ESimFlowOutOfOrderPolicy::FailTask:
+		FinishTask(ESimFlowResult::Failed);
+		break;
+
+	default:
+		// CountMistake: stay where we are and let them try again.
+		break;
 	}
 }
 
