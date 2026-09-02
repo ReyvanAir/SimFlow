@@ -250,7 +250,7 @@ footer {
   <div class="masthead-inner">
     <div class="brand">
       <h1>SimFlow Documentation</h1>
-      <span class="version">v1.1.2 &middot; UE 5.6</span>
+      <span class="version">v1.1.3 &middot; UE 5.6</span>
     </div>
     <p class="tagline">A modular, data-driven task and flow framework for VR simulations, tutorials and procedural gameplay. Author procedures as node graphs; run them from a component; drive your UI from what they report.</p>
     <div class="topbar">
@@ -731,6 +731,9 @@ footer {
       <div class="call note"><span class="lbl">Accept Already Raised and payloads</span>
         <p>When <strong>Expected Payload</strong> is set, <strong>Accept Already Raised</strong> is ignored and a verbose line is logged. A past event kept only its tag, so there is no object left to check &mdash; honouring the flag would let the wrong one satisfy the task.</p>
       </div>
+      <div class="call warn"><span class="lbl">A widget cannot be a payload</span>
+        <p><code>self</code> in a UMG graph is a <code>UUserWidget</code> &mdash; neither an Actor nor an Actor Component &mdash; so a query finds no actor behind it and always scores <code>No Match</code>. Broadcast from the owning actor instead. Since 1.1.3 the log names the offending class rather than leaving you with a task that never completes.</p>
+      </div>
 
       <h3>Wait For Condition</h3>
       <p>Blocks until a condition becomes true. For continuous checks &mdash; "the valve is past 90 degrees", "the player is holding the drill".</p>
@@ -852,12 +855,14 @@ footer {
       <div class="tbl"><table>
         <thead><tr><th>Delegate</th><th>Fires when</th></tr></thead>
         <tr><td>On Actor Entered</td><td>overlap begins &mdash; may still be in the trainee's hand</td></tr>
-        <tr><td>On Actor Settled</td><td>detached, slower than <em>Settle Speed Threshold</em>, still for <em>Settle Time</em></td></tr>
+        <tr><td>On Actor Settled</td><td>not held, slower than <em>Settle Speed Threshold</em>, still for <em>Settle Time</em></td></tr>
         <tr><td>On Actor Exited</td><td>overlap ends</td></tr>
       </table></div>
       <p>Pick the item back up and its settle timer restarts. <em>Broadcast Flow Events</em> additionally raises <code>SimFlow.Event.Placed</code> / <code>.Removed</code> with the actor as payload, so a plain Wait For Event task can use a zone too.</p>
-      <div class="call warn"><span class="lbl">Two setup gotchas</span>
-        <p>The zone only sees items whose collision responds to <code>OverlapAllDynamic</code>. And &ldquo;still held&rdquo; is detected with <code>GetAttachParentActor()</code> &mdash; if your grab system does not reparent the actor, turn <strong>Require Detached</strong> off and rely on the speed threshold instead.</p>
+      <div class="call warn"><span class="lbl">Tell the zone when an item is held <span class="version">1.1.3</span></span>
+        <p>On grab, call <strong>SimFlow Identity &rarr; Set Held (true)</strong>; on release, <code>false</code>. Two nodes, and placement becomes exact.</p>
+        <p>Without them a zone can only infer release from <code>GetAttachParentActor()</code>, which is wrong for any grab system that holds objects with a physics constraint rather than reparenting them. VRExpansion is one: of its twelve <code>EGripCollisionType</code> values only <code>AttachmentGrip</code> uses native attachment, so a gripped item looks detached from outside and a trainee can hold it steady over the zone and pass the step without letting go.</p>
+        <p>The other thing to check: a zone only sees items whose collision responds to <code>OverlapAllDynamic</code>. An item set to <code>NoCollision</code> is invisible to it however correct its tags are.</p>
       </div>
 
       <h3>Mistakes and debrief</h3>
@@ -1519,6 +1524,8 @@ SimFlow.CreateSample   build the sample flow asset (editor)</code></pre>
       <h2>Versions</h2>
       <div class="tbl"><table>
         <thead><tr><th>Version</th><th>Notes</th></tr></thead>
+        <tr><td>1.1.3</td><td>Items report their own held state (<code>Set Held</code> / <code>Is Held</code>) so a zone no longer infers release from attachment &mdash; which was wrong for constraint-based grab systems including VRExpansion's default grip. A payload that is neither an Actor nor an Actor Component now logs a warning instead of failing silently. <code>.uplugin</code> Version 6.</td></tr>
+        <tr><td>1.1.2</td><td>Object recognition: <code>USimFlowIdentityComponent</code>, <code>FSimFlowActorQuery</code> and match grading; <code>ASimFlowZone</code>; the <em>Place Object In Zone</em> and <em>Ordered Sequence</em> tasks; a first-class mistake record. <em>Wait For Event</em> stopped discarding the event payload. <code>.uplugin</code> Version 5.</td></tr>
         <tr><td>1.1.0</td><td>Adds optional server-authoritative multiplayer replication (<code>bReplicateFlow</code>, <code>USimFlowPlayerComponent</code>, <code>FSimFlowNetState</code>). <code>.uplugin</code> FileVersion 3 / Version 4, EngineVersion 5.6.0.</td></tr>
         <tr><td>1.0.x</td><td>Single-player: node graph authoring, sequential &amp; parallel tasks, conditions, branching, pause/resume, retry/skip/fail, save/load, sub-flows.</td></tr>
       </table></div>
@@ -1529,7 +1536,7 @@ SimFlow.CreateSample   build the sample flow asset (editor)</code></pre>
 </div>
 
 <footer>
-  SimFlow v1.1.0 &middot; Unreal Engine 5.6 &middot; generated documentation. See <code>Plugins/SimFlow/README.md</code> and <code>Plugins/SimFlow/docs/Cheatsheet.md</code> for the source Markdown.
+  SimFlow v1.1.3 &middot; Unreal Engine 5.6 &middot; generated documentation. See <code>Plugins/SimFlow/README.md</code> and <code>Plugins/SimFlow/docs/Cheatsheet.md</code> for the source Markdown.
 </footer>
 
 <script>
