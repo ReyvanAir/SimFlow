@@ -33,9 +33,20 @@ FText USimFlowIdentityComponent::GetDisplayNameText() const
 	return LOCTEXT("UnknownObject", "Unknown Object");
 }
 
+void USimFlowIdentityComponent::SetHeld(bool bInIsHeld)
+{
+	bIsHeld = bInIsHeld;
+}
+
 USimFlowIdentityComponent* USimFlowIdentityComponent::FindOn(const AActor* Actor)
 {
 	return Actor ? Actor->FindComponentByClass<USimFlowIdentityComponent>() : nullptr;
+}
+
+bool USimFlowIdentityComponent::IsActorHeld(const AActor* Actor)
+{
+	const USimFlowIdentityComponent* Identity = FindOn(Actor);
+	return Identity && Identity->IsHeld();
 }
 
 // ---------------------------------------------------------------------- Query

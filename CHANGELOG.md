@@ -45,6 +45,9 @@ level reusable across scenarios without editing any Blueprint.
 - Optional `Broadcast Flow Events` raises `SimFlow.Event.Placed` /
   `SimFlow.Event.Removed` with the actor as payload, so a plain Wait For Event
   task can use a zone too.
+- `Set Held` / `Is Held` on the identity component. A Zone asks the object whether
+  it is being held before falling back to guessing from attachment. Call
+  `Set Held (true)` where your grab succeeds and `false` on release.
 
 **Tasks**
 
@@ -93,6 +96,12 @@ level reusable across scenarios without editing any Blueprint.
   previously-raised tag without checking the expected payload, since a past event
   retains only its tag. The flag is now ignored (with a verbose log line) when
   `Expected Payload` is set, rather than silently letting the wrong object pass.
+- A Zone could not tell that an item was still in the player's hand under any grab
+  system that holds objects with a physics constraint rather than by reparenting
+  them — which is most of them, VRExpansion's default grip included. `Require
+  Detached` therefore passed, and a trainee holding an item steady above a zone
+  completed the step without ever letting go. Items now report their own held state
+  through `Set Held`, and the Zone checks that before falling back to attachment.
 - A payload that is neither an Actor nor an Actor Component — a `UUserWidget` broadcast
   from a UMG button's `OnClicked` is the usual case — could not match an actor query and
   said nothing about it, so the task simply never completed. It now logs a warning naming
@@ -110,10 +119,12 @@ None of these are regressions; they are the edges of the new features.
 - Tag and class queries resolve via a linear `TActorIterator` scan. This runs at
   task start, not per frame, and is not cached; on very large levels prefer
   `Specific Actor` or a blackboard key for zones.
-- Zone "still held" detection uses `GetAttachParentActor()`. This suits frameworks
-  that reparent a grabbed actor (VRExpansion among them). Frameworks that grab via
-  physics constraints without reparenting should turn `Require Detached` off and
-  rely on `Settle Speed Threshold`.
+- A Zone's fallback "still held" guess is `GetAttachParentActor()`, which only
+  works for frameworks that reparent a grabbed actor. Most do not — of
+  VRExpansion's twelve `EGripCollisionType` values only `AttachmentGrip` uses
+  native attachment, so a gripped object usually looks detached from outside.
+  Call `Set Held` on the item's identity component and the guess is never needed;
+  without it, a trainee can hold an item steady over a zone and pass the step.
 - A mistake's `Involved` object pointer is deliberately stripped when a flow is
   saved. Reloaded runs keep `Involved Name` for display but not a live reference.
 - **Place Object In Zone** requires an `ASimFlowZone`; it will not accept an
