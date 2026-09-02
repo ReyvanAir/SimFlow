@@ -129,7 +129,15 @@ bool ASimFlowZone::IsActorAtRest(const AActor* Actor) const
 		return false;
 	}
 
-	// Still in someone's hand.
+	// Ask the object first. Attachment is only one of the ways a framework can hold
+	// something - VRExpansion holds most grip types with a physics constraint and never
+	// reparents - so an object in the player's hand can look detached from out here.
+	if (USimFlowIdentityComponent::IsActorHeld(Actor))
+	{
+		return false;
+	}
+
+	// Fall back to attachment for objects that never set the flag.
 	if (bRequireDetached && Actor->GetAttachParentActor() != nullptr)
 	{
 		return false;

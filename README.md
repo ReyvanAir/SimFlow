@@ -173,8 +173,14 @@ judging it* — the task does the judging.
 
 A trainee holding an item over the bin has not put it down, so the zone
 distinguishes overlapping from placed: `On Actor Settled` waits until the object
-is detached from the hand, below `Settle Speed Threshold`, and has held still for
+is no longer held, is below `Settle Speed Threshold`, and has held still for
 `Settle Time`. Pick it back up and the timer restarts.
+
+Tell it when an item is held — `SimFlow Identity → Set Held (true)` where your grab
+succeeds, `false` on release. The zone can otherwise only guess from attachment,
+which is wrong for any framework that grips with a physics constraint rather than
+reparenting the actor (VRExpansion's default grip included), and a trainee could
+hold an item steady over the zone and pass without letting go.
 
 The **Place Object In Zone** task ties it together: `Accepted Items`, optional
 `Rejected Items` for the one decoy that looks right, `Required Count`, and a

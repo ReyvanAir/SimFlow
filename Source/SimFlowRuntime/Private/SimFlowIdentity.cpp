@@ -33,9 +33,20 @@ FText USimFlowIdentityComponent::GetDisplayNameText() const
 	return LOCTEXT("UnknownObject", "Unknown Object");
 }
 
+void USimFlowIdentityComponent::SetHeld(bool bInIsHeld)
+{
+	bIsHeld = bInIsHeld;
+}
+
 USimFlowIdentityComponent* USimFlowIdentityComponent::FindOn(const AActor* Actor)
 {
 	return Actor ? Actor->FindComponentByClass<USimFlowIdentityComponent>() : nullptr;
+}
+
+bool USimFlowIdentityComponent::IsActorHeld(const AActor* Actor)
+{
+	const USimFlowIdentityComponent* Identity = FindOn(Actor);
+	return Identity && Identity->IsHeld();
 }
 
 // ---------------------------------------------------------------------- Query
@@ -182,6 +193,22 @@ ESimFlowMatchQuality FSimFlowActorQuery::MatchObject(const UObject* Object, cons
 	{
 		return MatchActor(AsComponent->GetOwner(), Instance);
 	}
+
+	// Anything else has no actor behind it. The common case is a UMG widget graph
+	// broadcasting `self` from a button OnClicked: a UUserWidget is neither an Actor
+	// nor an ActorComponent, so it can never satisfy a query.
+	//
+	// Deliberately not walking GetTypedOuter<AActor>() to find one: a widget made with
+	// CreateWidget(PlayerController, ...) outers to the controller, so that would report
+	// a confident match against the wrong actor. Failing is better than lying.
+	//
+	// Warn rather than fail quietly - a query that silently scores NoMatch every time
+	// looks exactly like a task that mysteriously never completes.
+	UE_LOG(LogSimFlow, Warning,
+		TEXT("Event payload '%s' is a %s, which is neither an Actor nor an ActorComponent, so it cannot ")
+		TEXT("match this query (which asks for %s). If it came from a widget's OnClicked, broadcast from ")
+		TEXT("the owning actor with Payload = self instead of from the widget."),
+		*Object->GetName(), *Object->GetClass()->GetName(), *Describe().ToString());
 
 	return ESimFlowMatchQuality::NoMatch;
 }

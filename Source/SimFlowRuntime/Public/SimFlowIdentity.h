@@ -46,8 +46,32 @@ public:
 	UFUNCTION(BlueprintPure, Category = "SimFlow|Identity")
 	FText GetDisplayNameText() const;
 
+	/**
+	 * True while something is holding this object.
+	 *
+	 * A Zone cannot reliably work this out for itself. Attachment is only one of the
+	 * ways a VR framework can hold an object - VRExpansion, for one, holds most grip
+	 * types with a physics constraint and never reparents the actor - so an object in
+	 * the player's hand can look perfectly detached from the outside.
+	 *
+	 * Set it from wherever your grab succeeds and clear it on release, and placement
+	 * checks become exact regardless of how the grabbing is implemented.
+	 */
+	UFUNCTION(BlueprintCallable, Category = "SimFlow|Identity")
+	void SetHeld(bool bInIsHeld);
+
+	UFUNCTION(BlueprintPure, Category = "SimFlow|Identity")
+	bool IsHeld() const { return bIsHeld; }
+
 	/** Returns the identity component on Actor, or null. */
 	static USimFlowIdentityComponent* FindOn(const AActor* Actor);
+
+	/** True when Actor carries an identity component that is currently flagged held. */
+	static bool IsActorHeld(const AActor* Actor);
+
+private:
+	UPROPERTY(Transient)
+	bool bIsHeld = false;
 };
 
 /**
