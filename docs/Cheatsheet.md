@@ -113,7 +113,7 @@ Drop an ASimFlowZone, size the Box, set its Identity Tags = Zone.PartsBin
 | Delegate | Fires when |
 |---|---|
 | `On Actor Entered` | overlap begins — may still be in the trainee's hand |
-| `On Actor Settled` | detached, slower than `Settle Speed Threshold`, still for `Settle Time` |
+| `On Actor Settled` | not held, slower than `Settle Speed Threshold`, still for `Settle Time` |
 | `On Actor Exited` | overlap ends |
 
 `Place Object In Zone` listens to **Settled** by default (`Require Settled`).
@@ -209,9 +209,11 @@ SimFlow.Debug 0     off
 * `Specific Actor` is a soft pointer resolved without a sync load. An actor in an
   unloaded World Partition cell will not resolve — use tags or a blackboard key
   for streamed content.
-* Zone "still held" detection uses `GetAttachParentActor()`. If your grab system
-  does not reparent the actor, turn `Require Detached` off and rely on
-  `Settle Speed Threshold`.
+* **Tell the Zone when an item is held.** On grab: `SimFlow Identity → Set Held (true)`.
+  On release: `false`. Without it the Zone falls back to `GetAttachParentActor()`, which
+  is wrong for any grab system that uses a physics constraint instead of reparenting —
+  VRExpansion's default grip among them — and a trainee can hold an item over the zone
+  and pass the step without letting go.
 * A zone only sees items whose collision responds to `OverlapAllDynamic`.
 * **A widget cannot be a payload.** `self` in a UMG graph is a `UUserWidget` — neither an
   Actor nor an Actor Component — so any Actor Query scores `No Match` against it and the
