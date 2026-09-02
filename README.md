@@ -1,6 +1,7 @@
 # SimFlow — modular task & flow framework for Unreal Engine 5.6
 
-**v1.1** — adds optional multiplayer replication.
+**v1.1.2** — object recognition: identity tags, zones, ordered procedures and a
+mistake record. See [`CHANGELOG.md`](CHANGELOG.md).
 
 A data-driven system for building VR simulations, tutorials and any gameplay that
 is really a *sequence of things the player has to do*. Author flows in a node
@@ -28,6 +29,11 @@ The Markdown cheat sheet is in [`docs/Cheatsheet.md`](docs/Cheatsheet.md).
 | Save & load | `FSimFlowSaveState` + `USimFlowSaveGame`, exact-state or from-last-checkpoint resume, `Checkpoint` node with auto-save |
 | Modularity | `Sub Flow` node runs another flow asset; tasks and conditions are Blueprint-subclassable |
 | Multiplayer | Optional server-authoritative replication with client mirroring — see *Multiplayer* below |
+| Knowing *which* object | `SimFlow Identity` component + `Actor Query` — "that button" or "any foam extinguisher" |
+| Detecting the **wrong** answer | `Mismatch Policy` on Wait For Event, `Wrong Item Policy` on Place Object, `Out Of Order Policy` on Ordered Sequence |
+| Placement checking | `SimFlow Zone` + `Place Object In Zone` task, with hand-release and settle detection |
+| Ordered procedures | `Ordered Sequence` task — press these five in this order, out-of-order input is a first-class outcome |
+| Debrief / grading | `FSimFlowMistake` list on the instance: what, when, how wrong — persisted in the save |
 
 ---
 
@@ -102,7 +108,8 @@ straightforward linear tutorial stays visually clean.
 are there when you need them.
 
 Built-ins: `Delay`, `Log Message`, `Set Blackboard Value`, `Wait For Event`,
-`Wait For Condition`, `Go To Location`, `Quiz`, `Parallel Group`.
+`Wait For Condition`, `Go To Location`, `Quiz`, `Parallel Group`,
+`Place Object In Zone`, `Ordered Sequence`.
 
 Per-task settings worth knowing: `Display Name` and `Instruction` (what your VR
 panel shows), `bAllowRetry` / `MaxRetries`, `bAllowSkip`, `ScoreOnSuccess` /
@@ -116,11 +123,96 @@ Built-ins: `Blackboard Compare`, `Score Threshold`, `Last Task Result Is`,
 `Elapsed Time`, `Event Was Raised`, `All Of (AND)`, `Any Of (OR)`, `Constant`,
 `Player Near Location`. Every one has a `bInvert` box so you rarely need a NOT.
 
+### Recognising objects
+
+Flows need to name things in the level — *that* button, *a* foam extinguisher —
+and the plugin keeps that separate from what your Blueprints do.
+
+**The rule: Blueprint reports neutral facts, the flow asset decides if they were
+correct.** A button broadcasts that it was pressed and sends itself as the
+payload; it knows nothing about the current exercise. The flow holds the answer.
+Change which button is right by editing one field in the flow asset — no
+Blueprint touched, and the same room works for a dozen different scenarios.
+
+Add a **SimFlow Identity** component to the item Blueprint (not to each level
+instance) and set its `Identity Tags`:
+
+```
+BP_Extinguisher_Foam  →  Item.Extinguisher.Foam
+BP_Extinguisher_CO2   →  Item.Extinguisher.CO2
+BP_Wrench             →  Item.Tool.Wrench
+```
+
+Tasks then refer to objects through an **Actor Query**, which resolves in order:
+
+| Field | Use it for |
+|---|---|
+| `Specific Actor` | "that button" — one placed level actor |
+| `Blackboard Key` | a target chosen at runtime (randomised assignments) |
+| `Required Tags` | "any foam extinguisher" — the only form that covers spawned copies |
+| `Required Class` / `Required Actor Tag` | narrowing, and actors you cannot add a component to |
+
+Because tags nest, one field gives you three levels of strictness —
+`Item.Extinguisher` accepts either extinguisher, `Item.Extinguisher.Foam` only
+one — and it grades *how wrong* a mistake was:
+
+| Player used | vs. `Item.Extinguisher.Foam` | Feedback you can give |
+|---|---|---|
+| `Item.Extinguisher.Foam` | `Exact` | correct |
+| `Item.Extinguisher.CO2` | `Related` | "Right idea — wrong agent for this fire class." |
+| `Item.Tool.Wrench` | `No Match` | "That isn't a fire extinguisher." |
+
+`Min Related Tag Depth` (default 2) sets how many leading tag nodes two tags must
+share to count as a near miss.
+
+### Zones and placement
+
+Drop a **SimFlow Zone** in the level, size the box, and give its identity
+component a tag like `Zone.PartsBin`. The zone reports what is inside *without
+judging it* — the task does the judging.
+
+A trainee holding an item over the bin has not put it down, so the zone
+distinguishes overlapping from placed: `On Actor Settled` waits until the object
+is detached from the hand, below `Settle Speed Threshold`, and has held still for
+`Settle Time`. Pick it back up and the timer restarts.
+
+The **Place Object In Zone** task ties it together: `Accepted Items`, optional
+`Rejected Items` for the one decoy that looks right, `Required Count`, and a
+`Wrong Item Policy` of *Ignore*, *Count Mistake* (keep waiting, let them correct
+themselves) or *Fail Task*. Bind `On Wrong Item Placed` for the buzzer or hint.
+
+### Ordered procedures
+
+**Ordered Sequence** handles "press these five in this order" — startup
+checklists, lockout/tagout, pre-flight. Every candidate broadcasts the same event
+tag with itself as the payload; the task holds the order. `Out Of Order Policy`
+is *Ignore*, *Count Mistake* (stay on the step), *Restart Sequence* (back to step
+one) or *Fail Task*. Doing step 4 when step 2 was expected is recorded as a near
+miss; touching an unrelated prop is ignored unless you set
+`Unlisted Input Is Mistake`.
+
+### Mistakes and debrief
+
+Trainees are graded on what they got wrong, so mistakes are a real record rather
+than a counter. Each `FSimFlowMistake` carries the kind tag, a ready-to-show
+description, the severity, the object involved and the time into the run. They
+live on the instance, survive save/load, and fire `On Mistake Recorded` for an
+instructor dashboard.
+
+```
+Get Mistakes            → the whole list, for a debrief screen
+Get Mistakes Of Kind    → e.g. everything tagged SimFlow.Mistake.WrongItem
+Get Mistake Count       → the quick number
+```
+
+The `Mistakes` blackboard key is still incremented alongside, so conditions you
+have already written keep working.
+
 ### Blackboard
 Per-run key/value store: score, quiz answers, whatever your scenario needs. It is
 what conditions read and what gets serialised into a save. Well-known keys the
 built-ins use: `Score`, `Mistakes`, `LastResult`, `LastAnswerIndex`,
-`LastAnswerCorrect`.
+`LastAnswerCorrect`, `WrongAttempts`, `CurrentStep`.
 
 ### Events
 Gameplay tags are how the world talks to the flow. From a grab component, a
@@ -128,8 +220,15 @@ button, an anim notify — anywhere — call **Broadcast Flow Event** with a tag
 A `Wait For Event` task listening for that tag (or a parent of it) completes.
 
 Native tags shipped with the plugin live in `SimFlowGameplayTags.h`
-(`SimFlow.Event.Grab`, `SimFlow.Event.Interact`, …). Add your own there or in the
-Gameplay Tags project settings.
+(`SimFlow.Event.Grab`, `SimFlow.Event.Interact`, `SimFlow.Event.Placed`,
+`SimFlow.Mistake.WrongItem`, …). Add your own there or in the Gameplay Tags
+project settings.
+
+**Send the object with the tag.** `Broadcast Flow Event` takes a payload — pass
+the actor (or the component; it is unwrapped to its owner). A Wait For Event task
+with an `Expected Payload` query then accepts only the intended sender, which is
+what lets every button in a room share one tag. Leave the query empty and any
+sender satisfies the task, exactly as before 1.1.2.
 
 ---
 
@@ -299,6 +398,7 @@ actually declares.
 ```
 SimFlow/
   SimFlow.uplugin
+  CHANGELOG.md
   Resources/Icon128.png
   Source/
     SimFlowRuntime/            game module — ships in your build
@@ -316,6 +416,8 @@ SimFlow/
         SimFlowStatics          Blueprint helpers
         SimFlowStatusWidget     UMG base class
         SimFlowGameplayTags     native tags
+        SimFlowIdentity         identity component, actor query, match grading
+        SimFlowZone             placement volume with settle detection
     SimFlowEditor/             editor module — stripped from packaged builds
         SimFlowGraph/Schema/GraphNode   the node graph
         SimFlowAssetEditor              the editor window

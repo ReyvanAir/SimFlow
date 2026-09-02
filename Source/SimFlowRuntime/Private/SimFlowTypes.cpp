@@ -21,6 +21,8 @@ namespace SimFlowKeys
 	const FName LastResult(TEXT("LastResult"));
 	const FName LastAnswerIndex(TEXT("LastAnswerIndex"));
 	const FName LastAnswerCorrect(TEXT("LastAnswerCorrect"));
+	const FName WrongAttempts(TEXT("WrongAttempts"));
+	const FName CurrentStep(TEXT("CurrentStep"));
 }
 
 FSimFlowValue FSimFlowValue::MakeBool(bool In)

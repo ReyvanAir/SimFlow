@@ -1,6 +1,7 @@
 // Copyright SimFlow. All Rights Reserved.
 
 #include "SimFlowTask.h"
+#include "SimFlowGameplayTags.h"
 #include "SimFlowInstance.h"
 #include "SimFlowBlackboard.h"
 #include "SimFlowNodes.h"
@@ -128,6 +129,39 @@ void USimFlowTask::FinishTask(ESimFlowResult Result)
 	{
 		OwningNode->HandleTaskFinished(Result);
 	}
+}
+
+void USimFlowTask::RecordMistake(FGameplayTag Kind, UObject* Involved, const FText& Description,
+	ESimFlowMatchQuality Severity)
+{
+	if (FlowInstance)
+	{
+		FlowInstance->RecordMistake(Kind, Involved, Description, Severity, TaskId);
+	}
+}
+
+bool USimFlowTask::ApplyMismatchPolicy(ESimFlowMismatchPolicy Policy, FGameplayTag MistakeKind, UObject* Involved,
+	const FText& Description, ESimFlowMatchQuality Severity)
+{
+	if (Policy == ESimFlowMismatchPolicy::Ignore)
+	{
+		return false;
+	}
+
+	RecordMistake(MistakeKind, Involved, Description, Severity);
+
+	if (USimFlowBlackboard* Blackboard = GetBlackboard())
+	{
+		Blackboard->AddToValue(SimFlowKeys::WrongAttempts, FSimFlowValue::MakeInt(1));
+	}
+
+	if (Policy == ESimFlowMismatchPolicy::FailTask)
+	{
+		FinishTask(ESimFlowResult::Failed);
+		return true;
+	}
+
+	return false;
 }
 
 USimFlowBlackboard* USimFlowTask::GetBlackboard() const

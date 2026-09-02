@@ -250,7 +250,7 @@ footer {
   <div class="masthead-inner">
     <div class="brand">
       <h1>SimFlow Documentation</h1>
-      <span class="version">v1.1.0 &middot; UE 5.6</span>
+      <span class="version">v1.1.2 &middot; UE 5.6</span>
     </div>
     <p class="tagline">A modular, data-driven task and flow framework for VR simulations, tutorials and procedural gameplay. Author procedures as node graphs; run them from a component; drive your UI from what they report.</p>
     <div class="topbar">
@@ -719,9 +719,17 @@ footer {
         <tr><td>Event Tag</td><td class="num">none</td><td>The tag to listen for</td></tr>
         <tr><td>Match Child Tags</td><td class="num">on</td><td>Listening for <code>Sim.Grab</code> also accepts <code>Sim.Grab.Extinguisher</code></td></tr>
         <tr><td>Accept Already Raised</td><td class="num">off</td><td>Succeed at once if the tag fired earlier this run</td></tr>
+        <tr><td>Expected Payload</td><td class="num">empty</td><td>Which object the event has to be about. Empty = any sender will do</td></tr>
+        <tr><td>Mismatch Policy</td><td class="num">Count Mistake</td><td>What happens when the tag is right but the object is not</td></tr>
+        <tr><td>Payload To Blackboard Key</td><td class="num">none</td><td>Store the accepted object here for later tasks</td></tr>
       </table></div>
+      <p><strong>Expected Payload</strong> is what lets ten buttons broadcast the same tag while only the intended one advances the flow. Each button sends itself as the payload and knows nothing about the exercise; the flow asset holds the answer. See <a href="#u-identity">Recognising objects</a>.</p>
+      <p>Bind <strong>On Payload Rejected</strong> for the buzzer or the hint &mdash; it passes the object and the match quality, so a near miss can get different feedback from a random prop.</p>
       <div class="call warn"><span class="lbl">The most common setup mistake</span>
         <p>Leave <strong>Event Tag</strong> unset and the task <em>succeeds instantly</em> &mdash; there is nothing to wait for. A warning appears in the Output Log, and the score is still awarded, so it can look like the step worked.</p>
+      </div>
+      <div class="call note"><span class="lbl">Accept Already Raised and payloads</span>
+        <p>When <strong>Expected Payload</strong> is set, <strong>Accept Already Raised</strong> is ignored and a verbose line is logged. A past event kept only its tag, so there is no object left to check &mdash; honouring the flag would let the wrong one satisfy the task.</p>
       </div>
 
       <h3>Wait For Condition</h3>
@@ -765,6 +773,104 @@ footer {
         <tr><td>Wait For All</td><td class="num">on</td><td>Off = finish as soon as the first child finishes</td></tr>
         <tr><td>Fail If Any Child Fails</td><td class="num">on</td><td></td></tr>
       </table></div>
+
+      <h3>Place Object In Zone <span class="version">1.1.2</span></h3>
+      <p>&ldquo;Put the foam extinguisher in the bay.&rdquo; Watches a <strong>SimFlow Zone</strong> and judges what turns up in it. The zone reports what is there without an opinion; this task holds the opinion, so the same bay can be the right answer in one exercise and a distractor in the next without touching a Blueprint.</p>
+      <div class="tbl"><table>
+        <thead><tr><th>Property</th><th>Default</th><th>Meaning</th></tr></thead>
+        <tr><td>Zone</td><td class="num">empty</td><td>Actor Query for the zone &mdash; usually a tag like <code>Zone.PartsBin</code></td></tr>
+        <tr><td>Accepted Items</td><td class="num">empty</td><td>What belongs there. Tags are the useful form &mdash; they cover spawned copies</td></tr>
+        <tr><td>Rejected Items</td><td class="num">empty</td><td>Explicit wrong answers, for the one decoy that looks right</td></tr>
+        <tr><td>Required Count</td><td class="num">1</td><td>How many accepted items must be in the zone at once</td></tr>
+        <tr><td>Require Settled</td><td class="num">on</td><td>Wait until the item is put down, not merely overlapping</td></tr>
+        <tr><td>Wrong Item Policy</td><td class="num">Count Mistake</td><td>Ignore / Count Mistake (keep waiting) / Fail Task</td></tr>
+        <tr><td>Report Each Wrong Item Once</td><td class="num">on</td><td>Do not re-report the same item every time it settles again</td></tr>
+        <tr><td>Placed Item Blackboard Key</td><td class="num">none</td><td>Stores the last accepted item</td></tr>
+      </table></div>
+      <p>Bind <strong>On Wrong Item Placed</strong> &mdash; it passes the actor and the match quality, so &ldquo;right idea, wrong agent&rdquo; and &ldquo;that is a wrench&rdquo; can say different things. Taking a wrong item back out lets it be reported again.</p>
+      <div class="call warn"><span class="lbl">Needs a real zone</span>
+        <p>The <strong>Zone</strong> query must resolve to an <code>ASimFlowZone</code>. An arbitrary trigger volume will not do; the task fails and logs a warning naming the query it could not resolve.</p>
+      </div>
+
+      <h3>Ordered Sequence <span class="version">1.1.2</span></h3>
+      <p>&ldquo;Press these three buttons, in this order.&rdquo; Every candidate broadcasts the same tag with itself as the payload and knows nothing about the procedure; this task holds the order. Acting out of turn is a first-class outcome rather than something you notice by accident.</p>
+      <div class="tbl"><table>
+        <thead><tr><th>Property</th><th>Default</th><th>Meaning</th></tr></thead>
+        <tr><td>Event Tag</td><td class="num">none</td><td>What every candidate raises, e.g. <code>SimFlow.Event.ButtonPressed</code></td></tr>
+        <tr><td>Match Child Tags</td><td class="num">on</td><td>As Wait For Event</td></tr>
+        <tr><td>Steps</td><td class="num">empty</td><td>The expected order. Each step has a <em>Target</em> query and <em>Instruction</em> text</td></tr>
+        <tr><td>Out Of Order Policy</td><td class="num">Count Mistake</td><td>Ignore / Count Mistake (stay on step) / Restart Sequence / Fail Task</td></tr>
+        <tr><td>Unlisted Input Is Mistake</td><td class="num">off</td><td>Treat props that are not part of the sequence as errors too</td></tr>
+        <tr><td>Step Blackboard Key</td><td class="num">none</td><td>Publishes the current step index for a progress widget</td></tr>
+      </table></div>
+      <p>Doing step 4 when step 2 was expected is recorded at <code>Related</code> severity &mdash; it is part of the procedure, just early. An unrelated prop is <code>No Match</code>, and is ignored entirely unless <strong>Unlisted Input Is Mistake</strong> is on. <strong>Get Current Step Instruction</strong> feeds your tutorial panel.</p>
+    </section>
+
+    <section class="chunk" id="u-identity">
+      <h2>Recognising objects</h2>
+      <p>Flows need to name things in the level &mdash; <em>that</em> button, <em>a</em> foam extinguisher. Before 1.1.2 there was nowhere to put that, so the check ended up hardcoded in Blueprint.</p>
+      <div class="call note"><span class="lbl">The rule</span>
+        <p><strong>Blueprint reports neutral facts; the flow asset decides whether they were correct.</strong> A button broadcasts that it was pressed and sends itself as the payload &mdash; it never learns which exercise is running. Change which button is right by editing one field in the flow asset. The same room then serves a dozen scenarios, and nothing rots when you author the second one.</p>
+      </div>
+
+      <h3>The identity component</h3>
+      <p>Add <strong>SimFlow Identity</strong> to the item Blueprint &mdash; not to each level instance &mdash; and set its tags. Every placed and spawned copy carries them.</p>
+      <div class="tbl"><table>
+        <thead><tr><th>Blueprint</th><th>Identity Tags</th></tr></thead>
+        <tr><td><code>BP_Extinguisher_Foam</code></td><td><code>Item.Extinguisher.Foam</code></td></tr>
+        <tr><td><code>BP_Extinguisher_CO2</code></td><td><code>Item.Extinguisher.CO2</code></td></tr>
+        <tr><td><code>BP_Wrench</code></td><td><code>Item.Tool.Wrench</code></td></tr>
+      </table></div>
+      <p>Gameplay tags rather than <code>AActor::Tags</code> on purpose: they are validated at author time, they autocomplete, and they nest &mdash; which is what makes the next part possible. Actors already tagged for GAS work too; the lookup falls back to <code>IGameplayTagAssetInterface</code>.</p>
+
+      <h3>Actor Query</h3>
+      <p>Every new task refers to objects through this struct. Fill in one field; it resolves in order.</p>
+      <div class="tbl"><table>
+        <thead><tr><th>Field</th><th>Use it for</th></tr></thead>
+        <tr><td>Specific Actor</td><td>&ldquo;that button&rdquo; &mdash; one placed level actor</td></tr>
+        <tr><td>Blackboard Key</td><td>a target chosen at runtime, e.g. a randomised assignment</td></tr>
+        <tr><td>Required Tags</td><td>&ldquo;any foam extinguisher&rdquo; &mdash; the only form that covers spawned copies</td></tr>
+        <tr><td>Required Class / Required Actor Tag</td><td>narrowing, and actors you cannot add a component to</td></tr>
+      </table></div>
+
+      <h3>How wrong was it?</h3>
+      <p>Because tags nest, one field gives three levels of strictness &mdash; <code>Item.Extinguisher</code> accepts either extinguisher, <code>Item.Extinguisher.Foam</code> only one. More usefully, a failed match is still graded:</p>
+      <div class="tbl"><table>
+        <thead><tr><th>Player used</th><th>vs. <code>Item.Extinguisher.Foam</code></th><th>Feedback you can give</th></tr></thead>
+        <tr><td><code>Item.Extinguisher.Foam</code></td><td>Exact</td><td>correct</td></tr>
+        <tr><td><code>Item.Extinguisher.CO2</code></td><td>Related</td><td>&ldquo;Right idea &mdash; wrong agent for this fire class.&rdquo;</td></tr>
+        <tr><td><code>Item.Tool.Wrench</code></td><td>No Match</td><td>&ldquo;That isn't a fire extinguisher.&rdquo;</td></tr>
+      </table></div>
+      <p><strong>Min Related Tag Depth</strong> (default 2) sets how many leading tag nodes two tags must share to count as a near miss. A boolean match cannot express this, which is why the whole layer is built on tags.</p>
+      <div class="call warn"><span class="lbl">Streamed levels</span>
+        <p><strong>Specific Actor</strong> is a soft pointer resolved without a synchronous load. An actor in an unloaded World Partition cell or streaming sublevel will not resolve &mdash; use identity tags or a blackboard key for streamed content.</p>
+      </div>
+
+      <h3>Zones</h3>
+      <p>Drop an <strong>ASimFlowZone</strong>, size the box, and give its identity component a tag like <code>Zone.PartsBin</code>. It reports what is inside without judging it. It carries the same identity component as items rather than its own tagging scheme &mdash; one mechanism for everything a flow can name.</p>
+      <p>A trainee holding an item over the bin has not put it down, so overlapping and placed are different events:</p>
+      <div class="tbl"><table>
+        <thead><tr><th>Delegate</th><th>Fires when</th></tr></thead>
+        <tr><td>On Actor Entered</td><td>overlap begins &mdash; may still be in the trainee's hand</td></tr>
+        <tr><td>On Actor Settled</td><td>detached, slower than <em>Settle Speed Threshold</em>, still for <em>Settle Time</em></td></tr>
+        <tr><td>On Actor Exited</td><td>overlap ends</td></tr>
+      </table></div>
+      <p>Pick the item back up and its settle timer restarts. <em>Broadcast Flow Events</em> additionally raises <code>SimFlow.Event.Placed</code> / <code>.Removed</code> with the actor as payload, so a plain Wait For Event task can use a zone too.</p>
+      <div class="call warn"><span class="lbl">Two setup gotchas</span>
+        <p>The zone only sees items whose collision responds to <code>OverlapAllDynamic</code>. And &ldquo;still held&rdquo; is detected with <code>GetAttachParentActor()</code> &mdash; if your grab system does not reparent the actor, turn <strong>Require Detached</strong> off and rely on the speed threshold instead.</p>
+      </div>
+
+      <h3>Mistakes and debrief</h3>
+      <p>Trainees are graded on what they got wrong, so a mistake is a record rather than a counter. Each one carries the kind tag, a ready-to-show description, the severity, the object involved and the time into the run.</p>
+      <div class="tbl"><table>
+        <thead><tr><th>Call</th><th>Gives you</th></tr></thead>
+        <tr><td>Get Mistakes</td><td>the whole list, for a debrief screen</td></tr>
+        <tr><td>Get Mistakes Of Kind</td><td>a filter, e.g. everything tagged <code>SimFlow.Mistake.WrongItem</code></td></tr>
+        <tr><td>Get Mistake Count</td><td>the quick number</td></tr>
+        <tr><td>On Mistake Recorded</td><td>a live delegate for an instructor HUD</td></tr>
+      </table></div>
+      <p>Mistakes are cleared by <strong>Start Instance</strong> and saved with the flow &mdash; minus the live object pointer, which is why each entry also stores the name it had when recorded. The <code>Mistakes</code> blackboard key is still incremented alongside, so conditions you have already written are unaffected.</p>
+      <p>In your own Blueprint task, call <strong>Record Mistake</strong>, or <strong>Apply Mismatch Policy</strong> to get the same Ignore / Count / Fail handling the built-ins use.</p>
     </section>
 
     <section class="chunk" id="u-conditions">

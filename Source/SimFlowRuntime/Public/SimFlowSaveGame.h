@@ -44,6 +44,10 @@ struct SIMFLOWRUNTIME_API FSimFlowSaveState
 	UPROPERTY(BlueprintReadWrite, Category = "SimFlow|Save")
 	TArray<FName> RaisedEvents;
 
+	/** Everything the trainee got wrong, for a debrief that survives a reload. */
+	UPROPERTY(BlueprintReadWrite, Category = "SimFlow|Save")
+	TArray<FSimFlowMistake> Mistakes;
+
 	UPROPERTY(BlueprintReadWrite, Category = "SimFlow|Save")
 	FDateTime SavedAt = FDateTime(0);
 
