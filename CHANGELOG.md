@@ -93,6 +93,12 @@ level reusable across scenarios without editing any Blueprint.
   previously-raised tag without checking the expected payload, since a past event
   retains only its tag. The flag is now ignored (with a verbose log line) when
   `Expected Payload` is set, rather than silently letting the wrong object pass.
+- A payload that is neither an Actor nor an Actor Component — a `UUserWidget` broadcast
+  from a UMG button's `OnClicked` is the usual case — could not match an actor query and
+  said nothing about it, so the task simply never completed. It now logs a warning naming
+  the payload's class and what the query wanted. The match still fails, deliberately:
+  resolving a widget through `GetTypedOuter<AActor>()` would report a confident match
+  against the owning PlayerController, which is worse than failing.
 
 ### Known limitations
 
