@@ -2,6 +2,48 @@
 
 All notable changes to SimFlow. Versions follow the plugin's `VersionName`.
 
+## 1.1.3
+
+Two fixes found while writing a VRExpansion build guide against 1.1.2. Both are
+about the plugin failing quietly: in each case the flow looked broken rather than
+misconfigured, which is the worst way for a framework to be wrong.
+
+### Added
+
+- `Set Held` / `Is Held` on `USimFlowIdentityComponent`. Call `Set Held (true)`
+  wherever your grab succeeds and `false` on release, and a Zone knows an item is
+  in the player's hand instead of having to infer it.
+
+### Fixed
+
+- **A Zone could not tell that an item was still held.** It inferred release from
+  `GetAttachParentActor()`, which only works for grab systems that reparent the
+  actor. Most do not — of VRExpansion's twelve `EGripCollisionType` values only
+  `AttachmentGrip` uses native attachment; the default
+  `InteractiveCollisionWithPhysics` holds the object with a physics constraint and
+  never reparents it. A gripped item therefore looked detached, so a trainee could
+  hold it steady above the workbench and complete **Place Object In Zone** without
+  letting go — the exact hole `Require Detached` was added to close.
+  `ASimFlowZone::IsActorAtRest` now asks the object first and only falls back to
+  attachment. The flag lives on the identity component rather than being sniffed
+  from a VR plugin, so the runtime still depends on nothing about how grabbing is
+  implemented.
+- **A payload with no actor behind it failed silently.** `FSimFlowActorQuery::MatchObject`
+  scored `No Match` and said nothing, so the task simply never completed. The usual
+  cause is a UMG button broadcasting `self`: a `UUserWidget` is neither an Actor nor
+  an Actor Component. It now logs a warning naming the payload's class and what the
+  query wanted. The match still fails on purpose — resolving a widget through
+  `GetTypedOuter<AActor>()` finds the owning PlayerController for anything made with
+  `CreateWidget(OwningPlayer, ...)`, and a confident match against the wrong actor is
+  worse than no match at all.
+
+### Note for 1.1.2 users
+
+Nothing breaks. `Set Held` is optional — omit it and Zones behave exactly as they
+did on 1.1.2. Add the two nodes if your grab system doesn't reparent the actor,
+which you can check quickly: if a held item never trips a Zone's `Require Detached`,
+it doesn't.
+
 ## 1.1.2
 
 The object-recognition release. Before this, SimFlow could tell you a trainee
@@ -45,9 +87,6 @@ level reusable across scenarios without editing any Blueprint.
 - Optional `Broadcast Flow Events` raises `SimFlow.Event.Placed` /
   `SimFlow.Event.Removed` with the actor as payload, so a plain Wait For Event
   task can use a zone too.
-- `Set Held` / `Is Held` on the identity component. A Zone asks the object whether
-  it is being held before falling back to guessing from attachment. Call
-  `Set Held (true)` where your grab succeeds and `false` on release.
 
 **Tasks**
 
@@ -96,18 +135,6 @@ level reusable across scenarios without editing any Blueprint.
   previously-raised tag without checking the expected payload, since a past event
   retains only its tag. The flag is now ignored (with a verbose log line) when
   `Expected Payload` is set, rather than silently letting the wrong object pass.
-- A Zone could not tell that an item was still in the player's hand under any grab
-  system that holds objects with a physics constraint rather than by reparenting
-  them — which is most of them, VRExpansion's default grip included. `Require
-  Detached` therefore passed, and a trainee holding an item steady above a zone
-  completed the step without ever letting go. Items now report their own held state
-  through `Set Held`, and the Zone checks that before falling back to attachment.
-- A payload that is neither an Actor nor an Actor Component — a `UUserWidget` broadcast
-  from a UMG button's `OnClicked` is the usual case — could not match an actor query and
-  said nothing about it, so the task simply never completed. It now logs a warning naming
-  the payload's class and what the query wanted. The match still fails, deliberately:
-  resolving a widget through `GetTypedOuter<AActor>()` would report a confident match
-  against the owning PlayerController, which is worse than failing.
 
 ### Known limitations
 
@@ -119,12 +146,10 @@ None of these are regressions; they are the edges of the new features.
 - Tag and class queries resolve via a linear `TActorIterator` scan. This runs at
   task start, not per frame, and is not cached; on very large levels prefer
   `Specific Actor` or a blackboard key for zones.
-- A Zone's fallback "still held" guess is `GetAttachParentActor()`, which only
-  works for frameworks that reparent a grabbed actor. Most do not — of
-  VRExpansion's twelve `EGripCollisionType` values only `AttachmentGrip` uses
-  native attachment, so a gripped object usually looks detached from outside.
-  Call `Set Held` on the item's identity component and the guess is never needed;
-  without it, a trainee can hold an item steady over a zone and pass the step.
+- Zone "still held" detection uses `GetAttachParentActor()`. This suits frameworks
+  that reparent a grabbed actor. Frameworks that grab via physics constraints
+  without reparenting cannot be detected, so an item held steady over a zone will
+  settle — fixed in 1.1.3.
 - A mistake's `Involved` object pointer is deliberately stripped when a flow is
   saved. Reloaded runs keep `Involved Name` for display but not a live reference.
 - **Place Object In Zone** requires an `ASimFlowZone`; it will not accept an
