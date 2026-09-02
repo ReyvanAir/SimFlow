@@ -213,3 +213,7 @@ SimFlow.Debug 0     off
   does not reparent the actor, turn `Require Detached` off and rely on
   `Settle Speed Threshold`.
 * A zone only sees items whose collision responds to `OverlapAllDynamic`.
+* **A widget cannot be a payload.** `self` in a UMG graph is a `UUserWidget` — neither an
+  Actor nor an Actor Component — so any Actor Query scores `No Match` against it and the
+  task never completes. Broadcast from the owning actor instead. The log names the
+  offending class when this happens.
