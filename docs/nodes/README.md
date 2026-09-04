@@ -1,17 +1,11 @@
-# Node Reference
+# Node reference
 
-A **node** is a box in the flow graph. Nodes control *where execution goes*.
-A [task](../tasks/README.md) is the *work* that happens inside a
-[Task node](task.md).
+A node is a box in the flow graph. Nodes control where execution goes; a
+[task](../tasks/README.md) is the work that happens inside a [Task node](task.md).
 
-Add nodes by **right-clicking in the graph**. The menu is grouped by the categories
-below.
+Right-click in the graph to add one. The menu is grouped by the categories below.
 
----
-
-## All nodes
-
-### Flow Control
+## Flow Control
 
 | Node | Purpose |
 |---|---|
@@ -24,84 +18,70 @@ below.
 | [Loop](loop.md) | Repeats a section of the graph. |
 | [Finish](finish.md) | Ends the whole flow with a result. |
 
-### Tasks
+## Tasks
 
 | Node | Purpose |
 |---|---|
-| [Task](task.md) | Runs a single [task](../tasks/README.md). **The node designers use most.** |
+| [Task](task.md) | Runs a single [task](../tasks/README.md). The one you'll place most. |
 
-### Composition
+## Composition
 
 | Node | Purpose |
 |---|---|
 | [Sub Flow](sub-flow.md) | Runs another flow asset as a child. This is what makes flows modular. |
 
-### Persistence
+## Persistence
 
 | Node | Purpose |
 |---|---|
 | [Checkpoint](checkpoint.md) | Marks a safe resume point, and can auto-save. |
 
-### Data
+## Data
 
 | Node | Purpose |
 |---|---|
 | [Set Blackboard Value](set-blackboard.md) | Writes a [blackboard](../blackboard.md) key inline in the graph. |
 
----
+## What every node has in common
 
-## Concepts common to every node
+Execution arrives at an input pin and leaves through an output pin. Most nodes have
+a single `In` and a single `Out`; the interesting ones have more.
 
-### Pins
+An output pin with nothing wired to it ends that line of execution. That isn't an
+error — a flow can legitimately have branches that stop — which is why a misrouted
+pin fails quietly instead of loudly. When a section of your flow never runs, an
+unwired pin is the first thing to check.
 
-Execution arrives at an **input pin** and leaves through an **output pin**. Most
-nodes have a single `In` and a single `Out`; the interesting ones have more.
+Every node also carries a **Node Comment**, a free-form multi-line string drawn on
+the node in the graph. It's purely for whoever reads the asset next.
 
-An output pin with **nothing wired to it** ends that line of execution. This is not
-an error — a flow can legitimately have branches that simply stop — which is why a
-misrouted pin fails silently rather than loudly. When a section of your flow never
-runs, an unwired pin is the first thing to check.
+The lifecycle is short. Execution arrives at an input pin and calls `Execute Input`.
+The node may then stay active, ticking every frame — Task, Delay and Sub Flow all
+do. Eventually it pushes execution out through an output pin, which normally
+deactivates it.
 
-### The field every node has
+Nodes are duplicated per running flow, so they can safely hold runtime state and two
+actors can run the same asset independently. It's also why editing an asset mid-play
+changes nothing until you restart; see
+[asset against instance](../glossary.md) in the glossary.
 
-| Field | Type | Default | Meaning |
-|---|---|---|---|
-| **Node Comment** | String (multi-line) | *empty* | A free-form note drawn on the node in the graph. Purely for the author. |
+Most nodes ignore execution arriving while they're already active. **Join** and
+**Loop** are the exceptions, built to be re-entered — which is exactly how a loop
+body returns to its loop node.
 
-### Node lifecycle
+## Node or task?
 
-1. Execution arrives at an input pin → `Execute Input`.
-2. The node may stay **active**, ticking every frame (Task, Delay, Sub Flow).
-3. It pushes execution out through an output pin, which normally deactivates it.
+Several capabilities exist in both forms. There's a Delay node and a Delay task, a
+Set Blackboard node and a Set Blackboard task.
 
-Nodes are **duplicated per running flow**, so they safely hold runtime state and two
-actors can run the same asset independently. That is also why editing an asset
-mid-play changes nothing until you restart — see
-[Glossary · Asset vs. Instance](../glossary.md).
-
-### Re-entrant nodes
-
-Most nodes ignore execution arriving while they are already active. **Join** and
-**Loop** are the exceptions — they are built to be re-entered, which is exactly how
-a loop body returns to its loop node.
-
----
-
-## Choosing between a node and a task
-
-Several capabilities exist in both forms — there is a Delay *node* and a Delay
-*task*, a Set Blackboard *node* and a Set Blackboard *task*.
-
-| Use the **node** when | Use the **task** when |
+| Use the node when | Use the task when |
 |---|---|
-| It is a simple step in the graph | You want the [Task node](task.md)'s timeout, retry or abort handling around it |
+| It's a simple step in the graph | You want the [Task node](task.md)'s timeout, retry or abort handling around it |
 | You want the graph to read clearly | You want it inside a [Parallel Group](../tasks/parallel-group.md) |
-| You do not need a `Failed` pin | You want scoring, an instruction, or a `Task Id` |
+| You don't need a `Failed` pin | You want scoring, an instruction, or a `Task Id` |
 
-The node forms are lighter; the task forms are richer. For a bare pause, the
+The node forms are lighter, the task forms richer. For a bare pause, the
 [Delay node](delay.md) is the better choice.
 
----
-
-*See also: [Task Reference](../tasks/README.md) · [Conditions](../conditions.md) ·
-[Glossary](../glossary.md) · [Documentation index](../README.md)*
+*Next: [Task reference](../tasks/README.md) · [Conditions](../conditions.md) ·
+[Glossary](../glossary.md)*

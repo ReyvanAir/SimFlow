@@ -1,9 +1,7 @@
-# Workflow: Assessment with Debrief
+# Assessment with debrief
 
 **Shows:** [Quiz](../tasks/quiz.md) · [Branch](../nodes/branch.md) on score ·
 [Sub Flow](../nodes/sub-flow.md) · [mistakes](../glossary.md) · a debrief screen
-
----
 
 ## The scenario
 
@@ -13,8 +11,6 @@ everything the trainee got wrong.
 
 This is where the pieces come together: **mistakes are collected across the whole
 run**, not per task, which is exactly what a debrief needs.
-
----
 
 ## 1. Structure
 
@@ -36,8 +32,6 @@ Reusing the drills as [Sub Flows](../nodes/sub-flow.md) is the point — the pra
 exercises are authored once and called from the practice scenario *and* the
 assessment.
 
----
-
 ## 2. Seed the blackboard
 
 Right after [Start](../nodes/start.md), add a
@@ -54,9 +48,7 @@ Right after [Start](../nodes/start.md), add a
 its `Result When Key Missing` setting (default `false`) when a key does not exist.
 Seeding the key means the branch conditions behave predictably on the very first
 evaluation instead of depending on that fallback. See
-[Blackboard](../blackboard.md#behaviour-when-misconfigured).
-
----
+[Blackboard](../blackboard.md#when-it-misbehaves).
 
 ## 3. The sub flows
 
@@ -76,8 +68,6 @@ zero.
 Wire each node's **Completed** onward. Wire **Failed** onward too (to the same
 place) if a failed drill should still reach the debrief rather than ending the run —
 otherwise an unwired `Failed` pin silently ends the assessment.
-
----
 
 ## 4. The quiz
 
@@ -99,8 +89,6 @@ assessment and finds out at the debrief.
 Bind the component's **On Quiz Presented** to build your widget, and call
 **Submit Quiz Answer** on the component from the answer buttons — the component's
 version forwards correctly from clients.
-
----
 
 ## 5. Branch on the result
 
@@ -124,8 +112,6 @@ Condition = **Score Threshold**, Operation `>=`, Threshold `70`.
 > **Order matters.** Distinction is tested first. Reverse the two and everyone
 > scoring 90+ would leave through `Pass`, because it is evaluated first and passes.
 > See [Branch · Order matters](../nodes/branch.md#order-matters).
-
----
 
 ## 6. The debrief
 
@@ -164,8 +150,6 @@ tells an instructor the trainee understood the task and slipped, while a list of
 > saved. `Involved Name` is captured at record time precisely so a debrief survives
 > a save/load. Use the name, not the pointer.
 
----
-
 ## 7. Run it
 
 1. [SimFlow Component](../simflow-component.md) on the Game Mode.
@@ -173,8 +157,6 @@ tells an instructor the trainee understood the task and slipped, while a list of
    **Flow Save Id** = `Assessment`.
 3. `SimFlow.Debug 1` to watch score and blackboard live while you tune the
    thresholds.
-
----
 
 ## Variations
 
@@ -185,8 +167,6 @@ tells an instructor the trainee understood the task and slipped, while a list of
 | Add a time limit to the whole run | [Parallel](../nodes/parallel.md) a [Delay node](../nodes/delay.md) against the assessment, converge with a [Join](../nodes/join.md) in **Wait For Any** mode |
 | Let them resume a long assessment | Add [Checkpoints](../nodes/checkpoint.md) between sections and set the component's `Default Load Mode` to `From Last Checkpoint` |
 | Randomise which drill runs | Replace the two Sub Flow nodes with a [Random Branch](../nodes/random-branch.md) feeding one each |
-
----
 
 ## Troubleshooting this workflow
 
@@ -214,8 +194,5 @@ the name falls back to something like `BP_Extinguisher_C_2`.
 You are reading `Involved` rather than `Involved Name`. Object pointers are stripped
 on save.
 
----
-
-*See also: [Quiz](../tasks/quiz.md) · [Sub Flow](../nodes/sub-flow.md) ·
-[Branch](../nodes/branch.md) · [Blackboard](../blackboard.md) ·
-[Workflows index](README.md)*
+*Next: [Quiz](../tasks/quiz.md) · [Sub Flow](../nodes/sub-flow.md) ·
+[Branch](../nodes/branch.md) · [Blackboard](../blackboard.md)*

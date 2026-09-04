@@ -4,86 +4,65 @@
 **Add via:** right-click → **Flow Control → Random Branch**
 **Pins:** In → Out 0 … Out N
 
----
+Picks one output at random, optionally weighted.
 
-## Overview / Purpose
+Use it to vary a scenario between runs — which fault occurs, which room the task
+happens in, which distractor appears — so repeat trainees can't just memorise the
+sequence.
 
-The Random Branch node **picks one output at random**, optionally weighted.
+## Fields
 
-Use it to vary a scenario between runs: which fault occurs, which room the task
-happens in, which distractor appears. Repeat trainees then cannot simply memorise
-the sequence.
+| Field | Type | Default | Meaning |
+|---|---|---|---|
+| Num Outputs | Int (2–16) | `2` | How many output pins. |
+| Weights | Array of Float | *empty* | Per-output weights. A missing entry counts as 1. |
+| Avoid Repeats | Bool | `false` | Never pick the same output twice running within one run. |
 
----
+Pins are named `Out_0` … `Out_N`, and values outside 2–16 are clamped.
 
-## Field-by-field breakdown
-
-| Field | Type | Default | Required | Meaning |
-|---|---|---|---|---|
-| **Num Outputs** | Int (2–16) | `2` | Yes | How many output pins. |
-| **Weights** | Array of Float | *empty* | No | Per-output weights. **Missing entries count as 1.** |
-| **Avoid Repeats** | Bool | `false` | No | Never pick the same output twice in a row within one run. |
-
-Pins are named `Out_0` … `Out_N`. Values outside 2–16 are clamped.
-
----
+Weights are relative, not percentages. `45/45/10` and `9/9/2` behave identically,
+and they don't need to sum to anything in particular.
 
 ## How the pick is made
 
-1. Each output's weight is taken from `Weights` by index, or **1** if absent.
-   Negative weights are clamped to 0.
-2. If `Avoid Repeats` is on, the previously picked output's weight is forced to 0.
-3. A weighted roll picks one output.
-4. **If the total weight is 0**, the node falls back to an unweighted uniform pick
-   across all outputs.
+Each output's weight comes from `Weights` by index, or 1 if there's no entry;
+negative weights clamp to 0. If `Avoid Repeats` is on, the previously picked
+output's weight is forced to 0. Then a weighted roll picks one.
 
-That last step is a safety net: setting every weight to 0 does not break the node,
-it just makes the choice uniform.
+If the total weight comes to 0, the node falls back to a uniform pick across all
+outputs. That's a deliberate safety net — setting every weight to 0 doesn't break
+the node, it just makes the choice even.
 
----
+A few consequences worth knowing. A weights array shorter than `Num Outputs` applies
+what's listed and defaults the rest to 1; a longer one ignores the extras. A single
+weight of 0 means that output is never picked, unless all of them are 0. And
+`Avoid Repeats` with only two outputs strictly alternates, since there's only ever
+one remaining option.
 
-## Behaviour when left empty or misconfigured
+## Wire every output
 
-| Situation | What happens |
-|---|---|
-| **Weights empty** | Every output weighted 1 — a uniform random pick. The normal case. |
-| **Weights shorter than Num Outputs** | The listed ones apply; the rest default to 1. |
-| **Weights longer than Num Outputs** | Extra entries are ignored. |
-| **A weight of 0** | That output is never picked (unless *all* are 0). |
-| **All weights 0** | Falls back to a uniform pick. |
-| **`Avoid Repeats` on with 2 outputs** | Strictly alternates — it is the only remaining option each time. |
-| **The chosen pin is unwired** | Execution ends there. With random selection this shows up intermittently, which makes it confusing to debug. |
-
-**Wire every output.** An unwired pin on a random branch produces a bug that only
-appears some of the time.
-
----
+An unwired pin ends execution there. On a random branch that produces a bug which
+only shows up some of the time, which is a miserable thing to debug. Wire all of
+them, even the ones you think are unreachable.
 
 ## Avoid Repeats is per-run
 
-The "last picked" memory lives on the node instance, which is created when the flow
-starts. Restarting the flow forgets it, so a fresh run can repeat the previous run's
-choice.
+The "last picked" memory lives on the node instance, created when the flow starts.
+Restarting forgets it, so a fresh run can repeat the previous run's choice. If you
+need it to survive a restart, persist the last choice in the
+[blackboard](../blackboard.md) and gate on it with a [Branch](branch.md).
 
----
+## Three fault scenarios, one rare
 
-## Dependencies
-
-None.
-
----
-
-## Example use case: three fault scenarios, one rare
-
-**Goal:** each run presents one of three faults, with the rare one appearing about a
-tenth of the time.
+Each run presents one of three faults, with the rare one appearing about a tenth of
+the time:
 
 1. Right-click → **Flow Control → Random Branch**.
 2. Set **Num Outputs** to `3`.
 3. Under **Weights**, add three entries: `45`, `45`, `10`.
-4. Tick **Avoid Repeats** so the same fault does not come up twice running.
-5. Wire each output to its scenario, and converge them with a [Join](join.md) if
-   they share an ending.
+4. Tick **Avoid Repeats** so the same fault doesn't come up twice running.
+5. Wire each output to its scenario, converging them with a [Join](join.md) if they
+   share an ending.
 
 ```
                     ┌──────────────────┐
@@ -93,28 +72,14 @@ tenth of the time.
                     └──────────────────┘
 ```
 
-Weights are relative, not percentages — `45/45/10` and `9/9/2` behave identically.
+## If a branch never comes up
 
----
+**One branch never happens.** Its weight is 0, or `Weights` has fewer entries than
+you think and the indexing is off by one. Weights index from 0.
 
-## Common pitfalls
+**The flow sometimes just stops.** An unwired output pin got picked.
 
-**One branch never happens.**
-Its weight is 0, or `Weights` has fewer entries than you thought and the indexing is
-off by one. Weights are indexed from 0.
+**Avoid Repeats didn't prevent a repeat across runs.** It's per-instance and resets
+on restart.
 
-**The flow sometimes just stops.**
-An output pin is unwired and was picked. Wire all of them.
-
-**Avoid Repeats is not preventing a repeat across runs.**
-It is per-instance and resets when the flow restarts. Persist the last choice in the
-[blackboard](../blackboard.md) and use a [Branch](branch.md) if you need it to
-survive a restart.
-
-**Weights are being read as percentages.**
-They are relative weights. They do not need to sum to 100.
-
----
-
-*See also: [Branch node](branch.md) · [Join node](join.md) ·
-[Node Reference](README.md)*
+*Next: [Branch node](branch.md) · [Join node](join.md)*
