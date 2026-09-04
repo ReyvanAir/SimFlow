@@ -4,59 +4,39 @@
 **Add via:** right-click → **Flow Control → Start**
 **Pins:** *(no input)* → Out
 
----
+Execution begins here. Every flow needs at least one Start node, and a new flow
+asset comes with one already placed.
 
-## Overview / Purpose
-
-The Start node is **where execution begins**. Every flow needs at least one, and a
-new flow asset is created with one already in place.
-
-A flow may have **several** Start nodes, each with its own name. That is how one
-asset holds several related scenarios — a full run, a short demo, and a "resume at
-part two" entry — chosen by the [SimFlow Component](../simflow-component.md) at
+You can have more than one. Each carries its own name, which is how a single asset
+holds several related scenarios — the full run, a short demo, a "resume at part
+two" entry. The [SimFlow Component](../simflow-component.md) picks between them at
 runtime.
 
----
+## The one field
 
-## Field-by-field breakdown
+| Field | Type | Default | Meaning |
+|---|---|---|---|
+| Entry Name | Name | `Default` | Pass this to `Start Flow From Entry` to begin here. |
 
-| Field | Type | Default | Required | Meaning |
-|---|---|---|---|---|
-| **Entry Name** | Name | `Default` | Yes | Pass this name to `Start Flow From Entry` to begin here. |
+Names must be distinct. If two Start nodes are both called `Default`, which one
+runs is undefined — the flow will start, but not necessarily where you meant.
 
----
+A blank or `None` name is worse: nothing can address that node, so it never runs
+at all. Same outcome if the component asks for an entry that no Start node
+matches. Both sides default to `Default`, so this only bites after someone renames
+one and forgets the other.
 
-## Behaviour when left empty or misconfigured
+## A demo entry alongside the full run
 
-| Situation | What happens |
-|---|---|
-| **Entry Name is `None` or blank** | No component setting can address it. The flow will not start from this node. |
-| **Two Start nodes share a name** | Ambiguous — which one runs is not defined. Give every entry a distinct name. |
-| **The component's `Entry Name` does not match any Start node** | The flow does not start. **Both default to `Default`**, so this only bites after a rename. |
-| **The flow has no Start node** | Nothing can run. |
-| **`Out` is unwired** | The flow starts and immediately ends. |
-
----
-
-## Dependencies
-
-| Depends on | Why |
-|---|---|
-| [SimFlow Component](../simflow-component.md) | Its `Entry Name` selects which Start node runs |
-
----
-
-## Example use case: a demo entry alongside the full run
-
-**Goal:** one asset that can run the whole 20-minute exercise, or jump to the
-5-minute demo for a trade show.
+Say you want one asset that runs the whole 20-minute exercise, or jumps to a
+5-minute cut for a trade show.
 
 1. Leave the existing Start node's **Entry Name** as `Default` and wire it to the
    full sequence.
 2. Right-click → **Flow Control → Start** to add a second one.
 3. Set its **Entry Name** to `Demo`.
 4. Wire it to the shortened section.
-5. At runtime, call **Start Flow From Entry** with `Demo`, or set the component's
+5. At runtime, call **Start Flow From Entry** with `Demo` — or set the component's
    **Entry Name** to `Demo` before it auto-starts.
 
 ```
@@ -72,23 +52,16 @@ runtime.
 ```
 
 Both entries share the same [blackboard](../blackboard.md) keys and the same
-[Finish](finish.md) nodes — only the path in differs.
+[Finish](finish.md) nodes. Only the way in differs.
 
----
+## If it isn't starting
 
-## Common pitfalls
+Check the component's `Entry Name` against the node's — after a rename they drift
+apart, and the mismatch is silent. If the flow starts and instantly ends instead,
+the `Out` pin isn't wired to anything.
 
-**The flow never starts after renaming an entry.**
-The component's `Entry Name` still says `Default`. They must match exactly.
+Adding a second Start node does not break the first, despite appearances. Two
+nodes sharing a name does.
 
-**Adding a second Start node made the first stop working.**
-It did not — but if both are named `Default`, which one runs is undefined. Rename
-one.
-
-**The flow ends instantly.**
-The `Out` pin is not wired to anything.
-
----
-
-*See also: [Finish node](finish.md) · [SimFlow Component](../simflow-component.md) ·
-[Node Reference](README.md)*
+*Next: [Finish node](finish.md), or the [component](../simflow-component.md) that
+chooses the entry.*

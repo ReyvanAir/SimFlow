@@ -144,7 +144,6 @@ In your own Blueprint task, call **Record Mistake** or **Apply Mismatch Policy**
 | `WrongAttempts` | a task rejecting the wrong object |
 | `CurrentStep` | Ordered Sequence task |
 
-
 ## Multiplayer
 
 ```

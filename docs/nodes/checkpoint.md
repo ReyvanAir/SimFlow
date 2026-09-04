@@ -4,77 +4,50 @@
 **Add via:** right-click → **Persistence → Checkpoint**
 **Pins:** In → Out
 
----
+Marks a safe resume point, and optionally writes a save when execution reaches it.
+Nothing blocks — execution passes straight through.
 
-## Overview / Purpose
+Two things happen when it fires. The component's **On Checkpoint Reached** event
+goes out, so your UI can flash "Progress saved" or advance a stage indicator. And
+the node becomes the anchor for the **From Last Checkpoint** load mode: a flow
+loaded that way re-runs from the last checkpoint the trainee passed instead of
+restoring a half-finished task.
 
-The Checkpoint node **marks a safe resume point**, and can **auto-save** the flow
-when execution reaches it.
+## What it saves
 
-It does two jobs:
+| Field | Type | Default | Meaning |
+|---|---|---|---|
+| Checkpoint Id | Name | `None` | Identifies this checkpoint. Set it. |
+| Auto Save | Bool | `false` | Write to a SaveGame slot the moment this node is reached. |
+| Save Slot Name | String | *empty* | Only shown with Auto Save on. Empty means the component's default slot. |
+| Save User Index | Int | `0` | Only shown with Auto Save on. |
 
-1. It fires the component's **On Checkpoint Reached** event, so your UI can show
-   "Progress saved" or update a stage indicator.
-2. It is the anchor for the **From Last Checkpoint** load mode — a flow loaded that
-   way re-runs from the last checkpoint passed, rather than restoring the exact
-   mid-task state.
+Leaving `Checkpoint Id` at `None` doesn't break anything — the event still fires and
+the save still happens — but your UI can't tell one checkpoint from another, and a
+debrief can't report which stage the trainee got to. It costs nothing to name them.
 
-Execution passes straight through; it never blocks.
+Auto Save on a client does nothing but log; saving is authority-only.
 
----
+## Auto Save writes synchronously
 
-## Field-by-field breakdown
+The SaveGame file is written at the moment the node executes, on the game thread.
+Between stages that's fine. Inside a [Loop](loop.md) body it's a disk write every
+iteration, and it will hitch visibly. Put the checkpoint outside the loop.
 
-| Field | Type | Default | Required | Meaning |
-|---|---|---|---|---|
-| **Checkpoint Id** | Name | `None` | Recommended | Identifies this checkpoint. |
-| **Auto Save** | Bool | `false` | No | Write the flow to a SaveGame slot as soon as this node is reached. |
-| **Save Slot Name** | String | *empty* | No | Only shown when Auto Save is on. **Leave empty to use the component's default slot.** |
-| **Save User Index** | Int | `0` | No | Only shown when Auto Save is on. |
+## Stage boundaries in a long exercise
 
----
+For a 40-minute exercise the trainee can leave and pick up at the stage they
+reached:
 
-## Behaviour when left empty or misconfigured
-
-| Situation | What happens |
-|---|---|
-| **Checkpoint Id is `None`** | The node still fires its event and still auto-saves. But your UI cannot tell checkpoints apart, and a debrief cannot report which stage was reached. **Set it.** |
-| **Save Slot Name empty, Auto Save on** | Uses the component's `Default Save Slot Name`. This is the normal setup. |
-| **Auto Save on, running on a client** | Save is authority-only. On a client it logs and does nothing. |
-| **The flow has no checkpoints, loaded with `From Last Checkpoint`** | There is no checkpoint to resume from, so there is nothing to re-run from. Use `Exact State` instead. |
-
----
-
-## Auto Save cost
-
-Auto-saving writes a SaveGame file synchronously at the moment the node executes.
-Placing checkpoints between stages is fine; placing one inside a
-[Loop](loop.md) body means a disk write **every iteration**, which will hitch. Put
-the checkpoint outside the loop.
-
----
-
-## Dependencies
-
-| Depends on | Why |
-|---|---|
-| [SimFlow Component](../simflow-component.md) | Supplies the default save slot and raises the event |
-
----
-
-## Example use case: stage boundaries in a long exercise
-
-**Goal:** a 40-minute exercise the trainee can leave and resume at the start of the
-stage they reached.
-
-1. On the component, set **Default Save Slot Name** (e.g. `TraineeProgress`) and
-   tick **Auto Resume From Save On Begin Play**.
+1. On the component, set **Default Save Slot Name** (say `TraineeProgress`) and tick
+   **Auto Resume From Save On Begin Play**.
 2. Set **Default Load Mode** to **From Last Checkpoint**.
 3. Between each stage, right-click → **Persistence → Checkpoint**.
-4. Give each a distinct **Checkpoint Id**: `Stage1Complete`, `Stage2Complete`, …
-5. Tick **Auto Save** on each. Leave **Save Slot Name** empty so they all use the
+4. Give each a distinct **Checkpoint Id**: `Stage1Complete`, `Stage2Complete`, and
+   so on.
+5. Tick **Auto Save** on each, leaving **Save Slot Name** empty so they share the
    component's slot.
-6. Bind **On Checkpoint Reached** in your HUD to flash "Progress saved".
+6. Bind **On Checkpoint Reached** in your HUD.
 
 ```
    stage 1 ──▶ ┌────────────────┐ ──▶ stage 2 ──▶ ┌────────────────┐ ──▶ stage 3
@@ -84,31 +57,18 @@ stage they reached.
                └────────────────┘                 └────────────────┘
 ```
 
-Re-launching resumes at the start of the last completed stage. Note that
-**From Last Checkpoint restores the blackboard and re-runs from the checkpoint** —
-it does not restore a half-finished task.
+Re-launching resumes at the start of the last completed stage. Remember what that
+mode actually restores: the blackboard, and the position in the graph. Not a
+half-finished task.
 
----
+## If resuming lands in the wrong place
 
-## Common pitfalls
+Loading that resumes at the very beginning means no checkpoint had been passed yet,
+or the flow has none at all — `From Last Checkpoint` has nothing to anchor to, so
+use `Exact State` instead. Loading that restores a half-finished task instead of the
+stage start is the same setting the other way round.
 
-**Loading resumes at the very beginning.**
-No checkpoint had been passed yet, or the flow has none. `From Last Checkpoint` has
-nothing to anchor to.
+Repeated hitching is an auto-saving checkpoint inside a loop. Nothing saving at all
+in multiplayer is the authority-only rule.
 
-**Loading restores a half-finished task instead of the stage start.**
-The load mode is `Exact State`, not `From Last Checkpoint`.
-
-**The game hitches repeatedly.**
-An auto-saving checkpoint is inside a loop. Move it out.
-
-**Nothing is saved in multiplayer.**
-Save is authority-only.
-
-**The UI cannot tell which checkpoint fired.**
-`Checkpoint Id` is `None` on all of them.
-
----
-
-*See also: [SimFlow Component · Save and load](../simflow-component.md#save-and-load) ·
-[Loop node](loop.md) · [Node Reference](README.md)*
+*Next: [Save and load](../simflow-component.md#save-and-load) · [Loop node](loop.md)*

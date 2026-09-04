@@ -1,9 +1,7 @@
-# Workflow: Valve Startup Procedure
+# Valve startup procedure
 
 **Shows:** [Ordered Sequence](../tasks/ordered-sequence.md) · out-of-order handling ·
 progress UI · [Checkpoints](../nodes/checkpoint.md) · [Loop](../nodes/loop.md)
-
----
 
 ## The scenario
 
@@ -18,8 +16,6 @@ Opening C first is not the same kind of error as turning a random wheel — the
 trainee knows the procedure but not the order. This workflow makes that distinction
 automatically.
 
----
-
 ## 1. Tags
 
 ```
@@ -30,8 +26,6 @@ Control.Panel.Confirm
 ```
 
 `SimFlow.Event.Interact` ships with the plugin.
-
----
 
 ## 2. The valves
 
@@ -54,8 +48,6 @@ Broadcast Flow Event   Event Tag = SimFlow.Event.Interact   Payload = self
 is the design. The same three valves can be used by a dozen different procedures.
 
 Do the same for the confirm button with `Control.Panel.Confirm`.
-
----
 
 ## 3. The flow
 
@@ -113,8 +105,6 @@ procedural error.
 `Ignore` here because by this point any further valve fiddling is not worth
 recording as a mistake.
 
----
-
 ## 4. The progress UI
 
 The task publishes the current step in two ways — use whichever suits your widget:
@@ -133,8 +123,6 @@ For the current prompt, `Get Current Step Instruction` returns the step's own
 `Instruction` text — that is why each step has one, separate from the task's
 overall `Display Name`.
 
----
-
 ## 5. Wrong-order feedback
 
 Bind **On Wrong Input** (Payload, Expected Step Index). The severity is already
@@ -149,8 +137,6 @@ it from whether the payload is one of your valves:
 The task records `SimFlow.Mistake.WrongOrder` with a ready-made description such as
 *"Step 2: used Valve C - expected Control.Valve.B"*, and increments the
 `WrongAttempts` [blackboard](../blackboard.md) key.
-
----
 
 ## 6. Choosing the strictness
 
@@ -167,8 +153,6 @@ The single field that changes the character of this exercise is
 For a graded run, switch to `Count Mistake And Fail Task` and wire the Task node's
 `Failed` pin to a remediation section — then loop back into the sequence to try
 again.
-
----
 
 ## 7. Adding a retry loop
 
@@ -193,8 +177,6 @@ To allow three attempts before failing the whole exercise:
    └──────────────────────────────────────────┘
 ```
 
----
-
 ## Troubleshooting this workflow
 
 **The task fails the moment it starts.**
@@ -216,8 +198,5 @@ The index is 0-based. Add 1.
 Auto-save writes synchronously. That is fine once between stages — just do not put a
 saving checkpoint inside the retry loop.
 
----
-
-*See also: [Ordered Sequence](../tasks/ordered-sequence.md) ·
-[Fire Extinguisher Drill](fire-extinguisher-drill.md) ·
-[Assessment with Debrief](assessment-with-debrief.md) · [Workflows index](README.md)*
+*Next: [Ordered Sequence](../tasks/ordered-sequence.md) ·
+[Assessment with debrief](assessment-with-debrief.md)*

@@ -4,75 +4,36 @@
 **Add via:** right-click → **Flow Control → Finish**
 **Pins:** In → *(no output)*
 
----
+Ends the run and reports a result. It is the counterpart to [Start](start.md), and
+the only node that actually terminates a flow.
 
-## Overview / Purpose
+Use as many as the scenario needs: a success ending, a failure ending, an "aborted
+because the trainee walked out" ending. Each reports its own result to your debrief
+UI.
 
-The Finish node **ends the whole flow** and reports a result. It is the counterpart
-to [Start](start.md), and the only node that terminates a run.
+## The two fields
 
-A flow may have as many Finish nodes as you like — a success ending, a failure
-ending, an "aborted because the trainee left" ending — each reporting a different
-result to your debrief UI.
+| Field | Type | Default | Meaning |
+|---|---|---|---|
+| Finish Mode | Enum | `Complete (Success)` | The result reported for the whole run. |
+| Stop Other Branches | Bool | `true` | Stop any parallel branches still running. Leave it on unless you have a reason. |
 
----
+Finish Mode maps straight onto the final run state — `Complete (Success)` gives
+`Completed`, `Fail` gives `Failed`, `Abort` gives `Aborted`. That state reaches your
+UI through the component's **On Flow Finished** delegate, and you can read it at any
+time with `Get Run State`.
 
-## Field-by-field breakdown
+## Pass and fail endings
 
-| Field | Type | Default | Required | Meaning |
-|---|---|---|---|---|
-| **Finish Mode** | Enum | `Complete (Success)` | Yes | The result reported for the whole run. |
-| **Stop Other Branches** | Bool | `true` | No | Stop any still-running parallel branches. **Almost always what you want.** |
+To report success or failure so a debrief screen shows the right result:
 
-### Finish Mode
-
-| Mode | Final run state |
-|---|---|
-| **Complete (Success)** | `Completed` |
-| **Fail** | `Failed` |
-| **Abort** | `Aborted` |
-
-The final state arrives at your UI through the component's **On Flow Finished**
-delegate, and is readable any time via `Get Run State`.
-
----
-
-## Behaviour when left empty or misconfigured
-
-| Situation | What happens |
-|---|---|
-| **The flow has no Finish node** | The flow runs to the end of its wiring and then simply sits there in the `Running` state. Nothing reports completion. |
-| **`Stop Other Branches` off with branches still running** | The flow reports finished while other branches keep executing. Occasionally useful; usually a bug. |
-| **Several Finish nodes reached at once** | The first one to execute ends the run; with `Stop Other Branches` on, the rest never arrive. |
-
-The missing-Finish case is a common "the flow never ends" report — there is no
-implicit completion when execution runs out of wiring.
-
----
-
-## Dependencies
-
-| Depends on | Why |
-|---|---|
-| Nothing | It only needs execution to reach it |
-
-**Depended on by:** the [SimFlow Component](../simflow-component.md)'s
-`On Flow Finished` delegate and `Get Run State`.
-
----
-
-## Example use case: pass and fail endings
-
-**Goal:** report success or failure so a debrief screen can show the right result.
-
-1. After the final task, add a **Branch** ([Branch](branch.md)).
+1. After the final task, add a [Branch](branch.md).
 2. Give it one case: **Score Threshold**, `>=`, `70`, labelled `Passed`.
-3. Right-click → **Flow Control → Finish**. Set **Finish Mode** to
-   **Complete (Success)**. Wire the `Passed` case to it.
+3. Right-click → **Flow Control → Finish**, set **Finish Mode** to
+   **Complete (Success)**, and wire the `Passed` case into it.
 4. Add a second Finish node with **Finish Mode** = **Fail**. Wire the **Default**
-   pin to it.
-5. In your HUD Blueprint, bind **On Flow Finished** on the component and switch on
-   the final state to show the right debrief.
+   pin to that one.
+5. In your HUD Blueprint, bind **On Flow Finished** and switch on the final state.
 
 ```
                     ┌──────────┐   Passed   ┌────────────────┐
@@ -84,26 +45,28 @@ implicit completion when execution runs out of wiring.
                                             └────────────────┘
 ```
 
-The list of [mistakes](../glossary.md) collected on the instance is still available
-at this point, which is what a debrief reads.
+The [mistake list](../glossary.md) collected on the instance is still intact at this
+point, which is what the debrief reads.
 
----
+## The flow that never ends
 
-## Common pitfalls
+There is no implicit completion in SimFlow. If execution simply runs out of wiring,
+the flow sits in `Running` forever and nothing reports finished. That accounts for
+most "my flow never ends" reports: either no Finish node on the path that actually
+executed, or the pin leading to it was never wired.
 
-**The flow never ends.**
-There is no Finish node on the path that executed, or the pin leading to it is
-unwired. Execution running out of wiring does not complete a flow.
+Two other cases worth recognising:
 
-**The flow ends while a parallel branch is mid-task.**
-That is `Stop Other Branches` doing its job. If you wanted both to complete, join
-them with a [Join](join.md) node set to **Wait For All** before finishing.
+A branch getting cut off mid-task is `Stop Other Branches` working as intended. If
+you wanted both to complete, converge them through a [Join](join.md) in **Wait For
+All** mode before finishing.
 
-**`On Flow Finished` reports Completed when the trainee failed.**
-The Finish node reached had `Finish Mode` left at the default. Add a separate Fail
-node.
+`On Flow Finished` reporting `Completed` when the trainee clearly failed means the
+Finish node they reached still had the default mode on it. Add a separate Fail node
+rather than switching the mode at runtime.
 
----
+When several Finish nodes are reached in the same tick, the first to execute ends
+the run; with `Stop Other Branches` on, the others never arrive.
 
-*See also: [Start node](start.md) · [Join node](join.md) ·
-[SimFlow Component](../simflow-component.md) · [Node Reference](README.md)*
+*Next: [Start node](start.md) · [Join node](join.md) ·
+[SimFlow Component](../simflow-component.md)*

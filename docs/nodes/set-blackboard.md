@@ -4,119 +4,83 @@
 **Add via:** right-click → **Data → Set Blackboard Value**
 **Pins:** In → Out
 
----
+Writes a [blackboard](../blackboard.md) key inline in the graph, with no task object
+involved. Execution passes straight through.
 
-## Overview / Purpose
+Handy for seeding a key before a [Branch](branch.md) reads it, resetting a counter
+between attempts, or recording which path a run took.
 
-Writes a [blackboard](../blackboard.md) key **inline in the graph**, with no task
-object needed. Execution passes straight through.
+## Fields
 
-Use it to seed a key before a [Branch](branch.md) reads it, to reset a counter
-between attempts, or to record which path was taken.
+| Field | Type | Default | Meaning |
+|---|---|---|---|
+| Key | Name | `None` | Which blackboard key to write. |
+| Value | SimFlow Value | Type `None` | Set the **Type** first and the matching value field appears. |
+| Add | Bool | `false` | Add to the existing value instead of replacing it. |
 
----
+Values can be `Bool`, `Int`, `Float`, `String`, `Name`, `Vector` or `Object` — see
+[Blackboard · values and types](../blackboard.md#values-and-types).
 
-## Field-by-field breakdown
+## Set against Add
 
-| Field | Type | Default | Required | Meaning |
-|---|---|---|---|---|
-| **Key** | Name | `None` | **Yes** | Which blackboard key to write. |
-| **Value** | SimFlow Value | Type `None` | **Yes** | Set the **Type** first; the matching value field then appears. |
-| **Add** | Bool | `false` | No | Add to the existing value instead of replacing it. |
+With `Add` off, the write replaces whatever was stored. With it on, numbers add,
+vectors add component-wise, and strings *concatenate*. The key is created if it
+doesn't already exist.
 
-### Value types
+That string behaviour catches people out: adding `"1"` to `"1"` gives you `"11"`,
+not `2`. Use `Int` for counters.
 
-`Bool`, `Int`, `Float`, `String`, `Name`, `Vector`, `Object`. See
-[Blackboard · Values and types](../blackboard.md#values-and-types).
+## Two silent failures
 
----
+Leaving **Key** as `None` still performs the write, under the literal key name
+`None`, with no warning. Leaving **Value Type** as `None` writes an unset value that
+conditions can't usefully compare against. Neither announces itself.
 
-## Set vs. Add
+A key-name typo has the same quiet quality — it produces a condition that's simply
+always false. [Blackboard · when it misbehaves](../blackboard.md#when-it-misbehaves)
+covers the diagnosis.
 
-| Add | Behaviour |
-|---|---|
-| **off** | Replaces whatever was stored. |
-| **on** | Adds to it — numbers add, strings **concatenate**, vectors add component-wise. **Creates the key if it does not exist.** |
-
-`Add` on a String concatenates rather than summing: adding `"1"` to `"1"` gives
-`"11"`. Use `Int` for counters.
-
----
-
-## Behaviour when left empty or misconfigured
-
-| Situation | What happens |
-|---|---|
-| **Key is `None`** | The write still happens, under the literal key name `None`. No warning. Almost never what you meant. |
-| **Value Type is `None`** | An unset value is written. Conditions comparing against it will not behave usefully. |
-| **`Add` on a missing key** | The key is created with the delta as its value. |
-| **`Add` with mismatched types** | Coerced on a best-effort basis rather than failing. |
-| **`Out` unwired** | The write happens, then execution ends there. |
-
-Both of the first two cases are silent. A key-name typo produces a condition that is
-quietly always false — see [Blackboard · pitfalls](../blackboard.md#common-pitfalls).
-
----
+Adding to a missing key creates it with the delta as its value. Adding across
+mismatched types coerces on a best-effort basis rather than failing.
 
 ## Node or task?
 
-There is also a [Set Blackboard Value **task**](../tasks/set-blackboard.md) with
-identical fields.
+There's a [Set Blackboard Value task](../tasks/set-blackboard.md) with identical
+fields. Use the node for a simple write in the graph, which is the usual case and
+keeps the graph readable. Use the task when you want it inside a
+[Parallel Group](../tasks/parallel-group.md), or want scoring or a `Task Id`
+attached to the write.
 
-| Use the **node** | Use the **task** |
-|---|---|
-| A simple write in the graph — **the usual choice** | You want it inside a [Parallel Group](../tasks/parallel-group.md) |
-| You want the graph readable | You want scoring or a `Task Id` attached to the write |
+## Seed a key, then branch on it
 
----
-
-## Dependencies
-
-| Depends on | Why |
-|---|---|
-| [Blackboard](../blackboard.md) | The thing being written |
-
----
-
-## Example use case: seed a key, then branch on it
-
-**Goal:** a [Branch](branch.md) checks `Attempts` at the top of the flow, before
+Suppose a [Branch](branch.md) checks `Attempts` at the top of the flow, before
 anything has written it.
 
 1. Right after [Start](start.md), right-click → **Data → Set Blackboard Value**.
-2. Set **Key** to `Attempts`, **Value → Type** to `Int`, **Int Value** to `0`,
-   **Add** off.
-3. Later, after each failed attempt, add another Set Blackboard Value node with the
-   same key, `Int Value` = `1`, and **Add on**.
-4. The Branch can now compare `Attempts` reliably — the key always exists.
+2. Set **Key** to `Attempts`, **Value → Type** to `Int`, **Int Value** to `0`, and
+   leave **Add** off.
+3. After each failed attempt, add another Set Blackboard Value node with the same
+   key, `Int Value` of `1`, and **Add** on.
+4. The Branch can now compare `Attempts` reliably, because the key always exists.
 
 ```
    Start ──▶ Set "Attempts" = 0 ──▶ … ──▶ Set "Attempts" += 1 ──▶ Branch
 ```
 
-Seeding like this avoids relying on **Blackboard Compare**'s
-`Result When Key Missing` fallback, which is easy to forget about.
+Seeding like this saves you relying on **Blackboard Compare**'s
+`Result When Key Missing` fallback, which is easy to forget is even there.
 
----
+## When it misbehaves
 
-## Common pitfalls
+**A later condition never sees the value.** The key names differ. They're
+case-insensitive, but spelling isn't forgiven. Print the blackboard with
+`SimFlow.Debug 1`.
 
-**A later condition never sees the value.**
-The key names differ. Names are case-insensitive but spelling is not forgiven.
-Print the blackboard with `SimFlow.Debug 1`.
+**A counter reads "111".** The type is `String` with `Add` on, so it concatenated.
+Switch to `Int`.
 
-**A counter jumps to a string like "111".**
-The value type is `String` and `Add` is on, so it concatenated. Switch to `Int`.
+**The value vanished after loading a save.** The type is `Object`, and object
+references are stripped on save.
 
-**The value is gone after loading a save.**
-The type is `Object`. Object references are stripped on save.
-
-**Add did nothing on the first run.**
-It should create the key. If the value looks wrong, check the `Type` — adding an
-`Int` to a key holding a `Float` coerces.
-
----
-
-*See also: [Blackboard](../blackboard.md) ·
-[Set Blackboard Value task](../tasks/set-blackboard.md) ·
-[Branch node](branch.md) · [Node Reference](README.md)*
+*Next: [Blackboard](../blackboard.md) ·
+[Set Blackboard Value task](../tasks/set-blackboard.md) · [Branch node](branch.md)*

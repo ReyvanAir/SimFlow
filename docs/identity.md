@@ -1,174 +1,137 @@
-# Identity System
+# Identity
 
 **Component:** `SimFlow Identity` (`USimFlowIdentityComponent`)
 **Add via:** Add Component → SimFlow Identity
 **Class group:** SimFlow
 
----
+The identity system answers one question: what is this object?
 
-## Overview / Purpose
+Without it a flow can only refer to objects by pointing at a specific actor placed
+in a level, which breaks the moment an object is spawned at runtime, duplicated, or
+swapped for a different variant. Identity replaces "that actor over there" with "any
+foam extinguisher", and that survives all three.
 
-The Identity system answers one question: **what is this object?**
+An identity component carries gameplay tags describing what its actor is. A task
+asks for `Item.Extinguisher` and any foam or CO2 extinguisher answers; ask for
+`Item.Extinguisher.Foam` and only the foam one does.
 
-Without it, a flow can only refer to objects by pointing at a specific actor placed
-in a level. That breaks the moment an object is spawned at runtime, duplicated, or
-swapped for a different variant. Identity replaces "that actor over there" with
-"any foam extinguisher", which survives all three.
+Gameplay tags rather than the actor's own `Tags` array, because gameplay tags are
+validated at author time, they autocomplete in the Details panel, and they nest.
+That nesting is what lets a task tell a near miss — `Item.Extinguisher.CO2` when it
+wanted `Item.Extinguisher.Foam` — apart from something completely wrong like
+`Item.Wrench`. See [match quality](actor-query.md#how-matching-works).
 
-An identity component carries **gameplay tags** describing what its actor *is*.
-A task then asks for `Item.Extinguisher` and any foam or CO2 extinguisher answers,
-or asks for `Item.Extinguisher.Foam` and only the foam one does.
+## What the component holds
 
-**Why gameplay tags rather than the actor's own `Tags` array:** gameplay tags are
-validated at author time, they autocomplete in the Details panel, and — critically —
-they *nest*. That nesting is what lets a task tell a near miss (`Item.Extinguisher.CO2`
-when it wanted `Item.Extinguisher.Foam`) apart from something completely wrong
-(`Item.Wrench`). See [Match quality](actor-query.md#match-quality).
+| Field | Type | Default | Meaning |
+|---|---|---|---|
+| Identity Tags | Gameplay Tag Container | *empty* | What this object is, e.g. `Item.Extinguisher.Foam`. Several tags are fine. |
+| Display Name | Text | *empty* | Shown in mistake text and tutorial UI. Falls back to the actor's name. |
+| Identity Id | Name | `None` | A stable id for your own analytics and script. Nothing in SimFlow reads it. |
 
----
+**Identity Tags** is the load-bearing field; everything else is optional. Leave it
+empty and the actor is still *tracked* by zones — it has an identity component,
+which is what `Require Identity Component` checks — but it can never satisfy a
+tag-based [Actor Query](actor-query.md), because there's nothing to match. An
+identity component with no tags is almost always an oversight.
 
-## Field-by-field breakdown
+Multiple tags are allowed and often useful; an object can be both
+`Item.Extinguisher.Foam` and `Item.Heavy`. How multiple tags are matched is
+controlled by the *query's* `Require All Tags` setting, not by anything here.
 
-| Field | Type | Default | Required | Meaning |
-|---|---|---|---|---|
-| **Identity Tags** | Gameplay Tag Container | *empty* | Effectively yes | What this object is, e.g. `Item.Extinguisher.Foam`. Several tags are fine. |
-| **Display Name** | Text | *empty* | No | Shown in mistake text and tutorial UI. Falls back to the actor's name when empty. |
-| **Identity Id** | Name | `None` | No | A stable id for **your own** analytics and script. **Nothing in SimFlow reads it** — see below. |
+**Display Name** is purely presentational. It shows up in generated mistake
+descriptions — "Placed CO2 Extinguisher in the bay, expected Foam Extinguisher" —
+and anywhere you call `Get Identity Display Name`. Left empty, SimFlow falls back to
+`AActor::GetName()`, which gives you something like `BP_Extinguisher_C_2`. Fine for
+debugging, poor in front of a trainee, so set it on anything a trainee might get
+wrong.
 
-### Identity Tags
+### Identity Id, and what it isn't
 
-The load-bearing field. Everything else on the component is optional.
+`Identity Id` is a free-form Name field that no part of SimFlow reads.
 
-- Leave it **empty** and the actor is still *tracked* by zones (it has an identity
-  component, which is what `Require Identity Component` checks), but it can never
-  satisfy a tag-based [Actor Query](actor-query.md) — it has no tags to match. In
-  practice an identity component with no tags is almost always a mistake.
-- Multiple tags are allowed and are frequently useful: an object can be both
-  `Item.Extinguisher.Foam` and `Item.Heavy`.
-- Matching against multiple tags is controlled by the *query's*
-  `Require All Tags` setting, not by anything on this component.
+It isn't a query field — [Actor Query](actor-query.md) has no `Identity Id` option —
+it isn't written into save data, and no built-in task or condition consults it.
+Setting it has no effect on flow behaviour at all.
 
-### Display Name
-
-Purely presentational. It appears in:
-
-- generated mistake descriptions — *"Placed **CO2 Extinguisher** in the bay —
-  expected Foam Extinguisher"*
-- anything you build that calls `Get Identity Display Name`
-
-When empty, SimFlow falls back to the actor's name (`AActor::GetName()`), which is
-typically something like `BP_Extinguisher_C_2`. That is fine for debugging and poor
-in front of a trainee, so set it on anything a trainee might get wrong.
-
-### Identity Id — read this before using it
-
-`Identity Id` is a free-form Name field that **no part of SimFlow reads**.
-
-It is not a query field ([Actor Query](actor-query.md) has no `Identity Id`
-option), it is not written into save data, and no built-in task or condition
-consults it. Setting it has no effect on flow behaviour whatsoever.
-
-What it is *for*: a stable, human-chosen handle you can read from your own Blueprint
-or C++ — for analytics events, telemetry, external LMS reporting, or addressing a
-specific actor from your own script. Read it directly off the component:
+What it's *for* is a stable, human-chosen handle you read from your own Blueprint or
+C++: analytics events, telemetry, external LMS reporting, addressing a specific
+actor from your own script. Read it straight off the component:
 
 ```
 Get Component By Class (SimFlow Identity) → Identity Id
 ```
 
-**Do not** expect it to make a task find an object. To make an object findable by a
-flow, give it **Identity Tags**.
+To make an object findable by a flow, give it **Identity Tags**. If you want tasks
+to target one specific instance, the supported routes are the query's
+`Specific Actor` field for a placed level actor, or `Blackboard Key` for one chosen
+at runtime — see [which field to use](actor-query.md#which-field-to-use).
 
-> If you want tasks to be able to target one specific instance, the supported ways
-> are the query's `Specific Actor` field (for a placed level actor) or
-> `Blackboard Key` (for one chosen at runtime). See
-> [Actor Query](actor-query.md#which-field-to-use).
+## Held state
 
----
+Two functions on the component, and the part most VR projects need. **Set Held**
+(callable, takes `bIn Is Held`) flags this object as currently held by the trainee.
+**Is Held** (pure) reports whether something is holding it.
 
-## Held state — Set Held / Is Held
+They exist because a [Zone](zones.md) can't reliably work this out for itself.
+Attachment is only one of the ways a VR framework can hold an object — VRExpansion,
+for instance, holds most grip types with a physics constraint and never reparents
+the actor. An object sitting in the trainee's hand can look perfectly detached from
+the outside, and the zone would wrongly judge it as placed.
 
-Two functions on the component, and the part most VR projects need:
+So call `Set Held (true)` from wherever your grab succeeds and `Set Held (false)` on
+release. Placement checks then become exact regardless of how grabbing is
+implemented in your project.
 
-| Function | Type | Purpose |
-|---|---|---|
-| **Set Held** (`bIn Is Held`) | Callable | Flags this object as currently held by the trainee. |
-| **Is Held** | Pure | True while something is holding this object. |
+The flag is transient. It isn't saved and resets to `false` when the game starts,
+which is correct — nothing is being held at load time.
 
-**Why this exists.** A [Zone](zones.md) cannot reliably work out for itself whether
-an object is in someone's hand. Attachment is only *one* of the ways a VR framework
-can hold an object — VRExpansion, for example, holds most grip types with a physics
-constraint and never reparents the actor. So an object sitting in the trainee's hand
-can look perfectly detached from the outside, and a zone would wrongly judge it as
-"placed".
-
-**What to do:** call `Set Held (true)` from wherever your grab succeeds, and
-`Set Held (false)` on release. Placement checks then become exact regardless of how
-grabbing is implemented in your project.
-
-The held flag is **transient** — it is not saved, and it resets to `false` when the
-game starts. That is correct: nothing is being held at load time.
-
-> Held state is checked *before* the attachment fallback. An object flagged held is
-> never at rest, whatever its attachment or velocity says. See
-> [Zones · Settling](zones.md#settling--how-an-object-is-judged-put-down).
-
----
+Held state is checked *before* the attachment fallback, so an object flagged held is
+never at rest whatever its attachment or velocity says. See
+[how an object is judged put down](zones.md#how-an-object-is-judged-put-down).
 
 ## How identities are created
-
-### On the Blueprint, not the level instance
 
 Add the component to the **item Blueprint**, not to each copy you place in the
 level. Every instance you place or spawn then carries the same tags automatically.
 
-1. Open your item Blueprint (e.g. `BP_Extinguisher_Foam`).
+1. Open your item Blueprint, say `BP_Extinguisher_Foam`.
 2. **Add Component → SimFlow Identity**.
-3. Select it, and in the Details panel set **Identity Tags**.
+3. Select it and set **Identity Tags** in the Details panel.
 4. Set **Display Name** to something a trainee would recognise.
 5. Compile and save.
 
-That is the whole setup. There is no registration step, no manifest, and no
-subsystem to notify — tasks and zones discover identity components by looking at
-the actor directly.
-
-### Already using Gameplay Ability System?
+That's the whole setup. There's no registration step, no manifest and no subsystem
+to notify — tasks and zones discover identity components by looking at the actor
+directly.
 
 If your actors already implement `IGameplayTagAssetInterface`, SimFlow reads those
-tags too. `Get Identity Tags` returns the identity component's tags **and** the
-interface's owned tags, appended together. A GAS project therefore does not need a
-second component on every actor — though adding one is still the way to get
-`Display Name` and held state.
+tags too: `Get Identity Tags` returns the identity component's tags and the
+interface's owned tags appended together. A GAS project doesn't need a second
+component on every actor, though adding one is still how you get `Display Name` and
+held state.
 
----
+## Adding your own tags
 
-## Adding custom identity tags
+Identity tags are ordinary Unreal gameplay tags. SimFlow keeps no separate registry,
+so you create them the way you create any gameplay tag in your project.
 
-Identity tags are ordinary Unreal **gameplay tags**. SimFlow does not maintain a
-separate tag registry, so you create them exactly the way you create any gameplay
-tag in your project.
-
-### The editor route (recommended for designers)
-
-1. **Edit → Project Settings → Project → Gameplay Tags**.
-2. Expand **Gameplay Tags** and click **Add New Gameplay Tag**.
-3. Enter the tag name, e.g. `Item.Extinguisher.Foam`.
-4. Optionally add a comment describing it.
-5. The tag is written to `Config/DefaultGameplayTags.ini` in **your project** and is
-   immediately available in every tag picker.
-
-You can also add a tag inline: click any **Identity Tags** picker, then
+Through the editor: **Edit → Project Settings → Project → Gameplay Tags**, expand
+**Gameplay Tags**, click **Add New Gameplay Tag**, and enter the name, e.g.
+`Item.Extinguisher.Foam`. Add a comment if it helps. The tag lands in
+`Config/DefaultGameplayTags.ini` in your project and is immediately available in
+every tag picker. You can also add one inline from any **Identity Tags** picker via
 **Add New Gameplay Tag** at the bottom of the dropdown.
 
 ### Tags shipped with the plugin
 
-SimFlow ships these natively. They are available without any setup:
+These are available with no setup:
 
 | Tag | Used for |
 |---|---|
 | `SimFlow.Event` | Parent of all built-in event tags |
 | `SimFlow.Event.Generic` | General-purpose event |
-| `SimFlow.Event.Interact` | "The trainee interacted with something" |
+| `SimFlow.Event.Interact` | The trainee interacted with something |
 | `SimFlow.Event.Grab` | Object picked up |
 | `SimFlow.Event.Release` | Object let go |
 | `SimFlow.Event.ButtonPressed` | Button press |
@@ -182,52 +145,46 @@ SimFlow ships these natively. They are available without any setup:
 | `SimFlow.Sample.GrabExtinguisher` | Used by the sample flow |
 | `SimFlow.Sample.PullPin` | Used by the sample flow |
 
-Note what is **not** in that list: there are **no shipped `Item.*` or `Zone.*` tags**.
-Those appear throughout the documentation as examples, but the hierarchy for your
-own objects is yours to create. `Item.Extinguisher.Foam` will not exist in your
-project until you add it.
+Note what isn't there: no `Item.*` or `Zone.*` tags ship with the plugin. Those
+appear throughout this documentation as examples, but the hierarchy for your own
+objects is yours to create — `Item.Extinguisher.Foam` won't exist in your project
+until you add it.
 
-> **Do not add your project's item tags under `SimFlow.`** Keep them in your own
-> namespace (`Item.`, `Zone.`, `Tool.`, or your project's prefix). The `SimFlow.`
-> hierarchy is the plugin's, and a future version may add tags under it.
+Keep your item tags in your own namespace (`Item.`, `Zone.`, `Tool.`, or your
+project's prefix) rather than under `SimFlow.`. That hierarchy belongs to the
+plugin, and a future version may add to it.
 
----
+## Naming rules
 
-## Naming and format restrictions
+Identity tags follow Unreal's gameplay tag rules; SimFlow adds none of its own. The
+hierarchy separator is `.`, so `Item.Extinguisher.Foam` is three levels deep. Spaces
+are rejected, as are leading and trailing dots. A tag has to be registered in the
+project's tag list before it can be selected — you can't type an arbitrary string
+into a tag field. Tags match case-insensitively but store the case you enter, so
+pick a convention and hold to it. There's no hard depth limit.
 
-Identity tags follow Unreal's gameplay tag rules — SimFlow adds none of its own.
+The editor validates as you type and won't let you create a malformed tag, so these
+are mostly enforced for you rather than something to memorise.
 
-| Rule | Detail |
-|---|---|
-| **Hierarchy separator** | `.` — `Item.Extinguisher.Foam` is three levels deep |
-| **No spaces** | The tag editor rejects them |
-| **Must be registered** | A tag has to exist in the project's tag list before it can be selected; you cannot type an arbitrary string into a tag field |
-| **Case** | Tags match case-insensitively but are stored with the case you enter — pick a convention and hold to it |
-| **Depth** | No hard limit, but see the depth note below |
-| **Leading/trailing dots** | Not permitted |
+### Why depth matters more than it looks
 
-The editor validates as you type and will not let you create a malformed tag, so
-these rules are mostly enforced for you rather than something to memorise.
-
-### Depth matters more than you would expect
-
-Tag depth is not cosmetic. The `Min Related Tag Depth` setting on every
-[Actor Query](actor-query.md#min-related-tag-depth) decides how many *leading* tag
-nodes two tags must share before a wrong answer counts as a **near miss** rather
-than as completely wrong — and that difference drives the feedback a trainee gets.
+Tag depth isn't cosmetic. The `Min Related Tag Depth` setting on every
+[Actor Query](actor-query.md#min-related-tag-depth) decides how many leading tag
+nodes two tags must share before a wrong answer counts as a near miss rather than as
+completely wrong — and that difference drives the feedback a trainee gets.
 
 At the default of `2`:
 
 | Query asks for | Trainee provides | Shared depth | Result |
 |---|---|---|---|
-| `Item.Extinguisher.Foam` | `Item.Extinguisher.Foam` | — | **Exact Match** |
-| `Item.Extinguisher.Foam` | `Item.Extinguisher.CO2` | 2 (`Item.Extinguisher`) | **Related (Near Miss)** |
-| `Item.Extinguisher.Foam` | `Item.Wrench` | 1 (`Item`) | **No Match** |
+| `Item.Extinguisher.Foam` | `Item.Extinguisher.Foam` | — | Exact Match |
+| `Item.Extinguisher.Foam` | `Item.Extinguisher.CO2` | 2 (`Item.Extinguisher`) | Related (Near Miss) |
+| `Item.Extinguisher.Foam` | `Item.Wrench` | 1 (`Item`) | No Match |
 
-So a flat hierarchy (`Extinguisher_Foam`, `Extinguisher_CO2`, `Wrench`) makes every
-wrong answer identical and throws away the plugin's ability to say
-*"right idea, wrong extinguisher"*. **Design your tag tree so that things which are
-plausibly confusable share a parent.**
+A flat hierarchy — `Extinguisher_Foam`, `Extinguisher_CO2`, `Wrench` — makes every
+wrong answer identical and throws away the plugin's ability to say "right idea,
+wrong extinguisher". Design the tree so things that are plausibly confusable share a
+parent.
 
 A workable convention:
 
@@ -241,82 +198,66 @@ Zone.PartsBin
 Zone.ExtinguisherBay
 ```
 
----
+## Making an extinguisher recognisable
 
-## Dependencies
+So a flow can ask for "the foam extinguisher" and get the right answer even for
+copies spawned at runtime.
 
-| Depends on | Why |
-|---|---|
-| Nothing at runtime | The component is self-contained; no subsystem or registration |
-| **Gameplay Tags** (engine) | The tags themselves live in your project's tag list |
-
-**Depended on by:**
-
-- [Actor Query](actor-query.md) — reads identity tags to grade a match
-- [Zones](zones.md) — `Require Identity Component` and settling both consult it
-- [Place Object In Zone](tasks/place-object-in-zone.md) — judges placed items by identity
-- [Wait For Event](tasks/wait-for-event.md) — checks event payloads against identity
-- [Ordered Sequence](tasks/ordered-sequence.md) — matches each step's target
-
----
-
-## Example use case: making an extinguisher recognisable
-
-**Goal:** a flow can ask for "the foam extinguisher" and get the right answer even
-for copies spawned at runtime.
-
-1. **Create the tags.** Project Settings → Gameplay Tags → add
-   `Item.Extinguisher.Foam` and `Item.Extinguisher.CO2`.
-2. **Open `BP_Extinguisher_Foam`.** Add Component → SimFlow Identity.
+1. In Project Settings → Gameplay Tags, add `Item.Extinguisher.Foam` and
+   `Item.Extinguisher.CO2`.
+2. Open `BP_Extinguisher_Foam` and add a **SimFlow Identity** component.
 3. Set **Identity Tags** to `Item.Extinguisher.Foam`.
 4. Set **Display Name** to `Foam Extinguisher`.
-5. **Repeat for `BP_Extinguisher_CO2`** with `Item.Extinguisher.CO2` and
+5. Repeat for `BP_Extinguisher_CO2` with `Item.Extinguisher.CO2` and
    `CO2 Extinguisher`.
-6. **Wire up held state.** In whatever handles grabbing, on a successful grab call
-   `Set Held (true)` on the grabbed actor's identity component; on release call
-   `Set Held (false)`.
+6. In whatever handles grabbing, call `Set Held (true)` on the grabbed actor's
+   identity component on a successful grab, and `Set Held (false)` on release.
 7. Place both extinguishers in the level.
 
 A [Place Object In Zone](tasks/place-object-in-zone.md) task asking for
-`Item.Extinguisher.Foam` now accepts the foam one, and reports the CO2 one as a
-**near miss** rather than as a random wrong object — so your feedback can say
-*"close — that is the CO2 unit, you want foam"*.
+`Item.Extinguisher.Foam` now accepts the foam one and reports the CO2 one as a near
+miss rather than a random wrong object, so your feedback can say "close, that's the
+CO2 unit, you want foam".
 
 > **Screenshot needed:** the Details panel of `BP_Extinguisher_Foam` showing the
 > SimFlow Identity component with Identity Tags and Display Name filled in.
 
----
+## What depends on this
 
-## Common pitfalls
+[Actor Query](actor-query.md) reads identity tags to grade a match, [Zones](zones.md)
+consult it for both `Require Identity Component` and settling, and
+[Place Object In Zone](tasks/place-object-in-zone.md),
+[Wait For Event](tasks/wait-for-event.md) and
+[Ordered Sequence](tasks/ordered-sequence.md) all judge objects through it.
 
-**The task never completes and nothing is logged.**
-The actor has no identity component, or has one with no tags. A tag query against an
-actor with no identity tags scores `No Match` silently. Confirm with
-`Actor Has Identity Tag` in a debug print.
+The component itself depends on nothing at runtime — it's self-contained, with no
+subsystem or registration. The tags themselves live in your project's tag list.
 
-**Everything is a "No Match", never a near miss.**
-Your tag hierarchy is too flat, or `Min Related Tag Depth` is higher than your tags
-are deep. See [depth matters](#depth-matters-more-than-you-would-expect).
+## When it misbehaves
 
-**Objects register as placed while still in the trainee's hand.**
-Held state is not wired up. Call `Set Held` from your grab logic — attachment alone
-is not reliable in VR. See [Held state](#held-state--set-held--is-held).
+**The task never completes and nothing is logged.** The actor has no identity
+component, or has one with no tags. A tag query against an actor with no identity
+tags scores `No Match` silently. Confirm with `Actor Has Identity Tag` in a debug
+print.
 
-**I set an Identity Id and the task still cannot find the object.**
-`Identity Id` is not used by anything in SimFlow. Use **Identity Tags**. See
-[above](#identity-id--read-this-before-using-it).
+**Everything is a No Match and nothing is ever a near miss.** The tag hierarchy is
+too flat, or `Min Related Tag Depth` is higher than your tags are deep. See
+[why depth matters](#why-depth-matters-more-than-it-looks).
 
-**Tags added to the item in the level do not apply to spawned copies.**
-You added the component to a placed instance rather than to the Blueprint. Move it
-to the Blueprint so every copy inherits it.
+**Objects register as placed while still in the trainee's hand.** Held state isn't
+wired up. Attachment alone isn't reliable in VR — see [held state](#held-state).
 
-**A GAS actor matches tags it should not.**
-`Get Identity Tags` merges identity-component tags with `IGameplayTagAssetInterface`
-owned tags. If your GAS actor owns a tag that collides with your item hierarchy, it
-will match. Keep the two namespaces apart.
+**An Identity Id is set and the task still can't find the object.** Nothing in
+SimFlow reads `Identity Id`. Use Identity Tags.
 
----
+**Tags added to the item in the level don't apply to spawned copies.** The component
+went on a placed instance rather than on the Blueprint. Move it to the Blueprint so
+every copy inherits it.
 
-*See also: [Actor Query](actor-query.md) · [Zones](zones.md) ·
-[Place Object In Zone](tasks/place-object-in-zone.md) ·
-[Documentation index](README.md) · [Glossary](glossary.md)*
+**A GAS actor matches tags it shouldn't.** `Get Identity Tags` merges
+identity-component tags with `IGameplayTagAssetInterface` owned tags, so a GAS actor
+owning a tag that collides with your item hierarchy will match. Keep the two
+namespaces apart.
+
+*Next: [Actor Query](actor-query.md) · [Zones](zones.md) ·
+[Place Object In Zone](tasks/place-object-in-zone.md) · [Glossary](glossary.md)*

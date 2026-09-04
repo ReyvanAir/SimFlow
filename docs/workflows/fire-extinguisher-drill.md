@@ -1,10 +1,8 @@
-# Workflow: Fire Extinguisher Drill
+# Fire extinguisher drill
 
 **Shows:** [Identity](../identity.md) · [Zones](../zones.md) ·
 [Place Object In Zone](../tasks/place-object-in-zone.md) ·
 [Wait For Event](../tasks/wait-for-event.md) · near-miss feedback · scoring
-
----
 
 ## The scenario
 
@@ -18,8 +16,6 @@ The CO2 unit is a deliberate distractor. Grabbing or placing it should produce
 *"close — that's the CO2 unit, you want foam"*, not a generic buzzer. That
 distinction is the whole reason this drill is built with identity tags rather than
 direct actor references.
-
----
 
 ## 1. Tags
 
@@ -37,8 +33,6 @@ that is exactly what makes the CO2 unit a **near miss** rather than a random wro
 object.
 
 `SimFlow.Event.Grab` already exists — it ships with the plugin.
-
----
 
 ## 2. The items
 
@@ -69,8 +63,6 @@ On **release**: `Set Held (false)`.
 > widget can never satisfy a payload check. See
 > [Events](../events.md#always-pass-the-owning-actor-as-the-payload).
 
----
-
 ## 3. The zone
 
 1. Drag a **SimFlow Zone** into the level at the bay.
@@ -79,8 +71,6 @@ On **release**: `Set Held (false)`.
    **Display Name** = `Extinguisher Bay`.
 4. Leave **Track Filter** empty and **Require Identity Component** on.
 5. Tick **Draw Debug** while building — green means it is tracking something.
-
----
 
 ## 4. The flow
 
@@ -139,8 +129,6 @@ Wire each Task node's **Completed** to the next, and the last to a
 Leave `Failed`, `Skipped` and `Timed Out` unwired — with `Fallback To Completed` on
 (the default) they fall through, which keeps this first pass tidy.
 
----
-
 ## 5. The feedback
 
 This is what makes the drill feel intelligent rather than binary.
@@ -156,8 +144,6 @@ bind `On Wrong Item Placed` (Item, Match Quality). In both, switch on the qualit
 Use `Get Identity Display Name` on the offending actor to name it in the message —
 that is what `Display Name` on the identity component is for.
 
----
-
 ## 6. Run it
 
 1. Add a [SimFlow Component](../simflow-component.md) to your Game Mode.
@@ -165,8 +151,6 @@ that is what `Display Name` on the identity component is for.
    **Flow Save Id** = `ExtinguisherDrill`.
 3. Console: `SimFlow.Debug 1` to see live state.
 4. Press Play.
-
----
 
 ## Making it a different exercise
 
@@ -182,13 +166,11 @@ The point of building it this way: **the level never changes.**
 
 Not one of those touches a Blueprint or the level.
 
----
-
 ## Troubleshooting this workflow
 
 **Node 3 fails the instant it starts.**
 The `Zone` query found nothing. Check the zone is in the level and its Identity has
-`Zone.ExtinguisherBay`. See [Place Object In Zone](../tasks/place-object-in-zone.md#common-pitfalls).
+`Zone.ExtinguisherBay`. See [Place Object In Zone](../tasks/place-object-in-zone.md#when-it-misbehaves).
 
 **The extinguisher never registers as placed.**
 It is not settling — usually missing `Set Held(false)` on release, or no collision
@@ -203,8 +185,5 @@ The tags are not sharing two levels. `Extinguisher_CO2` and `Extinguisher_Foam` 
 flat tags share nothing — they must be `Item.Extinguisher.CO2` and
 `Item.Extinguisher.Foam`.
 
----
-
-*See also: [Valve Startup Procedure](valve-startup-procedure.md) ·
-[Zones](../zones.md) · [Troubleshooting](../troubleshooting.md) ·
-[Workflows index](README.md)*
+*Next: [Valve startup procedure](valve-startup-procedure.md) ·
+[Zones](../zones.md) · [Troubleshooting](../troubleshooting.md)*

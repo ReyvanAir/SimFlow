@@ -370,7 +370,7 @@ footer {
         <thead><tr><th>Property</th><th>Default</th><th>Meaning</th></tr></thead>
         <tr><td>Entry Name</td><td class="num">Default</td><td>Pass this to <em>Start Flow From Entry</em> to begin here</td></tr>
       </table></div>
-      <div class="ex"><span class="lbl">Example &mdash; one asset, three ways in</span>
+      <div class="ex"><span class="lbl">One asset, three ways in</span>
         <p>The scenario body lives in a Sub Flow. Each entry decides what the trainee gets before it.</p>
         <pre class="wire">[Start  "Default"]
     Out &#9654; [Task  Safety briefing] &#9654; [Sub Flow  Valve_Procedure]
@@ -405,7 +405,7 @@ footer {
       <div class="call warn"><span class="lbl">A Task node with no task passes straight through</span>
         <p>It fires <code>Completed</code> immediately and logs a warning to <code>LogSimFlow</code>. A scenario that races to the end is usually a row of empty Task nodes.</p>
       </div>
-      <div class="ex"><span class="lbl">Example &mdash; a step that can time out into a hint</span>
+      <div class="ex"><span class="lbl">A step that can time out into a hint</span>
         <p>Forty-five seconds to find and put on the gloves. A failure retries itself twice before the flow ever sees it; a timeout sends the trainee round again through a hint.</p>
         <pre class="wire">[Task  Don the gloves]
     Task                   Wait For Event  (Sim.Equip.Gloves)
@@ -431,7 +431,7 @@ footer {
       <div class="call note"><span class="lbl">Delay node or Delay task?</span>
         <p>The <strong>node</strong> is invisible scheduling &mdash; it is not a step, so it never appears in the UI or counts toward progress. The <strong>task</strong> is a step the trainee is waiting through, so it shows up, can be skipped, and offers a random extra. Use the node for timing, the task for "hold for 30 seconds while it depressurises".</p>
       </div>
-      <div class="ex"><span class="lbl">Example &mdash; letting a cutscene breathe</span>
+      <div class="ex"><span class="lbl">Letting a cutscene breathe</span>
         <pre class="wire">[Task  Play alarm VO]
     Completed &#9654; [Delay  2.0 s] &#9654; [Task  Play supervisor VO]
                                        Completed &#9654; [Delay  0.5 s]
@@ -445,7 +445,7 @@ footer {
       <div class="tbl"><table>
         <thead><tr><th>Property</th><th>Default</th><th>Meaning</th></tr></thead>
         <tr><td>Cases</td><td class="num">2 empty</td><td>Ordered list; each has a Label and a Condition</td></tr>
-        <tr><td>Fire All Matching Cases</td><td class="num">off</td><td>Fire every passing case &mdash; a conditional fan-out</td></tr>
+        <tr><td>Fire All Matching Cases</td><td class="num">off</td><td>Fire every passing case, giving a conditional fan-out</td></tr>
         <tr><td>Has Default Pin</td><td class="num">on</td><td>Show a <code>Default</code> pin for when nothing matched</td></tr>
       </table></div>
       <p>With <strong>Fire All Matching Cases</strong> on, the Branch becomes a Parallel with entry requirements: every passing case fires at once. The number of live branches then varies at runtime, so do not converge them on a <em>Wait For All</em> Join &mdash; it waits for a fixed count that may never arrive.</p>
@@ -453,7 +453,7 @@ footer {
       <div class="call warn"><span class="lbl">An empty case is a dead pin, not a "true"</span>
         <p>A case with no condition never passes. If your Branch always takes <code>Default</code>, check that every case actually has a condition object assigned.</p>
       </div>
-      <div class="ex"><span class="lbl">Example &mdash; grading at the end of a scenario</span>
+      <div class="ex"><span class="lbl">Grading at the end of a scenario</span>
         <pre class="wire">[Branch  3 cases]
     Case 0  "Distinction"  Score Threshold  &#8805; 90
         &#9654; [Task  Log "Distinction"] &#9654; [Complete Flow]
@@ -478,7 +478,7 @@ footer {
         <tr><td>Avoid Repeats</td><td class="num">off</td><td>Never pick the same output twice in a row</td></tr>
       </table></div>
       <p>Resolves on the server only, so all clients agree.</p>
-      <div class="ex"><span class="lbl">Example &mdash; three drills, three different faults</span>
+      <div class="ex"><span class="lbl">Three drills, three different faults</span>
         <p>The common fault comes up twice as often as the exotic ones, and no trainee gets the same fault twice running.</p>
         <pre class="wire">[Loop  Iterations 3]
     Loop Body &#9654; [Random Branch  3 outputs
@@ -500,7 +500,7 @@ footer {
         <thead><tr><th>Property</th><th>Default</th><th>Meaning</th></tr></thead>
         <tr><td>Num Outputs</td><td class="num">2</td><td>2&ndash;16 branches, all fired at once. Unwired outputs are skipped</td></tr>
       </table></div>
-      <div class="ex"><span class="lbl">Example &mdash; two hands, one procedure</span>
+      <div class="ex"><span class="lbl">Two hands, one procedure</span>
         <p>The trainee has to keep the gauge in view while turning the valve. Either order is fine; both must happen.</p>
         <pre class="wire">[Parallel  2 branches]
     Out 0 &#9654; [Task  Turn the isolation valve] &#9654; [Join] . In 0
@@ -525,7 +525,7 @@ footer {
       <div class="call warn"><span class="lbl">Wait For Any leaves the loser running</span>
         <p>The Join stays alive to swallow the late arrival so downstream cannot fire twice &mdash; but the losing branch's task keeps running until the flow ends. For a timeout on a <em>single</em> task, the Task node's own Time Limit is better.</p>
       </div>
-      <div class="ex"><span class="lbl">Example &mdash; putting a clock on a whole section</span>
+      <div class="ex"><span class="lbl">Putting a clock on a whole section</span>
         <p>Two minutes to complete the shutdown. The Join does not report which arm won, so the work arm raises a flag before it arrives and a Branch reads it afterwards.</p>
         <pre class="wire">[Parallel  2 branches]
     Out 0 &#9654; [Sub Flow  Shutdown_Procedure]
@@ -553,7 +553,7 @@ footer {
         <tr><td>Max Iterations</td><td class="num">1000</td><td>Safety valve so a bad loop cannot hang the game</td></tr>
         <tr><td>Iteration Blackboard Key</td><td class="num">none</td><td>Writes the current 0-based iteration here</td></tr>
       </table></div>
-      <div class="ex"><span class="lbl">Example &mdash; three practice reps, with an early exit</span>
+      <div class="ex"><span class="lbl">Three practice reps, with an early exit</span>
         <p>Up to three attempts, but a clean run ends it early. The iteration is written to <code>Rep</code> so a task's instruction text can say which attempt this is.</p>
         <pre class="wire">[Loop  Iterations 3
        Iteration Blackboard Key  "Rep"
@@ -583,7 +583,7 @@ footer {
         <tr><td>Write Back Blackboard</td><td class="num">on</td><td>Copy the child's back when it ends</td></tr>
       </table></div>
       <p>The child's final state picks the pin: <code>Completed</code> for a completed child, <code>Failed</code> for a failed or aborted one. An unwired <code>Failed</code> falls through to <code>Completed</code>, the same as on a Task node. Skipping the node from the UI stops the child and leaves via <code>Completed</code>.</p>
-      <div class="ex"><span class="lbl">Example &mdash; a PPE procedure used by every scenario</span>
+      <div class="ex"><span class="lbl">A PPE procedure used by every scenario</span>
         <p><code>PPE_Donning</code> is its own asset with its own Start, its own tasks, and its own Complete and Fail nodes. Every scenario opens with it.</p>
         <pre class="wire">[Start]
     Out &#9654; [Sub Flow  PPE_Donning]
@@ -612,7 +612,7 @@ footer {
       <div class="call note"><span class="lbl">Saving is server-only</span>
         <p>In multiplayer an Auto Save on a client does nothing. Put the checkpoint wherever you like; the write happens on the authority.</p>
       </div>
-      <div class="ex"><span class="lbl">Example &mdash; a long scenario that survives a crash</span>
+      <div class="ex"><span class="lbl">A long scenario that survives a crash</span>
         <pre class="wire">[Sub Flow  PPE_Donning]
     Completed &#9654; [Checkpoint  "Phase1_Geared"   Auto Save &#10003;]
                 &#9654; [Sub Flow  Valve_Procedure]
@@ -635,7 +635,7 @@ footer {
       <div class="call note"><span class="lbl">Node or task?</span>
         <p>Use the <strong>node</strong> for bookkeeping the trainee should not see &mdash; it is not a step, so it never appears in the UI or in progress. Use the <strong>Set Blackboard Value task</strong> when the write genuinely is a step in the procedure.</p>
       </div>
-      <div class="ex"><span class="lbl">Example &mdash; counting mistakes and gating on them</span>
+      <div class="ex"><span class="lbl">Counting mistakes and gating on them</span>
         <pre class="wire">[Task  Quiz  "Which valve isolates the line?"]
     Completed &#9654; [Task  Quiz  Q2]
     Failed    &#9654; [Set Blackboard  Mistakes += 1   (Add &#10003;)]
@@ -664,7 +664,7 @@ footer {
         <p>There is no separate "Fail Flow" entry to add &mdash; change <strong>Finish Mode</strong> on a placed node instead.</p>
       </div>
       <p>A flow can also end without ever reaching one: when the last live branch runs out of wired outputs the instance completes on its own and logs that it hit a dead end. A Finish node is how you end a run <em>deliberately</em>, and the only way to end one as a failure.</p>
-      <div class="ex"><span class="lbl">Example &mdash; a pass / fail terminal</span>
+      <div class="ex"><span class="lbl">A pass / fail terminal</span>
         <pre class="wire">[Branch  graded?]
     Case 0  "Pass"  Score Threshold &#8805; 60
         &#9654; [Task  Log "Scenario complete"]
@@ -682,7 +682,7 @@ footer {
       <h3>Settings every task has</h3>
       <div class="tbl"><table>
         <thead><tr><th>Property</th><th>Default</th><th>Meaning</th></tr></thead>
-        <tr><td>Display Name</td><td class="num">empty</td><td>Short name &mdash; on the node, in the HUD, in your UI</td></tr>
+        <tr><td>Display Name</td><td class="num">empty</td><td>Short name for the node, the HUD and your UI</td></tr>
         <tr><td>Instruction</td><td class="num">empty</td><td>The sentence the player reads</td></tr>
         <tr><td>Task Id</td><td class="num">none</td><td>Stable name so Blueprints / analytics can identify this task</td></tr>
         <tr><td>Allow Retry</td><td class="num">on</td><td>May this task be retried</td></tr>
@@ -751,7 +751,7 @@ footer {
         <tr><td>Target From Blackboard Key</td><td class="num">none</td><td>Read the target from this key instead</td></tr>
         <tr><td>Relative to Flow Owner</td><td class="num">off</td><td>Treat Target Location as relative to the owning actor</td></tr>
         <tr><td>Acceptance Radius</td><td class="num">150</td><td>cm</td></tr>
-        <tr><td>Ignore Z</td><td class="num">on</td><td>Ignore height &mdash; sensible when HMD height varies</td></tr>
+        <tr><td>Ignore Z</td><td class="num">on</td><td>Ignore height, which is sensible when HMD height varies</td></tr>
         <tr><td>Draw Debug Sphere</td><td class="num">off</td><td>Show the target while the task runs</td></tr>
       </table></div>
 
@@ -781,8 +781,8 @@ footer {
       <p>&ldquo;Put the foam extinguisher in the bay.&rdquo; Watches a <strong>SimFlow Zone</strong> and judges what turns up in it. The zone reports what is there without an opinion; this task holds the opinion, so the same bay can be the right answer in one exercise and a distractor in the next without touching a Blueprint.</p>
       <div class="tbl"><table>
         <thead><tr><th>Property</th><th>Default</th><th>Meaning</th></tr></thead>
-        <tr><td>Zone</td><td class="num">empty</td><td>Actor Query for the zone &mdash; usually a tag like <code>Zone.PartsBin</code></td></tr>
-        <tr><td>Accepted Items</td><td class="num">empty</td><td>What belongs there. Tags are the useful form &mdash; they cover spawned copies</td></tr>
+        <tr><td>Zone</td><td class="num">empty</td><td>Actor Query for the zone, usually a tag like <code>Zone.PartsBin</code></td></tr>
+        <tr><td>Accepted Items</td><td class="num">empty</td><td>What belongs there. Tags are the useful form, since they cover spawned copies</td></tr>
         <tr><td>Rejected Items</td><td class="num">empty</td><td>Explicit wrong answers, for the one decoy that looks right</td></tr>
         <tr><td>Required Count</td><td class="num">1</td><td>How many accepted items must be in the zone at once</td></tr>
         <tr><td>Require Settled</td><td class="num">on</td><td>Wait until the item is put down, not merely overlapping</td></tr>
@@ -830,9 +830,9 @@ footer {
       <p>Every new task refers to objects through this struct. Fill in one field; it resolves in order.</p>
       <div class="tbl"><table>
         <thead><tr><th>Field</th><th>Use it for</th></tr></thead>
-        <tr><td>Specific Actor</td><td>&ldquo;that button&rdquo; &mdash; one placed level actor</td></tr>
+        <tr><td>Specific Actor</td><td>&ldquo;that button&rdquo;, one placed level actor</td></tr>
         <tr><td>Blackboard Key</td><td>a target chosen at runtime, e.g. a randomised assignment</td></tr>
-        <tr><td>Required Tags</td><td>&ldquo;any foam extinguisher&rdquo; &mdash; the only form that covers spawned copies</td></tr>
+        <tr><td>Required Tags</td><td>&ldquo;any foam extinguisher&rdquo;, the only form that covers spawned copies</td></tr>
         <tr><td>Required Class / Required Actor Tag</td><td>narrowing, and actors you cannot add a component to</td></tr>
       </table></div>
 
@@ -854,7 +854,7 @@ footer {
       <p>A trainee holding an item over the bin has not put it down, so overlapping and placed are different events:</p>
       <div class="tbl"><table>
         <thead><tr><th>Delegate</th><th>Fires when</th></tr></thead>
-        <tr><td>On Actor Entered</td><td>overlap begins &mdash; may still be in the trainee's hand</td></tr>
+        <tr><td>On Actor Entered</td><td>overlap begins; may still be in the trainee's hand</td></tr>
         <tr><td>On Actor Settled</td><td>not held, slower than <em>Settle Speed Threshold</em>, still for <em>Settle Time</em></td></tr>
         <tr><td>On Actor Exited</td><td>overlap ends</td></tr>
       </table></div>
@@ -1068,10 +1068,10 @@ Save All Flows / Load All Flows            every flow in the game at once (stati
         <thead><tr><th>Symptom</th><th>Cause</th></tr></thead>
         <tr><td>A Wait For Event task succeeds instantly</td><td><strong>Event Tag is unset.</strong> Check the Output Log for the warning</td></tr>
         <tr><td>Nothing happens on Play</td><td>Start Mode is <em>Manual</em>, or Flow Asset is empty</td></tr>
-        <tr><td>The flow stalls on one task</td><td>Nothing completes it &mdash; no Time Limit, and the event never fires</td></tr>
+        <tr><td>The flow stalls on one task</td><td>Nothing completes it: no Time Limit, and the event never fires</td></tr>
         <tr><td>A task ends immediately</td><td>Its Abort Condition is passing, or a Constant condition is set true</td></tr>
         <tr><td>Wrong branch taken</td><td>Cases evaluate top to bottom, first match wins. A case with no condition never passes</td></tr>
-        <tr><td>Score is wrong</td><td>Check Score on Failure &mdash; a task that pays out for failing is easy to miss</td></tr>
+        <tr><td>Score is wrong</td><td>Check Score on Failure; a task that pays out for failing is easy to miss</td></tr>
         <tr><td>The flow completes too early</td><td>A Task node's <code>Completed</code> pin is unwired, so it hit a dead end</td></tr>
         <tr><td>Retry does nothing</td><td>Max Retries reached, or Allow Retry is off</td></tr>
         <tr><td>Client sees nothing</td><td>Component is not on a replicated actor, or Replicate Flow is off</td></tr>
@@ -1387,7 +1387,7 @@ TArray&lt;FSimFlowBlackboardEntry&gt; ReplicatedBlackboard;   // gated by bRepli
         <tr><td>bShowDebugHUD</td><td>bool</td><td class="num">false</td></tr>
         <tr><td>bFollowGamePause</td><td>bool</td><td class="num">true</td></tr>
       </table></div>
-      <h4>Controls &mdash; safe from either side</h4>
+      <h4>Controls (safe from either side)</h4>
       <pre><code>bool  StartFlow()
 bool  StartFlowFromEntry(FName InEntryName)
 void  StopFlow()
@@ -1396,14 +1396,14 @@ void  PauseFlow() / ResumeFlow() / TogglePause()
 bool  RetryCurrentTask() / SkipCurrentTask() / FailCurrentTask()
 void  SendEvent(FGameplayTag EventTag, UObject* Payload = nullptr)
 void  SubmitQuizAnswer(int32 OptionIndex)</code></pre>
-      <h4>Save / load &mdash; authority only</h4>
+      <h4>Save / load (authority only)</h4>
       <pre><code>FSimFlowSaveState SaveFlowState() const
 bool  LoadFlowState(const FSimFlowSaveState&amp; State, ESimFlowLoadMode = ExactState)
 bool  SaveFlowToSlot(const FString&amp; SlotName, int32 UserIndex = 0)
 bool  LoadFlowFromSlot(const FString&amp; SlotName, int32 UserIndex = 0, ESimFlowLoadMode = ExactState)
 bool  QuickSave() / QuickLoad()
 bool  HasSaveInSlot(const FString&amp; SlotName, int32 UserIndex = 0) const</code></pre>
-      <h4>Queries &mdash; client-safe</h4>
+      <h4>Queries (client-safe)</h4>
       <pre><code>USimFlowInstance*  GetFlowInstance() const
 USimFlowBlackboard* GetBlackboard() const
 ESimFlowRunState   GetRunState() const
@@ -1512,7 +1512,7 @@ SimFlow.CreateSample   build the sample flow asset (editor)</code></pre>
         <tr><td>Join <em>Wait For Any</em> leaves the loser running</td><td>The node stays alive to swallow the late arrival so downstream cannot fire twice, but the losing branch's task continues until the flow ends</td></tr>
         <tr><td>Blackboard replication resends the whole array</td><td>Fine for tens of keys at tutorial pacing; move to a FastArraySerializer beyond that</td></tr>
         <tr><td>Presentation multicasts are reliable</td><td>Appropriate for a flow that changes task every few seconds, not for high-frequency events</td></tr>
-        <tr><td>Object values are neither saved nor replicated</td><td>By design &mdash; resolve actors at runtime</td></tr>
+        <tr><td>Object values are neither saved nor replicated</td><td>By design; resolve actors at runtime</td></tr>
         <tr><td>Custom nodes require C++</td><td>Tasks and conditions do not</td></tr>
         <tr><td>Tasks cannot reference level actors</td><td>They live in the asset. Resolve by tag, pass through the blackboard, or invert to a delegate listener</td></tr>
         <tr><td>A task with no time limit and no other exit hangs silently</td><td>No error, no log line. <code>ValidateFlow</code> does not catch it &mdash; it is a runtime condition, not a graph-structure one</td></tr>
