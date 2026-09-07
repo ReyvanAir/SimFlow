@@ -326,28 +326,30 @@ public:
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Placement")
 	FSimFlowActorQuery AcceptedItems;
 
-	/**
-	 * Optional explicit wrong answers. Anything matching this is always treated as a
-	 * mistake, even if AcceptedItems would have let it through - useful for the one
-	 * item that looks right and is not.
-	 */
-	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Placement", AdvancedDisplay)
-	FSimFlowActorQuery RejectedItems;
-
 	/** How many accepted items have to be in the zone at once. */
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Placement", meta = (ClampMin = "1"))
 	int32 RequiredCount = 1;
 
-	/**
-	 * Wait for the zone to report the item as settled - put down and let go - rather
-	 * than reacting the instant it overlaps while still in the trainee's hand.
-	 */
-	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Placement")
-	bool bRequireSettled = true;
-
 	/** What happens when the wrong thing is placed. */
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Placement")
 	ESimFlowMismatchPolicy WrongItemPolicy = ESimFlowMismatchPolicy::CountMistake;
+
+	/**
+	 * Optional. Leave it empty and anything AcceptedItems does not match is already
+	 * a mistake. Fill it in to subtract from an open-ended accepted family - accept
+	 * Item.Extinguisher, reject Item.Extinguisher.CO2 - which keeps working as new
+	 * variants of that family are added.
+	 */
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Placement", AdvancedDisplay)
+	FSimFlowActorQuery RejectedItems;
+
+	/**
+	 * Wait for the zone to report the item as settled - put down and let go - rather
+	 * than reacting the instant it overlaps while still in the trainee's hand. Leave
+	 * this on and let the zone's Settle Mode decide how patient to be.
+	 */
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Placement", AdvancedDisplay)
+	bool bRequireSettled = true;
 
 	/** Only report a given wrong item once, instead of every time it settles again. */
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Placement", AdvancedDisplay)

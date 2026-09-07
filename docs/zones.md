@@ -26,22 +26,38 @@ distractor in the next without anyone touching the level.
 |---|---|---|---|
 | Box | Box Component | auto-created | The volume. Read-only in Details — resize it on the placed actor, not in Blueprint defaults. |
 | Identity | SimFlow Identity | auto-created | Names the zone. Set its **Identity Tags** to something like `Zone.PartsBin`. |
-| Track Filter | [Actor Query](actor-query.md) | *empty* | Only actors passing this are tracked at all. |
-| Require Identity Component | Bool | `true` | Ignore untagged actors, the player pawn included. |
+| Settle Mode | Enum | `Standard` | How careful the zone is about calling an object placed. |
+| Draw Debug | Bool | `false` | Draws the box in the level, green while tracking something and silver when empty. |
 
-Under **Settling**:
+That is the whole setup for a normal zone: size the box, tag the identity, leave
+Settle Mode alone.
+
+**Settle Mode** has three values:
+
+| Value | Means |
+|---|---|
+| `Instant` | Placed the moment it is inside and out of the trainee's hands. No pause, no speed check. |
+| `Standard` | A `0.35 s` pause, and physics objects have to drop below `20` speed. Suits anything put down by hand. |
+| `Custom` | Reveals **Settle Time**, **Settle Speed Threshold** and **Require Detached** under **Settling** so you can dial it in. |
+
+Under `Custom`:
 
 | Field | Type | Default | Meaning |
 |---|---|---|---|
-| Require Detached | Bool | `true` | An object still attached to something isn't considered placed. |
 | Settle Time | Float (s, min 0) | `0.35` | How long an object must sit still inside the zone before it counts as placed. |
 | Settle Speed Threshold | Float (min 0) | `20.0` | Simulating objects must also drop below this speed. `0` skips the check. |
+| Require Detached | Bool | `true` | An object still attached to something isn't considered placed. |
 
-And under **Events / Debug**, **Broadcast Flow Events** (bool, `false`) also raises
-`SimFlow.Event.Placed` and `SimFlow.Event.Removed` on every flow with the actor as
-payload, so a plain [Wait For Event](tasks/wait-for-event.md) task can use the zone
-too. **Draw Debug** (bool, `false`) draws the box in the level, green while tracking
-something and silver when empty.
+Switching *away* from Custom resets those three to the chosen mode's values, so the
+numbers you see under Custom are always the numbers the zone is actually using.
+
+The rest lives behind the **Advanced** arrow, and is there for the awkward cases:
+
+| Field | Type | Default | Meaning |
+|---|---|---|---|
+| Track Filter | [Actor Query](actor-query.md) | *empty* | Only actors passing this are tracked at all. |
+| Require Identity Component | Bool | `true` | Ignore untagged actors, the player pawn included. |
+| Broadcast Flow Events | Bool | `false` | Also raises `SimFlow.Event.Placed` and `SimFlow.Event.Removed` on every flow with the actor as payload, so a plain [Wait For Event](tasks/wait-for-event.md) task can use the zone too. |
 
 ## Getting the setup wrong
 
@@ -54,10 +70,12 @@ Leaving **Track Filter** empty is the normal and recommended case; it falls back
 `Require Identity Component` off is the combination to avoid, because then the zone
 tracks everything that overlaps, player pawn included.
 
-A **Settle Time** of `0` means an object settles on the first tick it's at rest,
-which is twitchy with physics objects. A **Settle Speed Threshold** of `0` skips the
-speed check entirely, so a sliding object can count as settled. And a **Box** left at
-its default size is often far too small to catch anything — resize it in the level.
+**Settle Mode** set to `Instant` means an object settles on the first tick it's at
+rest and skips the speed check entirely, so a sliding physics object can count as
+placed — it's meant for buttons, sockets and snap points rather than loose props.
+Under `Custom`, a **Settle Time** of `0` and a **Settle Speed Threshold** of `0` do
+the same thing one field at a time. And a **Box** left at its default size is often
+far too small to catch anything — resize it in the level.
 
 ## How an object is judged put down
 
@@ -66,12 +84,13 @@ Every tick, for each tracked actor, the zone asks whether it's at rest.
 First, is it flagged held (`SimFlow Identity → Is Held`)? If so it is not at rest,
 full stop. This check comes first and overrides everything below it.
 
-Then, is it attached? With `Require Detached` on, an actor with an attach parent
-isn't at rest. Finally, is it slow enough? When `Settle Speed Threshold` is above 0,
+Then, is it attached? With `Require Detached` on — which every mode but `Custom`
+implies — an actor with an attach parent isn't at rest. Finally, is it slow enough?
+When the mode's speed threshold is above 0,
 a physics-simulating root component is compared against its physics linear velocity,
 and anything else against the actor's own velocity.
 
-An actor at rest accumulates still-time, and when that reaches `Settle Time` the
+An actor at rest accumulates still-time, and when that reaches the mode's settle time the
 zone marks it settled and fires **On Actor Settled**. Picking the object back up
 resets it completely — still-time returns to zero and the settled flag clears, so it
 has to settle again from scratch.
@@ -147,8 +166,9 @@ zone problem by a wide margin.
 with no `Track Filter` set.
 
 **Objects settle, then immediately un-settle, over and over.** The object is
-jittering above `Settle Speed Threshold`, which is common for physics objects
-resting on uneven collision. Raise `Settle Time`, or raise the threshold.
+jittering above the mode's speed threshold, which is common for physics objects
+resting on uneven collision. Switch **Settle Mode** to `Custom` and raise
+`Settle Time`, or raise the threshold.
 
 **A task can't find the zone.** The zone's Identity has no tags, or two zones share
 a tag and the wrong one resolved first — see

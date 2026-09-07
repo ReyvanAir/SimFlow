@@ -21,10 +21,16 @@ rather than just "no".
 |---|---|---|---|
 | Zone | [Actor Query](../actor-query.md) | *empty* | Which zone to watch. Usually a tag like `Zone.PartsBin`, or the zone actor itself. |
 | Accepted Items | [Actor Query](../actor-query.md) | *empty* | What belongs there. Tags are the useful form — they cover spawned copies. |
-| Rejected Items | [Actor Query](../actor-query.md) | *empty* | Explicit wrong answers, always treated as a mistake. |
 | Required Count | Int (min 1) | `1` | How many accepted items must be in the zone at once. |
-| Require Settled | Bool | `true` | Wait for the item to be put down and let go, rather than reacting while it is still held. |
 | Wrong Item Policy | Enum | `Count Mistake (Keep Waiting)` | What happens when the wrong thing is placed. |
+
+Two queries and two choices is the whole task. The rest is behind the **Advanced**
+arrow, and most drills never touch it:
+
+| Field | Type | Default | Meaning |
+|---|---|---|---|
+| Rejected Items | [Actor Query](../actor-query.md) | *empty* | Explicit wrong answers, always treated as a mistake. |
+| Require Settled | Bool | `true` | Wait for the item to be put down and let go, rather than reacting while it is still held. Leave it on and let the zone's [Settle Mode](../zones.md) decide how patient to be. |
 | Report Each Wrong Item Once | Bool | `true` | Report a given wrong item once, not every time it re-settles. |
 | Placed Item Blackboard Key | Name | `None` | Stores the last accepted item. |
 
@@ -41,8 +47,9 @@ completes. An empty query scores `No Match` against everything, so every item pl
 is judged wrong, in silence, forever.
 
 So: if the task fails at once, check the Zone. If it never completes, check Accepted
-Items. Leaving **Rejected Items** empty is the normal case — fill it in only when
-you have a specific decoy.
+Items. Leaving **Rejected Items** empty is the normal case — with it empty, anything
+`Accepted Items` doesn't match is already wrong. Fill it in only to carve one item
+out of a family you otherwise accept.
 
 A few related traps. A Zone query that resolves to a non-zone actor counts as
 unresolved, so the task fails at start; the query has to find an actual
@@ -59,12 +66,15 @@ an item overlaps, including while it is still in the trainee's hand.
 When the zone reports an item as settled — or merely contained, with
 `Require Settled` off — the task grades it.
 
-**Rejected Items is checked first**, and an explicit rejection always wins even when
-`Accepted Items` would have let the item through. That is how you call out the one
-item that looks right and is not. A rejected item is graded `Related`, a near miss.
+The item is graded against **Accepted Items**, giving `Exact`, `Related` or
+`No Match`. That grading is the whole story when `Rejected Items` is empty, which is
+the normal case — anything that isn't an `Exact` match is a wrong item.
 
-Otherwise the item is graded against **Accepted Items**, giving `Exact`, `Related`
-or `No Match`.
+**Rejected Items only vetoes an accept.** An item matching it can never be `Exact`,
+even when `Accepted Items` would have let it through; it drops to `Related`. It
+cannot promote anything, so an item that was already `No Match` stays `No Match` —
+listing `Item.Wrench` there doesn't make a wrench a near miss. How wrong a wrong
+answer is remains a question about the tags.
 
 An `Exact` match is stored to `Placed Item Blackboard Key` if you set one, fires
 `On Correct Item Placed`, and re-counts the zone. Anything else fires
@@ -135,7 +145,7 @@ Setting up the task:
 5. Add a [Task node](../nodes/task.md) and set **Task** to **Place Object In Zone**.
 6. **Zone → Required Tags** = `Zone.ExtinguisherBay`.
 7. **Accepted Items → Required Tags** = `Item.Extinguisher.Foam`.
-8. Leave **Required Count** at `1` and **Require Settled** on.
+8. Leave **Required Count** at `1`. Nothing under **Advanced** needs touching.
 9. Set **Wrong Item Policy** to **Count Mistake (Keep Waiting)**.
 10. Set **Instruction** to `Place the foam extinguisher in the bay`.
 11. Set **Score On Success** to `10`.
@@ -151,10 +161,13 @@ the accepted tag at the default
 > **Screenshot needed:** the Details panel of a Task node with Place Object In Zone
 > selected, showing the Zone and Accepted Items queries filled in.
 
-To accept any extinguisher except the CO2 one, set **Accepted Items → Required
-Tags** to `Item.Extinguisher` and **Rejected Items → Required Tags** to
-`Item.Extinguisher.CO2`. The rejection is checked first, so the CO2 unit is a
-mistake even though it matches the accepted tag.
+Note that none of that needed **Rejected Items** — the CO2 unit grades as a near
+miss on its tags alone. Where the field earns its place is subtracting from an
+open-ended family: to accept any extinguisher *except* the CO2 one, set **Accepted
+Items → Required Tags** to `Item.Extinguisher` and **Rejected Items → Required Tags**
+to `Item.Extinguisher.CO2`. The veto makes the CO2 unit a mistake even though it
+matches the accepted tag, and the rule keeps holding when someone adds
+`Item.Extinguisher.Water` later.
 
 ## When it misbehaves
 
