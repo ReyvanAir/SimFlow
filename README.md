@@ -176,9 +176,11 @@ component a tag like `Zone.PartsBin`. The zone reports what is inside *without
 judging it* — the task does the judging.
 
 A trainee holding an item over the bin has not put it down, so the zone
-distinguishes overlapping from placed: `On Actor Settled` waits until the object
-is no longer held, is below `Settle Speed Threshold`, and has held still for
-`Settle Time`. Pick it back up and the timer restarts.
+distinguishes overlapping from placed. How patient it is about that is one field,
+`Settle Mode`: *Instant* for sockets and snap points, *Standard* (a 0.35 s pause,
+and physics objects below speed 20) for anything put down by hand, *Custom* to
+dial in `Settle Time`, `Settle Speed Threshold` and `Require Detached` yourself.
+Pick the item back up and the timer restarts.
 
 Tell it when an item is held — `SimFlow Identity → Set Held (true)` where your grab
 succeeds, `false` on release. The zone can otherwise only guess from attachment,
@@ -186,10 +188,16 @@ which is wrong for any framework that grips with a physics constraint rather tha
 reparenting the actor (VRExpansion's default grip included), and a trainee could
 hold an item steady over the zone and pass without letting go.
 
-The **Place Object In Zone** task ties it together: `Accepted Items`, optional
-`Rejected Items` for the one decoy that looks right, `Required Count`, and a
-`Wrong Item Policy` of *Ignore*, *Count Mistake* (keep waiting, let them correct
-themselves) or *Fail Task*. Bind `On Wrong Item Placed` for the buzzer or hint.
+The **Place Object In Zone** task ties it together, and needs four fields: the
+`Zone`, the `Accepted Items`, a `Required Count`, and a `Wrong Item Policy` of
+*Ignore*, *Count Mistake* (keep waiting, let them correct themselves) or
+*Fail Task*. Bind `On Wrong Item Placed` for the buzzer or hint — it passes the
+match quality, so a near miss and a random prop can say different things.
+
+Anything `Accepted Items` does not match is already wrong, so the optional
+`Rejected Items` is for one job only: subtracting from a family you otherwise
+accept. Take `Item.Extinguisher` but reject `Item.Extinguisher.CO2`, and the rule
+still holds when someone adds a new extinguisher variant later.
 
 ### Ordered procedures
 
