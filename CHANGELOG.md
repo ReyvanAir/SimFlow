@@ -2,7 +2,12 @@
 
 All notable changes to SimFlow. Versions follow the plugin's `VersionName`.
 
-## Unreleased
+## 1.1.4
+
+A setup pass rather than a feature. Placing an object was the plugin's most
+configured step and most of what it asked for was tuning nobody needs on a first
+pass, so the fields that matter now lead and the rest is one enum away.
+`.uplugin` Version 7.
 
 ### Changed
 

@@ -21,7 +21,7 @@ If your project is Blueprint-only, add any empty C++ class once from the editor
 step 2 becomes possible. You never have to write C++ after that — everything below
 is Blueprint and the Details panel.
 
-SimFlow 1.1.3 targets Unreal Engine 5.6.0.
+SimFlow 1.1.4 targets Unreal Engine 5.6.0.
 
 To check the install took, right-click in empty space in the Content Browser and
 look for a **SimFlow** section with **SimFlow Graph** in it. If it's there, the
