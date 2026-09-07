@@ -250,7 +250,7 @@ footer {
   <div class="masthead-inner">
     <div class="brand">
       <h1>SimFlow Documentation</h1>
-      <span class="version">v1.1.3 &middot; UE 5.6</span>
+      <span class="version">v1.1.4 &middot; UE 5.6</span>
     </div>
     <p class="tagline">A modular, data-driven task and flow framework for VR simulations, tutorials and procedural gameplay. Author procedures as node graphs; run them from a component; drive your UI from what they report.</p>
     <div class="topbar">
@@ -795,7 +795,7 @@ footer {
         <tr><td>Placed Item Blackboard Key</td><td class="num">none</td><td>Stores the last accepted item</td></tr>
       </table></div>
       <p>Bind <strong>On Wrong Item Placed</strong> &mdash; it passes the actor and the match quality, so &ldquo;right idea, wrong agent&rdquo; and &ldquo;that is a wrench&rdquo; can say different things. Taking a wrong item back out lets it be reported again.</p>
-      <div class="call note"><span class="lbl">Rejected Items is rarely the answer <span class="version">next</span></span>
+      <div class="call note"><span class="lbl">Rejected Items is rarely the answer <span class="version">1.1.4</span></span>
         <p>Grading comes from the tags. The CO2 unit already scores <em>Related</em> against <code>Item.Extinguisher.Foam</code> because they share two leading nodes, so the &ldquo;close, that is the CO2 unit&rdquo; branch works with <strong>Rejected Items</strong> completely empty.</p>
         <p>The field only vetoes an accept &mdash; it cannot promote anything, so listing an unrelated object there does not make it a near miss. Reach for it when you accept a whole tag family and need to carve one item out of it.</p>
       </div>
@@ -867,7 +867,7 @@ footer {
         <tr><td>On Actor Exited</td><td>overlap ends</td></tr>
       </table></div>
       <p>Pick the item back up and its settle timer restarts.</p>
-      <p>How patient the zone is about that is one field, <strong>Settle Mode</strong> <span class="version">next</span>:</p>
+      <p>How patient the zone is about that is one field, <strong>Settle Mode</strong> <span class="version">1.1.4</span>:</p>
       <div class="tbl"><table>
         <thead><tr><th>Settle Mode</th><th>Means</th></tr></thead>
         <tr><td>Instant</td><td>Placed the moment it is inside and out of the trainee&rsquo;s hands. For sockets, snap points and buttons, where the item arrives already positioned</td></tr>
@@ -1540,7 +1540,7 @@ SimFlow.CreateSample   build the sample flow asset (editor)</code></pre>
       <h2>Versions</h2>
       <div class="tbl"><table>
         <thead><tr><th>Version</th><th>Notes</th></tr></thead>
-        <tr><td>Unreleased</td><td>Fewer decisions to set up a placement check: a zone shows <em>Settle Mode</em> (<code>Instant</code> / <code>Standard</code> / <code>Custom</code>) in place of five settling and filtering fields, and <em>Place Object In Zone</em> leads with the four a drill actually needs. <code>Standard</code> is the old defaults exactly, nothing was renamed or removed, and a zone saved with tuned numbers loads as <code>Custom</code>. Fixed: a rejected item was graded a near miss whatever it was.</td></tr>
+        <tr><td>1.1.4</td><td>Fewer decisions to set up a placement check: a zone shows <em>Settle Mode</em> (<code>Instant</code> / <code>Standard</code> / <code>Custom</code>) in place of five settling and filtering fields, and <em>Place Object In Zone</em> leads with the four a drill actually needs. <code>Standard</code> is the old defaults exactly, nothing was renamed or removed, and a zone saved with tuned numbers loads as <code>Custom</code>. Fixed: a rejected item was graded a near miss whatever it was. <code>.uplugin</code> Version 7.</td></tr>
         <tr><td>1.1.3</td><td>Items report their own held state (<code>Set Held</code> / <code>Is Held</code>) so a zone no longer infers release from attachment &mdash; which was wrong for constraint-based grab systems including VRExpansion's default grip. A payload that is neither an Actor nor an Actor Component now logs a warning instead of failing silently. <code>.uplugin</code> Version 6.</td></tr>
         <tr><td>1.1.2</td><td>Object recognition: <code>USimFlowIdentityComponent</code>, <code>FSimFlowActorQuery</code> and match grading; <code>ASimFlowZone</code>; the <em>Place Object In Zone</em> and <em>Ordered Sequence</em> tasks; a first-class mistake record. <em>Wait For Event</em> stopped discarding the event payload. <code>.uplugin</code> Version 5.</td></tr>
         <tr><td>1.1.0</td><td>Adds optional server-authoritative multiplayer replication (<code>bReplicateFlow</code>, <code>USimFlowPlayerComponent</code>, <code>FSimFlowNetState</code>). <code>.uplugin</code> FileVersion 3 / Version 4, EngineVersion 5.6.0.</td></tr>
@@ -1553,7 +1553,7 @@ SimFlow.CreateSample   build the sample flow asset (editor)</code></pre>
 </div>
 
 <footer>
-  SimFlow v1.1.3 &middot; Unreal Engine 5.6 &middot; generated documentation. See <code>Plugins/SimFlow/README.md</code> and <code>Plugins/SimFlow/docs/Cheatsheet.md</code> for the source Markdown.
+  SimFlow v1.1.4 &middot; Unreal Engine 5.6 &middot; generated documentation. See <code>Plugins/SimFlow/README.md</code> and <code>Plugins/SimFlow/docs/Cheatsheet.md</code> for the source Markdown.
 </footer>
 
 <script>

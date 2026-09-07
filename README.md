@@ -1,10 +1,11 @@
 # SimFlow — modular task & flow framework for Unreal Engine 5.6
 
-**v1.1.3** — object recognition: identity tags, zones, ordered procedures and a
-mistake record. See [`CHANGELOG.md`](CHANGELOG.md).
+**v1.1.4** — simpler placement setup: one `Settle Mode` on a zone in place of
+five settling and filtering fields, and four lead fields on *Place Object In
+Zone*. See [`CHANGELOG.md`](CHANGELOG.md).
 
-Looking for the previous release? It is tagged [`v1.1.2`](https://github.com/ReyvanAir/SimFlow/tree/v1.1.2),
-with a `release/1.1.2` branch alongside it.
+Looking for the previous release? It is tagged [`v1.1.3`](https://github.com/ReyvanAir/SimFlow/tree/v1.1.3),
+with a `release/1.1.3` branch alongside it.
 
 A data-driven system for building VR simulations, tutorials and any gameplay that
 is really a *sequence of things the player has to do*. Author flows in a node
