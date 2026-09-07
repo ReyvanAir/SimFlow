@@ -11,6 +11,20 @@
 class UBoxComponent;
 class ASimFlowZone;
 
+/** How fussy a zone is about deciding an object has been put down. */
+UENUM(BlueprintType)
+enum class ESimFlowSettleMode : uint8
+{
+	/** Counts as placed the moment it is inside and out of the trainee's hands. */
+	Instant,
+
+	/** The usual choice: a short pause, and physics objects have to slow down. */
+	Standard,
+
+	/** Dial it in yourself with the fields below. */
+	Custom
+};
+
 DECLARE_DYNAMIC_MULTICAST_DELEGATE_TwoParams(FSimFlowZoneActorSignature, ASimFlowZone*, Zone, AActor*, Actor);
 
 /**
@@ -42,34 +56,44 @@ public:
 	TObjectPtr<USimFlowIdentityComponent> Identity;
 
 	/**
+	 * How careful the zone is about calling an object placed. Standard suits anything
+	 * a trainee puts down by hand; pick Custom only when you have a reason to.
+	 */
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Zone")
+	ESimFlowSettleMode SettleMode = ESimFlowSettleMode::Standard;
+
+	/** How long an object must sit still inside the zone before it counts as placed. */
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Zone|Settling", meta = (ClampMin = "0.0", Units = "s",
+		EditCondition = "SettleMode == ESimFlowSettleMode::Custom", EditConditionHides))
+	float SettleTime = StandardSettleTime;
+
+	/** Simulating objects must also drop below this speed. 0 skips the check. */
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Zone|Settling", meta = (ClampMin = "0.0",
+		EditCondition = "SettleMode == ESimFlowSettleMode::Custom", EditConditionHides))
+	float SettleSpeedThreshold = StandardSettleSpeed;
+
+	/** An object still attached to something (a VR hand) is not considered placed. */
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Zone|Settling", meta = (
+		EditCondition = "SettleMode == ESimFlowSettleMode::Custom", EditConditionHides))
+	bool bRequireDetached = true;
+
+	/**
 	 * Only actors passing this are tracked at all. Leave it empty to track anything
 	 * carrying a SimFlow Identity component, which is usually what you want - the
 	 * zone stays neutral about right and wrong, and the task does the judging.
 	 */
-	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Zone")
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Zone", AdvancedDisplay)
 	FSimFlowActorQuery TrackFilter;
 
 	/** When true (the default) untagged actors such as the player pawn are ignored. */
-	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Zone")
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Zone", AdvancedDisplay)
 	bool bRequireIdentityComponent = true;
-
-	/** An object still attached to something (a VR hand) is not considered placed. */
-	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Zone|Settling")
-	bool bRequireDetached = true;
-
-	/** How long an object must sit still inside the zone before it counts as placed. */
-	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Zone|Settling", meta = (ClampMin = "0.0", Units = "s"))
-	float SettleTime = 0.35f;
-
-	/** Simulating objects must also drop below this speed. 0 skips the check. */
-	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Zone|Settling", meta = (ClampMin = "0.0"))
-	float SettleSpeedThreshold = 20.f;
 
 	/**
 	 * Also raise SimFlow.Event.Placed / SimFlow.Event.Removed on every flow, with the
 	 * actor as the payload, so a plain Wait For Event task can use this zone too.
 	 */
-	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Zone|Events")
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Zone|Events", AdvancedDisplay)
 	bool bBroadcastFlowEvents = false;
 
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Zone|Debug")
@@ -107,11 +131,34 @@ public:
 	UFUNCTION(BlueprintPure, Category = "SimFlow|Zone")
 	FText GetDisplayNameText() const;
 
+	// ------------------------------------------------- Settling, as applied
+
+	/** The values behind Standard, and what Custom starts from. */
+	static constexpr float StandardSettleTime = 0.35f;
+	static constexpr float StandardSettleSpeed = 20.f;
+
+	/** Still-time required by the current mode. */
+	UFUNCTION(BlueprintPure, Category = "SimFlow|Zone")
+	float GetEffectiveSettleTime() const;
+
+	/** Speed limit applied by the current mode. 0 means no speed check. */
+	UFUNCTION(BlueprintPure, Category = "SimFlow|Zone")
+	float GetEffectiveSettleSpeed() const;
+
+	/** Whether the current mode treats an attached actor as still held. */
+	UFUNCTION(BlueprintPure, Category = "SimFlow|Zone")
+	bool GetEffectiveRequireDetached() const;
+
 	// ------------------------------------------------------------- AActor
 
 	virtual void BeginPlay() override;
 	virtual void EndPlay(const EEndPlayReason::Type Reason) override;
 	virtual void Tick(float DeltaTime) override;
+	virtual void PostLoad() override;
+
+#if WITH_EDITOR
+	virtual void PostEditChangeProperty(FPropertyChangedEvent& Event) override;
+#endif
 
 protected:
 	UFUNCTION()

@@ -2,6 +2,34 @@
 
 All notable changes to SimFlow. Versions follow the plugin's `VersionName`.
 
+## Unreleased
+
+### Changed
+
+- **Placing an object takes fewer decisions to set up.** A Zone asked for seven
+  settings before it did anything; a `SimFlow Zone` now shows **Settle Mode**
+  (`Instant` / `Standard` / `Custom`) and **Draw Debug**, with `Settle Time`,
+  `Settle Speed Threshold` and `Require Detached` appearing only under `Custom`,
+  and `Track Filter`, `Require Identity Component` and `Broadcast Flow Events`
+  moved behind **Advanced**. `Standard` is the old defaults exactly — `0.35 s`
+  and a speed limit of `20` — so behaviour is unchanged.
+- **Place Object In Zone** leads with the four fields a drill actually needs —
+  `Zone`, `Accepted Items`, `Required Count`, `Wrong Item Policy`. `Require Settled`
+  joins `Rejected Items`, `Report Each Wrong Item Once` and
+  `Placed Item Blackboard Key` under **Advanced**.
+
+### Fixed
+
+- **A rejected item was always reported as a near miss.** `Place Object In Zone`
+  graded anything matching `Rejected Items` as `Related` regardless of what it was,
+  so listing an unrelated object there drove the "close, try again" branch of
+  `On Wrong Item Placed` for something not close at all. Rejection now vetoes an
+  accept without inventing similarity: the quality still comes from the tags, so the
+  CO2 unit is still a near miss for foam and a wrench is still `No Match`.
+
+No property was renamed or removed, so existing assets and Blueprints keep working.
+A zone saved with tuned settling numbers loads as `Custom` and keeps them.
+
 ## 1.1.3
 
 Two fixes found while writing a VRExpansion build guide against 1.1.2. Both are

@@ -507,14 +507,21 @@ ESimFlowMatchQuality USimFlowTask_PlaceObject::JudgeItem(const AActor* Actor) co
 		return ESimFlowMatchQuality::NoMatch;
 	}
 
-	// An explicit rejection always wins, so the one plausible-looking decoy can be
-	// called out even when it would otherwise pass the accepted-items query.
-	if (RejectedItems.IsSet() && RejectedItems.MatchActor(Actor, FlowInstance) == ESimFlowMatchQuality::Exact)
+	const ESimFlowMatchQuality Quality = AcceptedItems.MatchActor(Actor, FlowInstance);
+
+	// An explicit rejection vetoes an accept - that is the whole job of RejectedItems,
+	// and with it empty anything AcceptedItems does not match is wrong anyway. How
+	// wrong stays a question about the tags: a rejected item is only a near miss when
+	// it actually looks like the answer, so a wrench in the extinguisher bay is not
+	// told it was close.
+	if (Quality == ESimFlowMatchQuality::Exact
+		&& RejectedItems.IsSet()
+		&& RejectedItems.MatchActor(Actor, FlowInstance) == ESimFlowMatchQuality::Exact)
 	{
 		return ESimFlowMatchQuality::Related;
 	}
 
-	return AcceptedItems.MatchActor(Actor, FlowInstance);
+	return Quality;
 }
 
 int32 USimFlowTask_PlaceObject::GetAcceptedCount() const

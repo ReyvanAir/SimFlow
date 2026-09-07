@@ -113,9 +113,10 @@ Drop an ASimFlowZone, size the Box, set its Identity Tags = Zone.PartsBin
 | Delegate | Fires when |
 |---|---|
 | `On Actor Entered` | overlap begins — may still be in the trainee's hand |
-| `On Actor Settled` | not held, slower than `Settle Speed Threshold`, still for `Settle Time` |
+| `On Actor Settled` | not held, and at rest for as long as `Settle Mode` asks |
 | `On Actor Exited` | overlap ends |
 
+`Settle Mode`: `Instant` / `Standard` (0.35 s, speed 20) / `Custom`.
 `Place Object In Zone` listens to **Settled** by default (`Require Settled`).
 
 ## Mistakes

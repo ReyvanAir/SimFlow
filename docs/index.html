@@ -783,14 +783,22 @@ footer {
         <thead><tr><th>Property</th><th>Default</th><th>Meaning</th></tr></thead>
         <tr><td>Zone</td><td class="num">empty</td><td>Actor Query for the zone, usually a tag like <code>Zone.PartsBin</code></td></tr>
         <tr><td>Accepted Items</td><td class="num">empty</td><td>What belongs there. Tags are the useful form, since they cover spawned copies</td></tr>
-        <tr><td>Rejected Items</td><td class="num">empty</td><td>Explicit wrong answers, for the one decoy that looks right</td></tr>
         <tr><td>Required Count</td><td class="num">1</td><td>How many accepted items must be in the zone at once</td></tr>
-        <tr><td>Require Settled</td><td class="num">on</td><td>Wait until the item is put down, not merely overlapping</td></tr>
         <tr><td>Wrong Item Policy</td><td class="num">Count Mistake</td><td>Ignore / Count Mistake (keep waiting) / Fail Task</td></tr>
+      </table></div>
+      <p>Two queries and two choices is the whole task. The rest sits behind the <strong>Advanced</strong> arrow, and most drills never open it:</p>
+      <div class="tbl"><table>
+        <thead><tr><th>Advanced</th><th>Default</th><th>Meaning</th></tr></thead>
+        <tr><td>Rejected Items</td><td class="num">empty</td><td>Subtracts from an open-ended accepted family: accept <code>Item.Extinguisher</code>, reject <code>Item.Extinguisher.CO2</code>, and the rule still holds when a new variant is added. Empty is the normal case</td></tr>
+        <tr><td>Require Settled</td><td class="num">on</td><td>Wait until the item is put down, not merely overlapping. Leave it on and let the zone&rsquo;s <em>Settle Mode</em> decide how patient to be</td></tr>
         <tr><td>Report Each Wrong Item Once</td><td class="num">on</td><td>Do not re-report the same item every time it settles again</td></tr>
         <tr><td>Placed Item Blackboard Key</td><td class="num">none</td><td>Stores the last accepted item</td></tr>
       </table></div>
       <p>Bind <strong>On Wrong Item Placed</strong> &mdash; it passes the actor and the match quality, so &ldquo;right idea, wrong agent&rdquo; and &ldquo;that is a wrench&rdquo; can say different things. Taking a wrong item back out lets it be reported again.</p>
+      <div class="call note"><span class="lbl">Rejected Items is rarely the answer <span class="version">next</span></span>
+        <p>Grading comes from the tags. The CO2 unit already scores <em>Related</em> against <code>Item.Extinguisher.Foam</code> because they share two leading nodes, so the &ldquo;close, that is the CO2 unit&rdquo; branch works with <strong>Rejected Items</strong> completely empty.</p>
+        <p>The field only vetoes an accept &mdash; it cannot promote anything, so listing an unrelated object there does not make it a near miss. Reach for it when you accept a whole tag family and need to carve one item out of it.</p>
+      </div>
       <div class="call warn"><span class="lbl">Needs a real zone</span>
         <p>The <strong>Zone</strong> query must resolve to an <code>ASimFlowZone</code>. An arbitrary trigger volume will not do; the task fails and logs a warning naming the query it could not resolve.</p>
       </div>
@@ -855,10 +863,18 @@ footer {
       <div class="tbl"><table>
         <thead><tr><th>Delegate</th><th>Fires when</th></tr></thead>
         <tr><td>On Actor Entered</td><td>overlap begins; may still be in the trainee's hand</td></tr>
-        <tr><td>On Actor Settled</td><td>not held, slower than <em>Settle Speed Threshold</em>, still for <em>Settle Time</em></td></tr>
+        <tr><td>On Actor Settled</td><td>not held, and at rest for as long as <em>Settle Mode</em> asks</td></tr>
         <tr><td>On Actor Exited</td><td>overlap ends</td></tr>
       </table></div>
-      <p>Pick the item back up and its settle timer restarts. <em>Broadcast Flow Events</em> additionally raises <code>SimFlow.Event.Placed</code> / <code>.Removed</code> with the actor as payload, so a plain Wait For Event task can use a zone too.</p>
+      <p>Pick the item back up and its settle timer restarts.</p>
+      <p>How patient the zone is about that is one field, <strong>Settle Mode</strong> <span class="version">next</span>:</p>
+      <div class="tbl"><table>
+        <thead><tr><th>Settle Mode</th><th>Means</th></tr></thead>
+        <tr><td>Instant</td><td>Placed the moment it is inside and out of the trainee&rsquo;s hands. For sockets, snap points and buttons, where the item arrives already positioned</td></tr>
+        <tr><td>Standard</td><td>A <code>0.35 s</code> pause, and physics objects must drop below <code>20</code> speed. Suits anything put down by hand</td></tr>
+        <tr><td>Custom</td><td>Reveals <em>Settle Time</em>, <em>Settle Speed Threshold</em> and <em>Require Detached</em>. For heavy props that jitter on uneven collision</td></tr>
+      </table></div>
+      <p>Switching away from Custom resets those three to the chosen mode&rsquo;s values, so the numbers you see under Custom are always the numbers the zone is really using. <em>Track Filter</em>, <em>Require Identity Component</em> and <em>Broadcast Flow Events</em> sit behind the <strong>Advanced</strong> arrow; the last of those additionally raises <code>SimFlow.Event.Placed</code> / <code>.Removed</code> with the actor as payload, so a plain Wait For Event task can use a zone too.</p>
       <div class="call warn"><span class="lbl">Tell the zone when an item is held <span class="version">1.1.3</span></span>
         <p>On grab, call <strong>SimFlow Identity &rarr; Set Held (true)</strong>; on release, <code>false</code>. Two nodes, and placement becomes exact.</p>
         <p>Without them a zone can only infer release from <code>GetAttachParentActor()</code>, which is wrong for any grab system that holds objects with a physics constraint rather than reparenting them. VRExpansion is one: of its twelve <code>EGripCollisionType</code> values only <code>AttachmentGrip</code> uses native attachment, so a gripped item looks detached from outside and a trainee can hold it steady over the zone and pass the step without letting go.</p>
@@ -1524,6 +1540,7 @@ SimFlow.CreateSample   build the sample flow asset (editor)</code></pre>
       <h2>Versions</h2>
       <div class="tbl"><table>
         <thead><tr><th>Version</th><th>Notes</th></tr></thead>
+        <tr><td>Unreleased</td><td>Fewer decisions to set up a placement check: a zone shows <em>Settle Mode</em> (<code>Instant</code> / <code>Standard</code> / <code>Custom</code>) in place of five settling and filtering fields, and <em>Place Object In Zone</em> leads with the four a drill actually needs. <code>Standard</code> is the old defaults exactly, nothing was renamed or removed, and a zone saved with tuned numbers loads as <code>Custom</code>. Fixed: a rejected item was graded a near miss whatever it was.</td></tr>
         <tr><td>1.1.3</td><td>Items report their own held state (<code>Set Held</code> / <code>Is Held</code>) so a zone no longer infers release from attachment &mdash; which was wrong for constraint-based grab systems including VRExpansion's default grip. A payload that is neither an Actor nor an Actor Component now logs a warning instead of failing silently. <code>.uplugin</code> Version 6.</td></tr>
         <tr><td>1.1.2</td><td>Object recognition: <code>USimFlowIdentityComponent</code>, <code>FSimFlowActorQuery</code> and match grading; <code>ASimFlowZone</code>; the <em>Place Object In Zone</em> and <em>Ordered Sequence</em> tasks; a first-class mistake record. <em>Wait For Event</em> stopped discarding the event payload. <code>.uplugin</code> Version 5.</td></tr>
         <tr><td>1.1.0</td><td>Adds optional server-authoritative multiplayer replication (<code>bReplicateFlow</code>, <code>USimFlowPlayerComponent</code>, <code>FSimFlowNetState</code>). <code>.uplugin</code> FileVersion 3 / Version 4, EngineVersion 5.6.0.</td></tr>

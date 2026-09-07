@@ -138,22 +138,23 @@ bool ASimFlowZone::IsActorAtRest(const AActor* Actor) const
 	}
 
 	// Fall back to attachment for objects that never set the flag.
-	if (bRequireDetached && Actor->GetAttachParentActor() != nullptr)
+	if (GetEffectiveRequireDetached() && Actor->GetAttachParentActor() != nullptr)
 	{
 		return false;
 	}
 
-	if (SettleSpeedThreshold > 0.f)
+	const float SpeedLimit = GetEffectiveSettleSpeed();
+	if (SpeedLimit > 0.f)
 	{
 		if (UPrimitiveComponent* Root = Cast<UPrimitiveComponent>(Actor->GetRootComponent()))
 		{
 			if (Root->IsSimulatingPhysics())
 			{
-				return Root->GetPhysicsLinearVelocity().Size() <= SettleSpeedThreshold;
+				return Root->GetPhysicsLinearVelocity().Size() <= SpeedLimit;
 			}
 		}
 		// Non-simulating actors fall back to the actor's own velocity.
-		if (Actor->GetVelocity().Size() > SettleSpeedThreshold)
+		if (Actor->GetVelocity().Size() > SpeedLimit)
 		{
 			return false;
 		}
@@ -161,6 +162,64 @@ bool ASimFlowZone::IsActorAtRest(const AActor* Actor) const
 
 	return true;
 }
+
+float ASimFlowZone::GetEffectiveSettleTime() const
+{
+	switch (SettleMode)
+	{
+	case ESimFlowSettleMode::Instant: return 0.f;
+	case ESimFlowSettleMode::Custom:  return SettleTime;
+	default:                          return StandardSettleTime;
+	}
+}
+
+float ASimFlowZone::GetEffectiveSettleSpeed() const
+{
+	switch (SettleMode)
+	{
+	case ESimFlowSettleMode::Instant: return 0.f;
+	case ESimFlowSettleMode::Custom:  return SettleSpeedThreshold;
+	default:                          return StandardSettleSpeed;
+	}
+}
+
+bool ASimFlowZone::GetEffectiveRequireDetached() const
+{
+	// Only Custom gets to turn this off - the held flag still applies either way.
+	return SettleMode != ESimFlowSettleMode::Custom || bRequireDetached;
+}
+
+void ASimFlowZone::PostLoad()
+{
+	Super::PostLoad();
+
+	// Zones saved before Settle Mode existed carry their own numbers. Anything left
+	// at the old defaults is Standard by definition; anything tuned means Custom.
+	if (SettleMode == ESimFlowSettleMode::Standard
+		&& (!FMath::IsNearlyEqual(SettleTime, StandardSettleTime)
+			|| !FMath::IsNearlyEqual(SettleSpeedThreshold, StandardSettleSpeed)
+			|| !bRequireDetached))
+	{
+		SettleMode = ESimFlowSettleMode::Custom;
+	}
+}
+
+#if WITH_EDITOR
+void ASimFlowZone::PostEditChangeProperty(FPropertyChangedEvent& Event)
+{
+	Super::PostEditChangeProperty(Event);
+
+	// Keep the hidden numbers honest, so switching to Custom starts from what the
+	// zone was actually doing rather than from whatever was last typed.
+	const FName Changed = Event.GetPropertyName();
+	if (Changed == GET_MEMBER_NAME_CHECKED(ASimFlowZone, SettleMode) && SettleMode != ESimFlowSettleMode::Custom)
+	{
+		SettleTime = GetEffectiveSettleTime();
+		SettleSpeedThreshold = GetEffectiveSettleSpeed();
+		bRequireDetached = true;
+	}
+}
+#endif
 
 void ASimFlowZone::Tick(float DeltaTime)
 {
@@ -190,7 +249,7 @@ void ASimFlowZone::Tick(float DeltaTime)
 		}
 
 		Entry.StillTime += DeltaTime;
-		if (Entry.StillTime >= SettleTime)
+		if (Entry.StillTime >= GetEffectiveSettleTime())
 		{
 			Entry.bSettled = true;
 
