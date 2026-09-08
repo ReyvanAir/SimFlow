@@ -51,11 +51,15 @@ Items. Leaving **Rejected Items** empty is the normal case — with it empty, an
 `Accepted Items` doesn't match is already wrong. Fill it in only to carve one item
 out of a family you otherwise accept.
 
-A few related traps. A Zone query that resolves to a non-zone actor counts as
-unresolved, so the task fails at start; the query has to find an actual
-`SimFlow Zone`. Two zones sharing a tag means the first world match wins and which
-one that is is undefined, so give them distinct tags — see
-[resolving to a single actor](../actor-query.md#resolving-to-a-single-actor). A
+A few related traps. A tag in the **Zone** query is matched against the level's
+`SimFlow Zone` actors only, so a prop wearing the same tag is ignored rather than
+winning the lookup and failing the task. Two *zones* sharing a tag is still
+ambiguous — the first world match wins and which one that is is undefined, so give
+them distinct tags; see
+[resolving to a single actor](../actor-query.md#resolving-to-a-single-actor).
+Pointing **Specific Actor** at something that is not a zone does still fail at
+start, because naming the wrong actor outright is a different mistake from a tag
+that happens to be shared. A
 `Required Count` higher than the number of items that exist can never be satisfied.
 And `Require Settled` with held state unwired may mean items never settle at all if
 your VR framework holds them by constraint; with it off, the task reacts the instant
@@ -171,9 +175,12 @@ matches the accepted tag, and the rule keeps holding when someone adds
 
 ## When it misbehaves
 
-**The task fails the instant it starts.** The `Zone` query is empty or resolves to
-nothing. Check the log for *"could not resolve a SimFlow Zone"*, and confirm the zone
-actor is in the level, has the tag you asked for, and that the level is loaded.
+**The task fails the instant it starts.** The `Zone` query found no zone. The
+warning in the log says which of the four ways it went wrong — an empty query, a
+named actor that is not a zone, no zones in the level at all, or zones that exist
+but do not carry the tag. The last of those lists every zone present and what it is
+actually tagged, which is usually enough to spot the mismatch without leaving the
+log window.
 
 **The task never completes, whatever is placed.** `Accepted Items` is empty.
 

@@ -387,6 +387,15 @@ private:
 	/** Re-counts what is in the zone and finishes the task when the target is met. */
 	void EvaluateZoneContents();
 
+	/**
+	 * Finds the zone the Zone query means. The tag form only ever considers actual
+	 * zones, so a mistagged prop cannot shadow the real one.
+	 */
+	ASimFlowZone* ResolveZone() const;
+
+	/** Says which of the four ways the Zone query failed, and what to do about it. */
+	void LogZoneResolveFailure() const;
+
 	ESimFlowMatchQuality JudgeItem(const AActor* Actor) const;
 
 	UPROPERTY(Transient)
