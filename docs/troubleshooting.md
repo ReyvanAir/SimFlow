@@ -87,7 +87,9 @@ All four log a warning, so check `LogSimFlow`.
 ## A task fails immediately
 
 [Place Object In Zone](tasks/place-object-in-zone.md) does this when its `Zone`
-query resolved nothing, logging *"could not resolve a SimFlow Zone"*.
+query found no zone. The warning distinguishes an empty query, a named actor that is
+not a zone, a level with no zones in it, and zones that exist but are tagged
+something else — the last case lists every zone and its identity tags.
 [Ordered Sequence](tasks/ordered-sequence.md) does it when `Event Tag` is empty.
 
 ## Events don't reach the flow

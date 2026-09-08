@@ -12,6 +12,7 @@
 #include "GameFramework/Actor.h"
 #include "GameFramework/Pawn.h"
 #include "DrawDebugHelpers.h"
+#include "EngineUtils.h"
 
 #define LOCTEXT_NAMESPACE "SimFlowTasks"
 
@@ -472,12 +473,10 @@ void USimFlowTask_PlaceObject::NativeTaskStart()
 {
 	ReportedWrongItems.Reset();
 
-	ResolvedZone = Cast<ASimFlowZone>(Zone.Resolve(FlowInstance));
+	ResolvedZone = ResolveZone();
 	if (!ResolvedZone)
 	{
-		UE_LOG(LogSimFlow, Warning,
-			TEXT("PlaceObject task '%s' could not resolve a SimFlow Zone from its Zone query (%s) - failing."),
-			*GetDisplayNameText().ToString(), *Zone.Describe().ToString());
+		LogZoneResolveFailure();
 		FinishTask(ESimFlowResult::Failed);
 		return;
 	}
@@ -498,6 +497,117 @@ void USimFlowTask_PlaceObject::NativeTaskEnd(ESimFlowResult /*Result*/)
 	}
 	ResolvedZone = nullptr;
 	ReportedWrongItems.Reset();
+}
+
+ASimFlowZone* USimFlowTask_PlaceObject::ResolveZone() const
+{
+	// Specific Actor and Blackboard Key each name one actor, so the generic resolver
+	// is the right answer for them - and being told the named actor is not a zone is
+	// useful, because naming the wrong actor is the mistake.
+	if (!Zone.SpecificActor.IsNull() || !Zone.BlackboardKey.IsNone())
+	{
+		return Cast<ASimFlowZone>(Zone.Resolve(FlowInstance));
+	}
+
+	// A tag query describes a set, and the only member of that set this task can use
+	// is a zone. Scanning every actor instead would let any mistagged prop win on
+	// iteration order alone and take the task down with it.
+	if (const UWorld* World = GetWorld())
+	{
+		for (TActorIterator<ASimFlowZone> It(World); It; ++It)
+		{
+			if (Zone.MatchActor(*It, FlowInstance) == ESimFlowMatchQuality::Exact)
+			{
+				return *It;
+			}
+		}
+	}
+
+	return nullptr;
+}
+
+void USimFlowTask_PlaceObject::LogZoneResolveFailure() const
+{
+	const FString TaskName = GetDisplayNameText().ToString();
+	const FString QueryText = Zone.Describe().ToString();
+
+	// Four different mistakes used to share one message. They need different fixes.
+	if (!Zone.IsSet())
+	{
+		UE_LOG(LogSimFlow, Warning,
+			TEXT("PlaceObject task '%s' has an empty Zone query, so there is nothing to watch - failing. ")
+			TEXT("Set Zone > Required Tags to the zone's identity tag, e.g. Zone.PartsBin."),
+			*TaskName);
+		return;
+	}
+
+	// The named-actor forms: say what was named and what it turned out to be.
+	if (!Zone.SpecificActor.IsNull() || !Zone.BlackboardKey.IsNone())
+	{
+		if (const AActor* Named = Zone.Resolve(FlowInstance))
+		{
+			UE_LOG(LogSimFlow, Warning,
+				TEXT("PlaceObject task '%s' resolved its Zone query (%s) to '%s', which is a %s and not a SimFlow Zone - failing. ")
+				TEXT("A plain trigger volume will not do; the actor has to be an ASimFlowZone or a Blueprint child of one."),
+				*TaskName, *QueryText, *Named->GetName(), *Named->GetClass()->GetName());
+		}
+		else
+		{
+			UE_LOG(LogSimFlow, Warning,
+				TEXT("PlaceObject task '%s' could not resolve its Zone query (%s) to any actor - failing. ")
+				TEXT("A Specific Actor pointing into a level that is not loaded resolves to nothing."),
+				*TaskName, *QueryText);
+		}
+		return;
+	}
+
+	// The tag form. Name the zones that do exist and what they are actually tagged,
+	// because the answer is almost always visible in that list.
+	FString Present;
+	int32 ZoneCount = 0;
+	const UWorld* World = GetWorld();
+	if (World)
+	{
+		for (TActorIterator<ASimFlowZone> It(World); It; ++It)
+		{
+			++ZoneCount;
+			if (ZoneCount > 8)
+			{
+				continue;
+			}
+			const FGameplayTagContainer Tags = USimFlowIdentityStatics::GetIdentityTags(*It);
+			Present += FString::Printf(TEXT("\n    %s  tagged: %s"),
+				*It->GetName(),
+				Tags.IsEmpty() ? TEXT("(no identity tags)") : *Tags.ToStringSimple());
+		}
+	}
+
+	if (ZoneCount == 0)
+	{
+		UE_LOG(LogSimFlow, Warning,
+			TEXT("PlaceObject task '%s' found no SimFlow Zone anywhere in the level to match its Zone query (%s) - failing. ")
+			TEXT("Check you are playing the level the zone is in."),
+			*TaskName, *QueryText);
+		return;
+	}
+
+	// A non-zone wearing the zone's tag no longer breaks the lookup, but it is still
+	// worth naming - it is usually the thing the author meant to tag differently.
+	FString Decoy;
+	if (const AActor* AnyMatch = Zone.Resolve(FlowInstance))
+	{
+		if (!AnyMatch->IsA<ASimFlowZone>())
+		{
+			Decoy = FString::Printf(
+				TEXT(" Note that '%s' (a %s) also carries this tag and is not a zone."),
+				*AnyMatch->GetName(), *AnyMatch->GetClass()->GetName());
+		}
+	}
+
+	UE_LOG(LogSimFlow, Warning,
+		TEXT("PlaceObject task '%s' matched none of the %d SimFlow Zone(s) in the level against its Zone query (%s) - failing. ")
+		TEXT("The tag has to be on the zone's SimFlow Identity component, not the actor's own Tags array.%s Zones present:%s"),
+		*TaskName, ZoneCount, *QueryText, *Decoy, *Present);
 }
 
 ESimFlowMatchQuality USimFlowTask_PlaceObject::JudgeItem(const AActor* Actor) const

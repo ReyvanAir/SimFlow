@@ -2,6 +2,29 @@
 
 All notable changes to SimFlow. Versions follow the plugin's `VersionName`.
 
+## Unreleased
+
+### Changed
+
+- **A tag in a Place Object In Zone `Zone` query now matches zones only.** It used
+  to resolve through the generic actor query, which returns the first actor in the
+  level carrying the tag — so a prop with a `SimFlow Identity` wearing the zone's
+  tag could win on iteration order, fail the cast to `ASimFlowZone`, and take the
+  task down at start while the real zone sat there unmatched. The tag form now scans
+  `ASimFlowZone` actors, so nothing else can shadow one. `Specific Actor` and
+  `Blackboard Key` are unchanged: they name one actor, and being told that actor is
+  not a zone is the useful answer there.
+
+### Fixed
+
+- **The Zone-query failure said "could not resolve" and nothing else.** One message
+  covered four different mistakes with four different fixes, and named neither the
+  actor it found nor its class. It now distinguishes an empty query, a named actor
+  that turned out not to be a zone, a level containing no zones at all, and zones
+  that exist but do not carry the tag — and in that last case lists every zone in
+  the level with its actual identity tags, plus a note when a non-zone actor is
+  wearing the tag you asked for.
+
 ## 1.1.4
 
 A setup pass rather than a feature. Placing an object was the plugin's most
