@@ -1,0 +1,15 @@
+# graphify corpus exclusions (gitignore syntax), scoped to the SimFlow plugin.
+#
+# The project root has its own .graphifyignore for the whole-project graph.
+# This one applies when graphify is run from inside Plugins/SimFlow, which
+# produces a clean plugin-only corpus with no UHT reflection glue.
+
+# Unreal build output
+/Binaries
+/Intermediate
+
+# graphify's own output (already skipped internally; listed for clarity)
+/graphify-out
+
+# NOTE: /docs, README.md and CHANGELOG.md are deliberately NOT excluded.
+# They carry the design rationale the graph needs to answer "why" questions.
