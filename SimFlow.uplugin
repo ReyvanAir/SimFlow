@@ -10,7 +10,7 @@
 	"DocsURL": "https://reyvanair.github.io/SimFlow/",
 	"MarketplaceURL": "",
 	"SupportURL": "https://github.com/ReyvanAir/SimFlow/issues",
-	"EngineVersion": "5.6.0",
+	"EngineVersion": "5.8.0",
 	"CanContainContent": true,
 	"IsBetaVersion": false,
 	"IsExperimentalVersion": false,

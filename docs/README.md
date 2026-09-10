@@ -1,6 +1,6 @@
 # SimFlow documentation
 
-A task and flow framework for Unreal Engine 5.6 — build training simulations,
+A task and flow framework for Unreal Engine 5.8 — build training simulations,
 tutorials and assessments as authored graphs rather than Blueprint spaghetti.
 
 New here? Start with [Getting started](getting-started.md). It's about fifteen

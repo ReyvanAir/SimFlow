@@ -1,4 +1,4 @@
-# SimFlow — modular task & flow framework for Unreal Engine 5.6
+# SimFlow — modular task & flow framework for Unreal Engine 5.8
 
 **v1.1.4** — simpler placement setup: one `Settle Mode` on a zone in place of
 five settling and filtering fields, and four lead fields on *Place Object In
@@ -11,7 +11,7 @@ A data-driven system for building VR simulations, tutorials and any gameplay tha
 is really a *sequence of things the player has to do*. Author flows in a node
 graph, run them from a component, and drive your VR UI from the events they fire.
 
-Built for UE **5.6** (also compiles on 5.4/5.5 — see *Engine compatibility* below).
+Built for UE **5.8** (the same source still builds on 5.4–5.6 — see *Engine compatibility* below).
 
 **Full documentation:** [reyvanair.github.io/SimFlow](https://reyvanair.github.io/SimFlow/)
 
@@ -402,14 +402,33 @@ and Blueprint-callable. `SimFlowSampleBuilder.cpp` is a complete worked example.
 
 ## Engine compatibility
 
-Targets 5.6, and builds on 5.4/5.5 too.
+Targets 5.8. The same source still builds on 5.4–5.6.
 
 Unreal has been migrating graph editor coordinates from `FVector2D` to the
 `FVector2f`-backed `UE::Slate::FDeprecateVector2DParameter`, and the exact spelling
-of `FEdGraphSchemaAction::PerformAction`'s location parameter differs between
-versions. `SimFlowEditorCompat.h` deduces that type directly from the base class
-declaration rather than hardcoding it, so the overrides track whatever your engine
-actually declares.
+of `FEdGraphSchemaAction::PerformAction`'s location parameter can change between
+versions. `SimFlowEditorCompat.h` selects it with a single switch:
+
+```cpp
+#define SIMFLOW_PERFORMACTION_LOCATION_MODE 0
+//  0  const FVector2D                                 (correct for 5.4 - 5.8)
+//  1  const UE::Slate::FDeprecateVector2DParameter&
+//  2  const UE::Slate::FDeprecateVector2DParameter
+//  3  const FVector2f&                                (post-migration signature)
+```
+
+5.8 still declares the `FVector2D` overload and does not mark it deprecated, so
+mode 0 is correct there as well. A wrong setting fails loudly at compile time with
+*"method with override specifier 'override' did not override any base class
+methods"* — if that happens, switch to mode 3, or check the `PerformAction`
+overload taking a single `UEdGraphPin* FromPin` in
+`Engine/Source/Runtime/Engine/Classes/EdGraph/EdGraphSchema.h` and match its third
+parameter. You can also set it from `SimFlowEditor.Build.cs` without editing the
+header:
+
+```csharp
+PrivateDefinitions.Add("SIMFLOW_PERFORMACTION_LOCATION_MODE=3");
+```
 
 ## Layout
 
