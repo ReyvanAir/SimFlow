@@ -3,6 +3,7 @@
 #pragma once
 
 #include "CoreMinimal.h"
+#include "Templates/SubclassOf.h"
 #include "UObject/ObjectSaveContext.h"
 #include "SimFlowTypes.h"
 #include "SimFlowAsset.generated.h"

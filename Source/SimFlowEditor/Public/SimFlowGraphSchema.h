@@ -3,6 +3,7 @@
 #pragma once
 
 #include "CoreMinimal.h"
+#include "Templates/SubclassOf.h"
 #include "EdGraph/EdGraphSchema.h"
 #include "SimFlowEditorCompat.h"
 #include "SimFlowGraphSchema.generated.h"

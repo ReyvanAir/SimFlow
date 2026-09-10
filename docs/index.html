@@ -4,7 +4,7 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>SimFlow Documentation</title>
-<meta name="description" content="SimFlow — a modular, data-driven task and flow framework for Unreal Engine 5.6. User guide and developer reference.">
+<meta name="description" content="SimFlow — a modular, data-driven task and flow framework for Unreal Engine 5.8. User guide and developer reference.">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Archivo:wght@500;600;700&family=IBM+Plex+Mono:wght@400;500;600&family=IBM+Plex+Sans:ital,wght@0,400;0,500;0,600;1,400&display=swap">
@@ -250,7 +250,7 @@ footer {
   <div class="masthead-inner">
     <div class="brand">
       <h1>SimFlow Documentation</h1>
-      <span class="version">v1.1.4 &middot; UE 5.6</span>
+      <span class="version">v1.1.4 &middot; UE 5.8</span>
     </div>
     <p class="tagline">A modular, data-driven task and flow framework for VR simulations, tutorials and procedural gameplay. Author procedures as node graphs; run them from a component; drive your UI from what they report.</p>
     <div class="topbar">
@@ -304,7 +304,7 @@ footer {
       <div class="call note"><span class="lbl">Two modules</span>
         <p><strong>SimFlowRuntime</strong> ships in packaged builds. <strong>SimFlowEditor</strong> (the graph editor) is stripped on cook. Only node <em>data</em> is packaged, never the visual graph.</p>
       </div>
-      <p>Targets UE 5.6. It also builds on 5.4/5.5 &mdash; see <a class="inline" href="#d-compat">Engine compatibility</a> in the developer guide for the one line that may need adjusting.</p>
+      <p>Targets UE 5.8. It also builds on 5.4–5.6 &mdash; see <a class="inline" href="#d-compat">Engine compatibility</a> in the developer guide for the one line that may need adjusting.</p>
     </section>
 
     <section class="chunk" id="u-concepts">
@@ -1503,13 +1503,14 @@ Sample_GrabExtinguisher, Sample_PullPin        // used by the sample flow only</
 
     <section class="chunk" id="d-compat">
       <h2>Engine compatibility</h2>
-      <p>Targets 5.6, and builds on 5.4/5.5. One line needs to match the engine. <code>FEdGraphSchemaAction::PerformAction</code>'s location parameter has moved between <code>FVector2D</code> and the FVector2f-backed <code>UE::Slate::FDeprecateVector2DParameter</code>, and it cannot be inferred from the version number. <code>SimFlowEditorCompat.h</code> deduces the type from the base class declaration rather than hardcoding it.</p>
+      <p>Targets 5.8, and builds on 5.4&ndash;5.6. One line needs to match the engine. <code>FEdGraphSchemaAction::PerformAction</code>'s location parameter can move between <code>FVector2D</code> and the FVector2f-backed <code>UE::Slate::FDeprecateVector2DParameter</code>, and it cannot be inferred from the version number. <code>SimFlowEditorCompat.h</code> selects it with a single switch, which you can also override from <code>SimFlowEditor.Build.cs</code> via <code>PrivateDefinitions.Add("SIMFLOW_PERFORMACTION_LOCATION_MODE=3")</code>. UE 5.8 still declares the <code>FVector2D</code> overload and does not mark it deprecated, so mode 0 is correct there too.</p>
       <pre><code>// SimFlowEditorCompat.h
 #define SIMFLOW_PERFORMACTION_LOCATION_MODE 0
-//  0  const FVector2D                                 (verified on UE 5.6)
+//  0  const FVector2D                                 (verified on UE 5.4–5.8)
 //  1  const UE::Slate::FDeprecateVector2DParameter&amp;
-//  2  const UE::Slate::FDeprecateVector2DParameter</code></pre>
-      <p>A wrong setting fails loudly: <em>"method with override specifier 'override' did not override any base class methods"</em>. Check <code>Engine/Source/Runtime/Engine/Classes/EdGraph/EdGraphSchema.h</code>, find the <code>PerformAction</code> overload taking a single <code>UEdGraphPin* FromPin</code>, and match its third parameter.</p>
+//  2  const UE::Slate::FDeprecateVector2DParameter
+//  3  const FVector2f&amp;                               (post-migration signature)</code></pre>
+      <p>A wrong setting fails loudly: <em>"method with override specifier 'override' did not override any base class methods"</em>. If that happens, try mode 3, or check <code>Engine/Source/Runtime/Engine/Classes/EdGraph/EdGraphSchema.h</code>, find the <code>PerformAction</code> overload taking a single <code>UEdGraphPin* FromPin</code>, and match its third parameter.</p>
     </section>
 
     <section class="chunk" id="d-logging">
@@ -1553,7 +1554,7 @@ SimFlow.CreateSample   build the sample flow asset (editor)</code></pre>
 </div>
 
 <footer>
-  SimFlow v1.1.4 &middot; Unreal Engine 5.6 &middot; generated documentation. See <code>Plugins/SimFlow/README.md</code> and <code>Plugins/SimFlow/docs/Cheatsheet.md</code> for the source Markdown.
+  SimFlow v1.1.4 &middot; Unreal Engine 5.8 &middot; generated documentation. See <code>Plugins/SimFlow/README.md</code> and <code>Plugins/SimFlow/docs/Cheatsheet.md</code> for the source Markdown.
 </footer>
 
 <script>
