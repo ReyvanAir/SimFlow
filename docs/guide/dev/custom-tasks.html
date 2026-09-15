@@ -1,0 +1,261 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Custom Tasks and Conditions | SimFlow User Guide</title>
+<meta name="description" content="SimFlow developer guide: The task lifecycle, and writing tasks and conditions in C++ or Blueprint.">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500;600&family=IBM+Plex+Sans:wght@400;500;600&display=swap">
+<link rel="stylesheet" href="../assets/guide.css">
+<script src="../assets/search-index.js" defer></script>
+<script src="../assets/guide.js" defer></script>
+</head>
+<body>
+<a class="skip-link" href="#content">Skip to content</a>
+
+<header class="topbar">
+  <button id="navToggle" class="icon-btn" aria-expanded="false" aria-controls="sidebar" aria-label="Open chapter navigation">
+    <svg width="16" height="16" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.6" aria-hidden="true"><path d="M2 4.5h12M2 8h12M2 11.5h12"/></svg>
+  </button>
+
+  <a class="brand" href="../index.html">
+    <svg width="20" height="20" viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.5" aria-hidden="true"><rect x="1.4" y="2.6" width="6.4" height="4.6" rx="1"/><rect x="12.2" y="7.4" width="6.4" height="4.6" rx="1"/><rect x="1.4" y="12.8" width="6.4" height="4.6" rx="1"/><path d="M7.8 4.9h2.2a1.4 1.4 0 0 1 1.4 1.4v1.1M7.8 15.1h2.2a1.4 1.4 0 0 0 1.4-1.4v-1.4"/></svg>
+    SimFlow <span class="ver">1.1.4</span>
+  </a>
+
+  <div class="spacer"></div>
+
+  <div class="search" role="search">
+    <svg class="mag" width="14" height="14" viewBox="0 0 14 14" fill="none" stroke="currentColor" stroke-width="1.6" aria-hidden="true"><circle cx="6" cy="6" r="4.2"/><path d="M9.2 9.2 12.5 12.5"/></svg>
+    <input id="q" type="search" placeholder="Search the guide" autocomplete="off" aria-label="Search the guide" aria-controls="results">
+    <kbd>/</kbd>
+    <div class="results" id="results" hidden role="listbox" aria-label="Search results"></div>
+  </div>
+
+  <button id="themeToggle" class="icon-btn" aria-pressed="false" aria-label="Switch to light theme">
+    <svg class="i-moon" width="15" height="15" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5" aria-hidden="true"><path d="M13.4 9.8A5.9 5.9 0 0 1 6.2 2.6a5.9 5.9 0 1 0 7.2 7.2Z"/></svg>
+    <svg class="i-sun" width="15" height="15" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5" aria-hidden="true" hidden><circle cx="8" cy="8" r="3.1"/><path d="M8 1v1.8M8 13.2V15M15 8h-1.8M2.8 8H1m11-4.9-1.3 1.3M5.3 10.7 4 12m0-8 1.3 1.3m5.4 5.4L12 12"/></svg>
+  </button>
+</header>
+<div class="scrim" id="scrim" hidden></div>
+
+<div class="shell">
+
+<aside class="sidebar" id="sidebar">
+  <nav aria-label="Guide navigation">
+    <h2>User Guide</h2>
+    <ol>
+      <li><a href="../index.html"><span class="num">00</span><span>Overview</span></a></li>
+      <li><a href="../01-getting-started.html"><span class="num">01</span><span>Getting Started &amp; Installation</span></a></li>
+      <li><a href="../02-architecture.html"><span class="num">02</span><span>Core Mental Model</span></a></li>
+      <li><a href="../03-authoring.html"><span class="num">03</span><span>Authoring in the Node Graph</span></a></li>
+      <li><a href="../04-rules-and-policies.html"><span class="num">04</span><span>Rules &amp; Failure Policies</span></a></li>
+      <li><a href="../05-runtime-blueprint.html"><span class="num">05</span><span>Runtime &amp; Blueprint Wiring</span></a></li>
+      <li><a href="../06-ui-and-vr.html"><span class="num">06</span><span>Driving UI &amp; VR Feedback</span></a></li>
+      <li><a href="../07-troubleshooting.html"><span class="num">07</span><span>Troubleshooting</span></a></li>
+    </ol>
+    <details class="navgroup">
+      <summary>Node Reference</summary>
+      <ul>
+        <li><a href="../nodes/start.html"><span class="num">&#183;</span><span>Start</span></a></li>
+        <li><a href="../nodes/delay.html"><span class="num">&#183;</span><span>Delay</span></a></li>
+        <li><a href="../nodes/branch.html"><span class="num">&#183;</span><span>Branch</span></a></li>
+        <li><a href="../nodes/random-branch.html"><span class="num">&#183;</span><span>Random Branch</span></a></li>
+        <li><a href="../nodes/parallel.html"><span class="num">&#183;</span><span>Parallel</span></a></li>
+        <li><a href="../nodes/join.html"><span class="num">&#183;</span><span>Join</span></a></li>
+        <li><a href="../nodes/loop.html"><span class="num">&#183;</span><span>Loop</span></a></li>
+        <li><a href="../nodes/finish.html"><span class="num">&#183;</span><span>Finish</span></a></li>
+        <li><a href="../nodes/task.html"><span class="num">&#183;</span><span>Task</span></a></li>
+        <li><a href="../nodes/sub-flow.html"><span class="num">&#183;</span><span>Sub Flow</span></a></li>
+        <li><a href="../nodes/checkpoint.html"><span class="num">&#183;</span><span>Checkpoint</span></a></li>
+        <li><a href="../nodes/set-blackboard.html"><span class="num">&#183;</span><span>Set Blackboard Value</span></a></li>
+      </ul>
+    </details>
+    <details class="navgroup">
+      <summary>Task Reference</summary>
+      <ul>
+        <li><a href="../tasks/delay.html"><span class="num">&#183;</span><span>Delay</span></a></li>
+        <li><a href="../tasks/log-message.html"><span class="num">&#183;</span><span>Log Message</span></a></li>
+        <li><a href="../tasks/set-blackboard.html"><span class="num">&#183;</span><span>Set Blackboard Value</span></a></li>
+        <li><a href="../tasks/wait-for-event.html"><span class="num">&#183;</span><span>Wait For Event</span></a></li>
+        <li><a href="../tasks/wait-for-condition.html"><span class="num">&#183;</span><span>Wait For Condition</span></a></li>
+        <li><a href="../tasks/go-to-location.html"><span class="num">&#183;</span><span>Go To Location</span></a></li>
+        <li><a href="../tasks/quiz.html"><span class="num">&#183;</span><span>Quiz</span></a></li>
+        <li><a href="../tasks/parallel-group.html"><span class="num">&#183;</span><span>Parallel Group</span></a></li>
+        <li><a href="../tasks/place-object-in-zone.html"><span class="num">&#183;</span><span>Place Object In Zone</span></a></li>
+        <li><a href="../tasks/ordered-sequence.html"><span class="num">&#183;</span><span>Ordered Sequence</span></a></li>
+      </ul>
+    </details>
+    <details class="navgroup" open>
+      <summary>Developer Guide</summary>
+      <ul>
+        <li><a href="../dev/architecture.html"><span class="num">&#183;</span><span>Architecture & Modules</span></a></li>
+        <li><a href="../dev/execution-model.html"><span class="num">&#183;</span><span>Execution Model</span></a></li>
+        <li><a href="../dev/custom-nodes.html"><span class="num">&#183;</span><span>Writing a Custom Node</span></a></li>
+        <li><a href="../dev/custom-tasks.html" aria-current="page"><span class="num">&#183;</span><span>Custom Tasks & Conditions</span></a></li>
+        <li><a href="../dev/blackboard-internals.html"><span class="num">&#183;</span><span>Blackboard & Values</span></a></li>
+        <li><a href="../dev/persistence.html"><span class="num">&#183;</span><span>Save and Load Internals</span></a></li>
+        <li><a href="../dev/replication.html"><span class="num">&#183;</span><span>Replication</span></a></li>
+        <li><a href="../dev/editor-module.html"><span class="num">&#183;</span><span>The Editor Module</span></a></li>
+        <li><a href="../dev/api-reference.html"><span class="num">&#183;</span><span>API Reference</span></a></li>
+        <li><a href="../dev/diagnostics.html"><span class="num">&#183;</span><span>Diagnostics & Limits</span></a></li>
+      </ul>
+    </details>
+    <h2>Reference</h2>
+    <ul>
+      <li><a href="../../Cheatsheet.md"><span class="num">&#8599;</span><span>Cheat sheet</span></a></li>
+      <li><a href="../../glossary.md"><span class="num">&#8599;</span><span>Glossary</span></a></li>
+    </ul>
+  </nav>
+</aside>
+
+  <main id="content">
+    <nav class="crumbs" aria-label="Breadcrumb">
+      <ol>
+        <li><a href="../index.html">User Guide</a></li>
+        <li><svg width="11" height="11" viewBox="0 0 12 12" fill="none" stroke="currentColor" stroke-width="1.6" aria-hidden="true"><path d="m4.5 2.5 3.5 3.5-3.5 3.5"/></svg><span>Developer Guide</span></li>
+        <li><svg width="11" height="11" viewBox="0 0 12 12" fill="none" stroke="currentColor" stroke-width="1.6" aria-hidden="true"><path d="m4.5 2.5 3.5 3.5-3.5 3.5"/></svg><span aria-current="page">Custom Tasks & Conditions</span></li>
+      </ol>
+    </nav>
+
+    <p class="eyebrow">Developer Guide</p>
+    <h1>Custom Tasks and Conditions</h1>
+
+    <dl class="idcard">
+      <dt>Base classes</dt><dd><code>USimFlowTask</code>, <code>USimFlowCondition</code></dd>
+      <dt>Class flags</dt><dd><code>Abstract</code>, <code>Blueprintable</code>, <code>EditInlineNew</code>, <code>DefaultToInstanced</code>, <code>CollapseCategories</code></dd>
+      <dt>Language</dt><dd>C++ or Blueprint. Both work.</dd>
+    </dl>
+
+    <p class="usefor"><b>This is the extension point you will reach for most.</b> Those class flags are what make a task appear as an inline, configurable object in the Details panel rather than as a separate asset to create and wire up.</p>
+
+    <h2 id="lifecycle">The task lifecycle</h2>
+
+    <p><code>USimFlowNode_Task</code> owns a <code>USimFlowTask</code> as an <code>Instanced</code> sub-object and drives it. C++ overrides are <code>NativeTaskStart</code>, <code>NativeTaskTick</code>, <code>NativeTaskPause</code>, <code>NativeTaskResume</code> and <code>NativeTaskEnd</code>. Blueprint gets <code>ReceiveTaskStart</code> and friends. Both fire, native first.</p>
+
+    <pre><code>ExecuteInput      → InitializeTask → StartTask → NativeTaskStart, ReceiveTaskStart
+TickNode          → TickTask → NativeTaskTick, ReceiveTaskTick
+                  → abort condition checked
+                  → time limit checked
+FinishTask(Result)→ score applied → NativeTaskEnd, ReceiveTaskEnd
+                  → OnTaskFinished broadcast
+                  → OwningNode-&gt;HandleTaskFinished(Result)</code></pre>
+
+    <p><code>HandleTaskFinished</code> applies auto-retry if the node is configured for it, then maps the result to a pin. With <code>bFallbackToCompleted</code>, an unwired <code>Failed</code>, <code>Skipped</code> or <code>TimedOut</code> pin falls through to <code>Completed</code>.</p>
+
+    <div class="note">
+      <svg class="ico" width="16" height="16" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5" aria-hidden="true"><circle cx="8" cy="8" r="6.3"/><path d="M8 7.2v4M8 4.9v.7"/></svg>
+      <div>
+        <span class="ct">FinishTask is safe to call twice</span>
+        <p>It is guarded by <code>bFinishRequested</code>, so a double-fire from an event binding does no harm. You do not need to defend against it in your own code.</p>
+      </div>
+    </div>
+
+    <p>Read-only runtime fields available on the task while it runs: <code>bIsRunning</code>, <code>bIsPaused</code>, <code>ElapsedTime</code>, <code>RetryCount</code>, <code>FlowInstance</code>, <code>OwningNode</code>.</p>
+
+    <h2 id="task-example">A custom task</h2>
+
+    <pre><code>UCLASS(DisplayName = "Hold Trigger")
+class MYGAME_API USimFlowTask_HoldTrigger : public USimFlowTask
+{
+    GENERATED_BODY()
+public:
+    UPROPERTY(EditAnywhere, Category = "Hold")
+    float RequiredSeconds = 2.f;
+
+    virtual void NativeTaskStart() override { Held = 0.f; }
+
+    virtual void NativeTaskTick(float DeltaTime) override
+    {
+        Held = IsTriggerHeld() ? Held + DeltaTime : 0.f;
+        if (Held &gt;= RequiredSeconds) FinishTask(ESimFlowResult::Succeeded);
+    }
+
+    virtual void NativeTaskEnd(ESimFlowResult Result) override { /* unbind */ }
+
+private:
+    float Held = 0.f;
+};</code></pre>
+
+    <p>The class appears in the Task dropdown on its own, with <code>RequiredSeconds</code> inline underneath. Retry, skip, timeout, pause and scoring all come from the <a href="../nodes/task.html">Task node</a> without you implementing any of it.</p>
+
+    <h3 id="blueprint-task">The same thing in Blueprint</h3>
+
+    <ol class="steps">
+      <li><span class="sh">Create the class</span><p>Blueprint Class from <strong>SimFlow Task</strong>.</p></li>
+      <li><span class="sh">Set up in On Task Start</span><p>Override <strong>On Task Start</strong>. Bind whatever you need to listen to.</p></li>
+      <li><span class="sh">Finish with a result</span><p>Call <strong>Finish Task</strong> with <code>Succeeded</code> or <code>Failed</code> when the work is done.</p></li>
+      <li><span class="sh">Clean up in On Task End</span><p>Unbind everything you bound. This fires however the task ended, including a timeout or an abort.</p>
+        <p class="tip"><b>Use <code>Set Saved Value</code> and <code>Get Saved Value</code></b> for state that has to survive a save and reload. They write into <code>FSimFlowNodeSaveState::CustomData</code> for you.</p></li>
+    </ol>
+
+    <h3 id="base-helpers">What the base class gives you</h3>
+
+    <div class="tw">
+      <table>
+        <caption>USimFlowTask helpers, all Blueprint-callable</caption>
+        <thead><tr><th scope="col">Function</th><th scope="col">Returns or does</th></tr></thead>
+        <tbody>
+          <tr><td class="t-name">Get Flow Owner</td><td>The actor owning the flow component.</td></tr>
+          <tr><td class="t-name">Get Player Pawn</td><td>The player pawn, which is the VR pawn in a VR project.</td></tr>
+          <tr><td class="t-name">Get Blackboard</td><td>The running instance's blackboard.</td></tr>
+          <tr><td class="t-name">Record Mistake</td><td>(Kind, Involved, Description, Severity). Lands in the instance's mistake list for the debrief.</td></tr>
+          <tr><td class="t-name">Apply Mismatch Policy</td><td>The shared right-event-wrong-object handling, so your task grades like the built-ins do.</td></tr>
+          <tr><td class="t-name">Set Saved Value / Get Saved Value</td><td>Persisted per-task state.</td></tr>
+        </tbody>
+      </table>
+    </div>
+
+    <h2 id="conditions">Conditions</h2>
+
+    <p>Conditions override <code>NativeEvaluate(USimFlowInstance*) const</code>. <code>Evaluate</code> is non-const, applies <code>bInvert</code>, and lets a Blueprint <code>ReceiveEvaluate</code> override the native result.</p>
+
+    <pre><code>UCLASS(DisplayName = "Player Is Crouching")
+class MYGAME_API USimFlowCondition_Crouching : public USimFlowCondition
+{
+    GENERATED_BODY()
+public:
+    virtual bool NativeEvaluate(USimFlowInstance* Instance) const override
+    {
+        const APawn* P = /* resolve from Instance */;
+        return P &amp;&amp; P-&gt;bIsCrouched;
+    }
+
+    virtual FText GetConditionDescription_Implementation() const override
+    {
+        return NSLOCTEXT("MyGame", "Crouch", "Player is crouching");
+    }
+};</code></pre>
+
+    <div class="warn">
+      <svg class="ico" width="16" height="16" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5" aria-hidden="true"><path d="M8 2.4 15 14H1Z"/><path d="M8 6.4v3.2M8 11.6v.6"/></svg>
+      <div>
+        <span class="ct">Override GetConditionDescription</span>
+        <p>It is the label shown on graph nodes and in the debug HUD. Skip it and a designer reading the graph sees a class name where the rule should be, which makes a Branch much harder to review.</p>
+      </div>
+    </div>
+
+    <p>Conditions are evaluated from the first check rather than only on a change, so a condition already true when a <a href="../tasks/wait-for-condition.html">Wait For Condition</a> starts succeeds almost immediately. Keep <code>NativeEvaluate</code> cheap: it may run every frame, and the <code>Check Interval</code> that throttles it is a designer-facing field you do not control.</p>
+
+    <h2 id="related">Related</h2>
+    <p><a href="custom-nodes.html">Writing a custom node</a> &middot; <a href="../nodes/task.html">Task node</a> &middot; <a href="persistence.html">Save and load internals</a></p>
+
+    <nav class="pager" aria-label="Page navigation">
+      <a href="custom-nodes.html"><span class="d">Previous</span><span class="t">Writing a Custom Node</span></a>
+      <a class="next" href="blackboard-internals.html"><span class="d">Next</span><span class="t">Blackboard & Values</span></a>
+    </nav>
+
+    <div class="foot">
+      <p>SimFlow 1.1.4 &middot; User Guide &middot; Unreal Engine 5.6 and 5.8</p>
+    </div>
+  </main>
+
+  <aside class="rail" id="rail" aria-label="On this page">
+    <h2>On this page</h2>
+  </aside>
+
+</div>
+</body>
+</html>

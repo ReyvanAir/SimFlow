@@ -1,0 +1,396 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Core Mental Model and Architecture | SimFlow User Guide</title>
+<meta name="description" content="The three-part SimFlow pipeline: the flow asset authors the sequence, the SimFlow Component executes it, and Blueprint delegates feed the UI. How that split keeps level Blueprints free of procedure logic.">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500;600&family=IBM+Plex+Sans:wght@400;500;600&display=swap">
+<link rel="stylesheet" href="assets/guide.css">
+<script src="assets/search-index.js" defer></script>
+<script src="assets/guide.js" defer></script>
+</head>
+<body>
+<a class="skip-link" href="#content">Skip to content</a>
+
+<header class="topbar">
+  <button id="navToggle" class="icon-btn" aria-expanded="false" aria-controls="sidebar" aria-label="Open chapter navigation">
+    <svg width="16" height="16" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.6" aria-hidden="true"><path d="M2 4.5h12M2 8h12M2 11.5h12"/></svg>
+  </button>
+
+  <a class="brand" href="index.html">
+    <svg width="20" height="20" viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.5" aria-hidden="true">
+      <rect x="1.4" y="2.6" width="6.4" height="4.6" rx="1"/>
+      <rect x="12.2" y="7.4" width="6.4" height="4.6" rx="1"/>
+      <rect x="1.4" y="12.8" width="6.4" height="4.6" rx="1"/>
+      <path d="M7.8 4.9h2.2a1.4 1.4 0 0 1 1.4 1.4v1.1M7.8 15.1h2.2a1.4 1.4 0 0 0 1.4-1.4v-1.4"/>
+    </svg>
+    SimFlow <span class="ver">1.1.4</span>
+  </a>
+
+  <div class="spacer"></div>
+
+  <div class="search" role="search">
+    <svg class="mag" width="14" height="14" viewBox="0 0 14 14" fill="none" stroke="currentColor" stroke-width="1.6" aria-hidden="true"><circle cx="6" cy="6" r="4.2"/><path d="M9.2 9.2 12.5 12.5"/></svg>
+    <input id="q" type="search" placeholder="Search the guide" autocomplete="off" aria-label="Search the guide" aria-controls="results">
+    <kbd>/</kbd>
+    <div class="results" id="results" hidden role="listbox" aria-label="Search results"></div>
+  </div>
+
+  <button id="themeToggle" class="icon-btn" aria-pressed="false" aria-label="Switch to light theme">
+    <svg class="i-moon" width="15" height="15" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5" aria-hidden="true"><path d="M13.4 9.8A5.9 5.9 0 0 1 6.2 2.6a5.9 5.9 0 1 0 7.2 7.2Z"/></svg>
+    <svg class="i-sun" width="15" height="15" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5" aria-hidden="true" hidden><circle cx="8" cy="8" r="3.1"/><path d="M8 1v1.8M8 13.2V15M15 8h-1.8M2.8 8H1m11-4.9-1.3 1.3M5.3 10.7 4 12m0-8 1.3 1.3m5.4 5.4L12 12"/></svg>
+  </button>
+</header>
+<div class="scrim" id="scrim" hidden></div>
+
+<div class="shell">
+
+  <aside class="sidebar" id="sidebar">
+  <nav aria-label="Guide navigation">
+    <h2>User Guide</h2>
+    <ol>
+      <li><a href="index.html"><span class="num">00</span><span>Overview</span></a></li>
+      <li><a href="01-getting-started.html"><span class="num">01</span><span>Getting Started &amp; Installation</span></a></li>
+      <li><a href="02-architecture.html" aria-current="page"><span class="num">02</span><span>Core Mental Model</span></a></li>
+      <li><a href="03-authoring.html"><span class="num">03</span><span>Authoring in the Node Graph</span></a></li>
+      <li><a href="04-rules-and-policies.html"><span class="num">04</span><span>Rules &amp; Failure Policies</span></a></li>
+      <li><a href="05-runtime-blueprint.html"><span class="num">05</span><span>Runtime &amp; Blueprint Wiring</span></a></li>
+      <li><a href="06-ui-and-vr.html"><span class="num">06</span><span>Driving UI &amp; VR Feedback</span></a></li>
+      <li><a href="07-troubleshooting.html"><span class="num">07</span><span>Troubleshooting</span></a></li>
+    </ol>
+    <details class="navgroup">
+      <summary>Node Reference</summary>
+      <ul>
+        <li><a href="nodes/start.html"><span class="num">&#183;</span><span>Start</span></a></li>
+        <li><a href="nodes/delay.html"><span class="num">&#183;</span><span>Delay</span></a></li>
+        <li><a href="nodes/branch.html"><span class="num">&#183;</span><span>Branch</span></a></li>
+        <li><a href="nodes/random-branch.html"><span class="num">&#183;</span><span>Random Branch</span></a></li>
+        <li><a href="nodes/parallel.html"><span class="num">&#183;</span><span>Parallel</span></a></li>
+        <li><a href="nodes/join.html"><span class="num">&#183;</span><span>Join</span></a></li>
+        <li><a href="nodes/loop.html"><span class="num">&#183;</span><span>Loop</span></a></li>
+        <li><a href="nodes/finish.html"><span class="num">&#183;</span><span>Finish</span></a></li>
+        <li><a href="nodes/task.html"><span class="num">&#183;</span><span>Task</span></a></li>
+        <li><a href="nodes/sub-flow.html"><span class="num">&#183;</span><span>Sub Flow</span></a></li>
+        <li><a href="nodes/checkpoint.html"><span class="num">&#183;</span><span>Checkpoint</span></a></li>
+        <li><a href="nodes/set-blackboard.html"><span class="num">&#183;</span><span>Set Blackboard Value</span></a></li>
+      </ul>
+    </details>
+    <details class="navgroup">
+      <summary>Task Reference</summary>
+      <ul>
+        <li><a href="tasks/delay.html"><span class="num">&#183;</span><span>Delay</span></a></li>
+        <li><a href="tasks/log-message.html"><span class="num">&#183;</span><span>Log Message</span></a></li>
+        <li><a href="tasks/set-blackboard.html"><span class="num">&#183;</span><span>Set Blackboard Value</span></a></li>
+        <li><a href="tasks/wait-for-event.html"><span class="num">&#183;</span><span>Wait For Event</span></a></li>
+        <li><a href="tasks/wait-for-condition.html"><span class="num">&#183;</span><span>Wait For Condition</span></a></li>
+        <li><a href="tasks/go-to-location.html"><span class="num">&#183;</span><span>Go To Location</span></a></li>
+        <li><a href="tasks/quiz.html"><span class="num">&#183;</span><span>Quiz</span></a></li>
+        <li><a href="tasks/parallel-group.html"><span class="num">&#183;</span><span>Parallel Group</span></a></li>
+        <li><a href="tasks/place-object-in-zone.html"><span class="num">&#183;</span><span>Place Object In Zone</span></a></li>
+        <li><a href="tasks/ordered-sequence.html"><span class="num">&#183;</span><span>Ordered Sequence</span></a></li>
+      </ul>
+    </details>
+    <details class="navgroup">
+      <summary>Developer Guide</summary>
+      <ul>
+        <li><a href="dev/architecture.html"><span class="num">&#183;</span><span>Architecture & Modules</span></a></li>
+        <li><a href="dev/execution-model.html"><span class="num">&#183;</span><span>Execution Model</span></a></li>
+        <li><a href="dev/custom-nodes.html"><span class="num">&#183;</span><span>Writing a Custom Node</span></a></li>
+        <li><a href="dev/custom-tasks.html"><span class="num">&#183;</span><span>Custom Tasks & Conditions</span></a></li>
+        <li><a href="dev/blackboard-internals.html"><span class="num">&#183;</span><span>Blackboard & Values</span></a></li>
+        <li><a href="dev/persistence.html"><span class="num">&#183;</span><span>Save and Load Internals</span></a></li>
+        <li><a href="dev/replication.html"><span class="num">&#183;</span><span>Replication</span></a></li>
+        <li><a href="dev/editor-module.html"><span class="num">&#183;</span><span>The Editor Module</span></a></li>
+        <li><a href="dev/api-reference.html"><span class="num">&#183;</span><span>API Reference</span></a></li>
+        <li><a href="dev/diagnostics.html"><span class="num">&#183;</span><span>Diagnostics & Limits</span></a></li>
+      </ul>
+    </details>
+    <h2>Reference</h2>
+    <ul>
+      <li><a href="../Cheatsheet.md"><span class="num">&#8599;</span><span>Cheat sheet</span></a></li>
+      <li><a href="../glossary.md"><span class="num">&#8599;</span><span>Glossary</span></a></li>
+    </ul>
+  </nav>
+</aside>
+
+  <main id="content">
+    <nav class="crumbs" aria-label="Breadcrumb">
+      <ol>
+        <li><a href="index.html">User Guide</a></li>
+        <li><svg width="11" height="11" viewBox="0 0 12 12" fill="none" stroke="currentColor" stroke-width="1.6" aria-hidden="true"><path d="m4.5 2.5 3.5 3.5-3.5 3.5"/></svg><span aria-current="page">Core Mental Model</span></li>
+      </ol>
+    </nav>
+
+    <p class="eyebrow">Chapter 02</p>
+    <h1>Core Mental Model and Architecture</h1>
+    <p class="lede">SimFlow splits a training scenario into three layers that know almost nothing about each other. Understanding where the boundary sits is what lets you change a procedure without reopening a single prop Blueprint.</p>
+
+    <h2 id="pipeline">The three-part pipeline</h2>
+
+    <p>Everything in the plugin sits in one of three places, and each tends to have a different owner on a team.</p>
+
+    <figure>
+      <svg class="diagram" viewBox="0 0 880 260" role="img" aria-labelledby="pipe-title pipe-desc">
+        <title id="pipe-title">The SimFlow pipeline</title>
+        <desc id="pipe-desc">A flow asset authored in the node graph is loaded by a SimFlow Component, which creates a flow instance at runtime. The instance broadcasts delegates that drive Blueprint and UI. Events and blackboard writes travel back from the world into the instance.</desc>
+
+        <defs>
+          <marker id="ah" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto"><path d="M0 0 10 5 0 10z" fill="#35A9DF"/></marker>
+          <marker id="ah2" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto"><path d="M0 0 10 5 0 10z" fill="#DFA232"/></marker>
+        </defs>
+
+        <g fill="none" stroke="currentColor" stroke-width="1.4" opacity="0.28">
+          <rect x="16" y="52" width="248" height="132" rx="6"/>
+          <rect x="316" y="52" width="248" height="132" rx="6"/>
+          <rect x="616" y="52" width="248" height="132" rx="6"/>
+        </g>
+
+        <g font-family="IBM Plex Mono, monospace" font-size="11" fill="#35A9DF" letter-spacing="1">
+          <text x="32" y="40">01 &#183; AUTHORING</text>
+          <text x="332" y="40">02 &#183; EXECUTION</text>
+          <text x="632" y="40">03 &#183; FEEDBACK</text>
+        </g>
+
+        <g font-family="IBM Plex Sans, sans-serif" fill="currentColor">
+          <text x="32" y="84" font-size="15" font-weight="600">SimFlow Graph asset</text>
+          <text x="32" y="106" font-size="12.5" opacity="0.72">Nodes, tasks, conditions,</text>
+          <text x="32" y="124" font-size="12.5" opacity="0.72">policies, step metadata.</text>
+          <text x="32" y="152" font-size="12" opacity="0.55">Owner: technical designer</text>
+          <text x="32" y="170" font-size="12" opacity="0.55">Holds no runtime state.</text>
+
+          <text x="332" y="84" font-size="15" font-weight="600">SimFlow Component</text>
+          <text x="332" y="106" font-size="12.5" opacity="0.72">Duplicates the asset into a</text>
+          <text x="332" y="124" font-size="12.5" opacity="0.72">flow instance and ticks it.</text>
+          <text x="332" y="152" font-size="12" opacity="0.55">Owner: simulation engineer</text>
+          <text x="332" y="170" font-size="12" opacity="0.55">Lives on one actor.</text>
+
+          <text x="632" y="84" font-size="15" font-weight="600">Blueprint and UI</text>
+          <text x="632" y="106" font-size="12.5" opacity="0.72">Dispatchers drive widgets,</text>
+          <text x="632" y="124" font-size="12.5" opacity="0.72">haptics, audio, markers.</text>
+          <text x="632" y="152" font-size="12" opacity="0.55">Owner: UI and VR</text>
+          <text x="632" y="170" font-size="12" opacity="0.55">Reads, does not decide.</text>
+        </g>
+
+        <g stroke="#35A9DF" stroke-width="1.8" fill="none">
+          <path d="M264 100h44" marker-end="url(#ah)"/>
+          <path d="M564 100h44" marker-end="url(#ah)"/>
+        </g>
+
+        <g stroke="#DFA232" stroke-width="1.6" fill="none" stroke-dasharray="5 4">
+          <path d="M740 196v24H440v-28" marker-end="url(#ah2)"/>
+        </g>
+        <text x="466" y="238" font-family="IBM Plex Mono, monospace" font-size="11" fill="#DFA232">events, blackboard writes, control calls</text>
+      </svg>
+      <figcaption>Solid arrows are the authoring-to-runtime direction. The dashed return path is the world talking back: events raised by props, blackboard writes, and control calls from an instructor panel.</figcaption>
+    </figure>
+
+    <div class="tw">
+      <table>
+        <caption>What each layer owns</caption>
+        <thead><tr><th scope="col">Layer</th><th scope="col">Artifact</th><th scope="col">Answers the question</th><th scope="col">Changing it means</th></tr></thead>
+        <tbody>
+          <tr>
+            <td class="t-name">Authoring</td>
+            <td>SimFlow Graph asset</td>
+            <td>What happens, in what order, and what counts as correct</td>
+            <td>Editing an asset. No compile, no Blueprint edits.</td>
+          </tr>
+          <tr>
+            <td class="t-name">Execution</td>
+            <td><code>USimFlowComponent</code> and its <code>USimFlowInstance</code></td>
+            <td>Who is running this, from which entry, on which machine</td>
+            <td>Changing component fields in the Details panel.</td>
+          </tr>
+          <tr>
+            <td class="t-name">Feedback</td>
+            <td>Blueprint dispatcher bindings</td>
+            <td>What the trainee sees, hears and feels</td>
+            <td>Editing widget or pawn Blueprints. Procedure logic stays out.</td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+
+    <h2 id="asset-instance">Asset against instance</h2>
+
+    <div class="split wide-left">
+      <div>
+        <p>The flow asset is a template. It holds no runtime state at all. When a SimFlow Component starts a flow it creates a <strong>flow instance</strong>, then duplicates the asset's nodes and tasks into it.</p>
+        <p>Two consequences follow, and both come up constantly in practice.</p>
+        <p>First, two actors can run the same asset independently. A four-trainee exercise with one flow asset on four Player States gives four separate runs with four separate blackboards. Nothing is shared unless you deliberately share it.</p>
+        <p>Second, editing the asset while the game is running changes nothing, because the instance already holds its own copies. Stop and restart the flow to pick up authoring changes. This surprises people once, then never again.</p>
+      </div>
+      <div class="panel">
+        <h4>Where runtime state lives</h4>
+        <ul>
+          <li><strong>Flow instance</strong>: active nodes, elapsed time, run state, event history, recorded mistakes.</li>
+          <li><strong>Blackboard</strong>: score, answers, counters, whatever you write.</li>
+          <li><strong>Nodes and tasks</strong>: their own per-run state, because they are duplicates.</li>
+          <li><strong>Asset</strong>: nothing. It is read-only at runtime.</li>
+        </ul>
+      </div>
+    </div>
+
+    <h2 id="decoupling">How the decoupling actually works</h2>
+
+    <p>The design rule the whole plugin follows is worth stating in one line:</p>
+
+    <div class="note">
+      <svg class="ico" width="16" height="16" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5" aria-hidden="true"><circle cx="8" cy="8" r="6.3"/><path d="M8 7.2v4M8 4.9v.7"/></svg>
+      <div>
+        <span class="ct">The Blueprint reports neutral facts. The flow asset decides what they mean.</span>
+        <p>A button broadcasts "I was pressed, by this actor". It does not know whether pressing it was correct, whether it was step 2 or step 5, or whether pressing it early should cost a point. All of that lives in the flow asset.</p>
+      </div>
+    </div>
+
+    <p>Compare the two ways to build "press the three valves in order, and penalise the wrong order".</p>
+
+    <div class="split wide-right">
+      <div class="panel">
+        <h4>Without the split</h4>
+        <p>Each valve Blueprint holds a step number, checks a shared counter, decides whether the press was in order, and writes to a scoring system. Reordering the procedure means editing three Blueprints. Adding a fourth valve means editing four. A second exercise reusing the same valves means branching the logic inside each one.</p>
+      </div>
+      <div class="panel">
+        <h4>With SimFlow</h4>
+        <p>Each valve broadcasts <code>SimFlow.Event.Interact</code> with itself as the payload, and carries an Identity component tagged <code>Control.Valve.One</code>. An <strong>Ordered Sequence</strong> task in the flow asset lists the expected order and holds the <strong>Out Of Order Policy</strong>. Reordering the procedure is dragging rows in the Details panel. A second exercise is a second asset. The valves never change.</p>
+      </div>
+    </div>
+
+    <p>The same split runs through zones. A <a href="../zones.md">SimFlow Zone</a> reports what is inside it and whether each object has settled. It has no opinion about right and wrong. The <strong>Place Object In Zone</strong> task holds the opinion. It is what lets the same parts bay be the correct answer in one exercise and a distractor in the next, without anyone touching the level.</p>
+
+    <h2 id="supporting">The four supporting systems</h2>
+
+    <p>Three layers is the shape. Four systems make the decoupling possible, and they are shared across the whole plugin rather than reinvented per task.</p>
+
+    <div class="tw">
+      <table>
+        <caption>Cross-cutting systems and where they are documented</caption>
+        <thead><tr><th scope="col">System</th><th scope="col">Answers</th><th scope="col">Why it is shared</th></tr></thead>
+        <tbody>
+          <tr>
+            <td class="t-name"><a href="../identity.md">Identity</a></td>
+            <td>What is this object?</td>
+            <td>Gameplay tags on a <strong>SimFlow Identity</strong> component. Replaces "that actor over there" with "any foam extinguisher", which survives spawning, duplication and level streaming.</td>
+          </tr>
+          <tr>
+            <td class="t-name"><a href="../actor-query.md">Actor Query</a></td>
+            <td>Which object does this task mean?</td>
+            <td>One targeting struct embedded everywhere, so learning it once covers targeting across the plugin. It grades answers rather than returning a bare yes or no.</td>
+          </tr>
+          <tr>
+            <td class="t-name"><a href="../blackboard.md">Blackboard</a></td>
+            <td>What do we remember across steps?</td>
+            <td>A per-flow key and value store carrying score, answers and counters. Sub Flows merge it, saves serialise it, and UI reads it without polling.</td>
+          </tr>
+          <tr>
+            <td class="t-name"><a href="../events.md">Events</a></td>
+            <td>How does the world talk to a running flow?</td>
+            <td>Gameplay tags plus an optional payload. Ten props can raise the same tag while knowing nothing about the procedure.</td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+
+    <h3 id="match-quality">Why match quality matters more than it looks</h3>
+
+    <p>An Actor Query does not answer yes or no. It grades:</p>
+
+    <ul class="pins">
+      <li><span class="pin ok">Exact Match</span></li>
+      <li><span class="pin warn">Related (Near Miss)</span></li>
+      <li><span class="pin bad">No Match</span></li>
+    </ul>
+
+    <p>That middle value is the reason the tag hierarchy is worth designing carefully. If <code>Item.Extinguisher.Foam</code> and <code>Item.Extinguisher.CO2</code> share a parent, grabbing the CO2 unit when the foam one was wanted registers as a near miss, and your feedback can say "close, that is the CO2 unit". A flat tag list makes every wrong answer identical, so every mistake reads as total confusion. Designing the tag tree is a design task, not a naming chore.</p>
+
+    <h2 id="authority">Where execution actually happens</h2>
+
+    <div class="split wide-left">
+      <div>
+        <p>A flow runs on exactly one machine, called the <strong>authority</strong>. In single player that is always you. With <code>Replicate Flow</code> on, it is the server, and clients receive a mirror of the state rather than running their own copy.</p>
+        <p>This matters for the feedback layer. Client widgets read replicated state and resolve names, instructions and quiz content from the flow asset that every machine already has. They do not execute anything. Control calls from a client forward to the server through the local <strong>SimFlow Player Component</strong> on the PlayerController.</p>
+        <p>Save and load are authority-only. On a client they log and return, which is deliberate rather than a bug.</p>
+      </div>
+      <div class="panel">
+        <h4>Choosing a host actor</h4>
+        <ul>
+          <li><strong>Game Mode</strong>: single-player scenario. Exists before the level's actors do.</li>
+          <li><strong>Level actor</strong>: a flow tied to one room or machine.</li>
+          <li><strong>Game State</strong>: multiplayer, one shared scenario everyone sees.</li>
+          <li><strong>Player State</strong>: multiplayer, one flow per trainee.</li>
+          <li><strong>VR pawn</strong>: flows that follow the player across levels, with the caveat that the pawn may respawn.</li>
+        </ul>
+        <p>For replication the host actor has to replicate itself, which is why Game State and Player State are the recommended homes there.</p>
+      </div>
+    </div>
+
+    <h2 id="what-to-touch">Which layer do I change?</h2>
+
+    <p>A practical lookup for the question that comes up most on a live project.</p>
+
+    <div class="tw">
+      <table>
+        <caption>Change requests mapped to the layer that owns them</caption>
+        <thead><tr><th scope="col">The request</th><th scope="col">What you touch</th><th scope="col">What you do not touch</th></tr></thead>
+        <tbody>
+          <tr><td>"Swap steps 3 and 4"</td><td>The flow asset. Reorder the sequence steps or rewire the nodes.</td><td>Any prop or pawn Blueprint.</td></tr>
+          <tr><td>"Wrong order should now fail the run"</td><td>The Ordered Sequence task's <strong>Out Of Order Policy</strong>.</td><td>The props raising the events.</td></tr>
+          <tr><td>"Add a fourth valve to the procedure"</td><td>An Identity tag on the new valve, plus a step row in the asset.</td><td>The three existing valves.</td></tr>
+          <tr><td>"The bay is now a distractor, not the answer"</td><td>The <strong>Accepted Items</strong> query on the task.</td><td>The zone actor in the level.</td></tr>
+          <tr><td>"Show a countdown for timed steps"</td><td>A widget bound to <code>On Task Started</code>, reading <code>Get Current Task Remaining Time</code>.</td><td>The flow asset.</td></tr>
+          <tr><td>"Give the trainee two retries"</td><td>The Task node's auto-retry fields, plus the task's <code>Allow Retry</code>.</td><td>Anything outside the asset.</td></tr>
+          <tr><td>"Run the same drill inside a longer assessment"</td><td>A <strong>Sub Flow</strong> node pointing at the existing asset.</td><td>The drill asset itself.</td></tr>
+        </tbody>
+      </table>
+    </div>
+
+    <p>If a change request sends you into a prop Blueprint to edit procedure logic, that is the signal something has leaked across the boundary. The usual culprit is a prop that decides correctness instead of reporting a fact.</p>
+
+    <h2 id="lifecycle">One run, start to finish</h2>
+
+    <p>The sequence below is what happens on a single flow. Worth reading once even if you never debug at this level.</p>
+
+    <ol class="steps">
+      <li>
+        <span class="sh">Start</span>
+        <p>The component creates a flow instance, duplicates the asset's nodes into it, and finds the <strong>Start</strong> node whose <code>Entry Name</code> matches the component's. Execution leaves that node's <code>Out</code> pin.</p>
+        <p class="tip"><b>Both default to <code>Default</code></b>, so renaming one side and not the other breaks the flow in silence. It is the first thing to check when nothing happens at all.</p>
+      </li>
+      <li>
+        <span class="sh">Nodes activate and tick</span>
+        <p>Execution arrives at an input pin and the node runs. Task, Delay and Sub Flow nodes stay active and tick every frame. Most nodes ignore execution arriving while they are already active. <strong>Join</strong> and <strong>Loop</strong> are built to be re-entered, which is how a loop body returns to its loop node.</p>
+      </li>
+      <li>
+        <span class="sh">Work happens in tasks</span>
+        <p>A Task node hands off to its task. The node owns timeout, retry, abort and routing; the task owns the work. Every task therefore gets timeout and retry for free, without implementing either.</p>
+      </li>
+      <li>
+        <span class="sh">The instance broadcasts</span>
+        <p>Each transition fires dispatchers on the instance and on the component: task started, task finished with a result, checkpoint reached, quiz presented, event raised, mistake recorded. This is the entire feedback surface.</p>
+      </li>
+      <li>
+        <span class="sh">Finish</span>
+        <p>A <strong>Finish</strong> node ends the run with a result. Execution running out of wiring does <em>not</em> end a flow. The run state stays <code>Running</code> and nothing happens, which is the usual explanation for "the flow never ends".</p>
+      </li>
+    </ol>
+
+    <nav class="pager" aria-label="Chapter navigation">
+      <a href="01-getting-started.html"><span class="d">Previous</span><span class="t">Getting Started &amp; Installation</span></a>
+      <a class="next" href="03-authoring.html"><span class="d">Next</span><span class="t">Authoring in the Node Graph</span></a>
+    </nav>
+
+    <div class="foot">
+      <p>SimFlow 1.1.4 &middot; User Guide &middot; Unreal Engine 5.6 and 5.8</p>
+    </div>
+  </main>
+
+  <aside class="rail" id="rail" aria-label="On this page">
+    <h2>On this page</h2>
+  </aside>
+
+</div>
+</body>
+</html>

@@ -1,0 +1,488 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Runtime Execution and Blueprint Wiring | SimFlow User Guide</title>
+<meta name="description" content="Attach the SimFlow Component, start and switch flows at runtime, push events in from interaction actors, and bind the nine Blueprint dispatchers that drive feedback.">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500;600&family=IBM+Plex+Sans:wght@400;500;600&display=swap">
+<link rel="stylesheet" href="assets/guide.css">
+<script src="assets/search-index.js" defer></script>
+<script src="assets/guide.js" defer></script>
+</head>
+<body>
+<a class="skip-link" href="#content">Skip to content</a>
+
+<header class="topbar">
+  <button id="navToggle" class="icon-btn" aria-expanded="false" aria-controls="sidebar" aria-label="Open chapter navigation">
+    <svg width="16" height="16" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.6" aria-hidden="true"><path d="M2 4.5h12M2 8h12M2 11.5h12"/></svg>
+  </button>
+
+  <a class="brand" href="index.html">
+    <svg width="20" height="20" viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.5" aria-hidden="true">
+      <rect x="1.4" y="2.6" width="6.4" height="4.6" rx="1"/>
+      <rect x="12.2" y="7.4" width="6.4" height="4.6" rx="1"/>
+      <rect x="1.4" y="12.8" width="6.4" height="4.6" rx="1"/>
+      <path d="M7.8 4.9h2.2a1.4 1.4 0 0 1 1.4 1.4v1.1M7.8 15.1h2.2a1.4 1.4 0 0 0 1.4-1.4v-1.4"/>
+    </svg>
+    SimFlow <span class="ver">1.1.4</span>
+  </a>
+
+  <div class="spacer"></div>
+
+  <div class="search" role="search">
+    <svg class="mag" width="14" height="14" viewBox="0 0 14 14" fill="none" stroke="currentColor" stroke-width="1.6" aria-hidden="true"><circle cx="6" cy="6" r="4.2"/><path d="M9.2 9.2 12.5 12.5"/></svg>
+    <input id="q" type="search" placeholder="Search the guide" autocomplete="off" aria-label="Search the guide" aria-controls="results">
+    <kbd>/</kbd>
+    <div class="results" id="results" hidden role="listbox" aria-label="Search results"></div>
+  </div>
+
+  <button id="themeToggle" class="icon-btn" aria-pressed="false" aria-label="Switch to light theme">
+    <svg class="i-moon" width="15" height="15" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5" aria-hidden="true"><path d="M13.4 9.8A5.9 5.9 0 0 1 6.2 2.6a5.9 5.9 0 1 0 7.2 7.2Z"/></svg>
+    <svg class="i-sun" width="15" height="15" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5" aria-hidden="true" hidden><circle cx="8" cy="8" r="3.1"/><path d="M8 1v1.8M8 13.2V15M15 8h-1.8M2.8 8H1m11-4.9-1.3 1.3M5.3 10.7 4 12m0-8 1.3 1.3m5.4 5.4L12 12"/></svg>
+  </button>
+</header>
+<div class="scrim" id="scrim" hidden></div>
+
+<div class="shell">
+
+  <aside class="sidebar" id="sidebar">
+  <nav aria-label="Guide navigation">
+    <h2>User Guide</h2>
+    <ol>
+      <li><a href="index.html"><span class="num">00</span><span>Overview</span></a></li>
+      <li><a href="01-getting-started.html"><span class="num">01</span><span>Getting Started &amp; Installation</span></a></li>
+      <li><a href="02-architecture.html"><span class="num">02</span><span>Core Mental Model</span></a></li>
+      <li><a href="03-authoring.html"><span class="num">03</span><span>Authoring in the Node Graph</span></a></li>
+      <li><a href="04-rules-and-policies.html"><span class="num">04</span><span>Rules &amp; Failure Policies</span></a></li>
+      <li><a href="05-runtime-blueprint.html" aria-current="page"><span class="num">05</span><span>Runtime &amp; Blueprint Wiring</span></a></li>
+      <li><a href="06-ui-and-vr.html"><span class="num">06</span><span>Driving UI &amp; VR Feedback</span></a></li>
+      <li><a href="07-troubleshooting.html"><span class="num">07</span><span>Troubleshooting</span></a></li>
+    </ol>
+    <details class="navgroup">
+      <summary>Node Reference</summary>
+      <ul>
+        <li><a href="nodes/start.html"><span class="num">&#183;</span><span>Start</span></a></li>
+        <li><a href="nodes/delay.html"><span class="num">&#183;</span><span>Delay</span></a></li>
+        <li><a href="nodes/branch.html"><span class="num">&#183;</span><span>Branch</span></a></li>
+        <li><a href="nodes/random-branch.html"><span class="num">&#183;</span><span>Random Branch</span></a></li>
+        <li><a href="nodes/parallel.html"><span class="num">&#183;</span><span>Parallel</span></a></li>
+        <li><a href="nodes/join.html"><span class="num">&#183;</span><span>Join</span></a></li>
+        <li><a href="nodes/loop.html"><span class="num">&#183;</span><span>Loop</span></a></li>
+        <li><a href="nodes/finish.html"><span class="num">&#183;</span><span>Finish</span></a></li>
+        <li><a href="nodes/task.html"><span class="num">&#183;</span><span>Task</span></a></li>
+        <li><a href="nodes/sub-flow.html"><span class="num">&#183;</span><span>Sub Flow</span></a></li>
+        <li><a href="nodes/checkpoint.html"><span class="num">&#183;</span><span>Checkpoint</span></a></li>
+        <li><a href="nodes/set-blackboard.html"><span class="num">&#183;</span><span>Set Blackboard Value</span></a></li>
+      </ul>
+    </details>
+    <details class="navgroup">
+      <summary>Task Reference</summary>
+      <ul>
+        <li><a href="tasks/delay.html"><span class="num">&#183;</span><span>Delay</span></a></li>
+        <li><a href="tasks/log-message.html"><span class="num">&#183;</span><span>Log Message</span></a></li>
+        <li><a href="tasks/set-blackboard.html"><span class="num">&#183;</span><span>Set Blackboard Value</span></a></li>
+        <li><a href="tasks/wait-for-event.html"><span class="num">&#183;</span><span>Wait For Event</span></a></li>
+        <li><a href="tasks/wait-for-condition.html"><span class="num">&#183;</span><span>Wait For Condition</span></a></li>
+        <li><a href="tasks/go-to-location.html"><span class="num">&#183;</span><span>Go To Location</span></a></li>
+        <li><a href="tasks/quiz.html"><span class="num">&#183;</span><span>Quiz</span></a></li>
+        <li><a href="tasks/parallel-group.html"><span class="num">&#183;</span><span>Parallel Group</span></a></li>
+        <li><a href="tasks/place-object-in-zone.html"><span class="num">&#183;</span><span>Place Object In Zone</span></a></li>
+        <li><a href="tasks/ordered-sequence.html"><span class="num">&#183;</span><span>Ordered Sequence</span></a></li>
+      </ul>
+    </details>
+    <details class="navgroup">
+      <summary>Developer Guide</summary>
+      <ul>
+        <li><a href="dev/architecture.html"><span class="num">&#183;</span><span>Architecture & Modules</span></a></li>
+        <li><a href="dev/execution-model.html"><span class="num">&#183;</span><span>Execution Model</span></a></li>
+        <li><a href="dev/custom-nodes.html"><span class="num">&#183;</span><span>Writing a Custom Node</span></a></li>
+        <li><a href="dev/custom-tasks.html"><span class="num">&#183;</span><span>Custom Tasks & Conditions</span></a></li>
+        <li><a href="dev/blackboard-internals.html"><span class="num">&#183;</span><span>Blackboard & Values</span></a></li>
+        <li><a href="dev/persistence.html"><span class="num">&#183;</span><span>Save and Load Internals</span></a></li>
+        <li><a href="dev/replication.html"><span class="num">&#183;</span><span>Replication</span></a></li>
+        <li><a href="dev/editor-module.html"><span class="num">&#183;</span><span>The Editor Module</span></a></li>
+        <li><a href="dev/api-reference.html"><span class="num">&#183;</span><span>API Reference</span></a></li>
+        <li><a href="dev/diagnostics.html"><span class="num">&#183;</span><span>Diagnostics & Limits</span></a></li>
+      </ul>
+    </details>
+    <h2>Reference</h2>
+    <ul>
+      <li><a href="../Cheatsheet.md"><span class="num">&#8599;</span><span>Cheat sheet</span></a></li>
+      <li><a href="../glossary.md"><span class="num">&#8599;</span><span>Glossary</span></a></li>
+    </ul>
+  </nav>
+</aside>
+
+  <main id="content">
+    <nav class="crumbs" aria-label="Breadcrumb">
+      <ol>
+        <li><a href="index.html">User Guide</a></li>
+        <li><svg width="11" height="11" viewBox="0 0 12 12" fill="none" stroke="currentColor" stroke-width="1.6" aria-hidden="true"><path d="m4.5 2.5 3.5 3.5-3.5 3.5"/></svg><span aria-current="page">Runtime &amp; Blueprint Wiring</span></li>
+      </ol>
+    </nav>
+
+    <p class="eyebrow">Chapter 05</p>
+    <h1>Runtime Execution and Blueprint Wiring</h1>
+    <p class="lede">Where the flow actually runs, how your level talks to it, and how it talks back. Everything on this page is Blueprint-callable. You do not need C++ to wire any of it.</p>
+
+    <div class="spec">
+      <svg class="ico" width="16" height="16" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5" aria-hidden="true"><path d="M8 1.8 14.2 5v6L8 14.2 1.8 11V5Z"/><path d="M1.8 5 8 8.2 14.2 5M8 8.2v6"/></svg>
+      <div>
+        <span class="ct">Name mapping</span>
+        <p>If your spec calls for <code>ReportActionCompleted(Tag)</code> and <code>SendCustomPayload</code>, those are the same idea as SimFlow's <strong>Broadcast Flow Event</strong> and its <code>Payload</code> pin: one call carries both the tag and the object. Delegates named <code>OnStepStarted</code>, <code>OnStepCompleted</code>, <code>OnStepFailed</code> and <code>OnRuleViolation</code> map to <strong>On Task Started</strong>, <strong>On Task Finished</strong> (which carries the result, so failure is a branch on that pin rather than a separate dispatcher) and <strong>On Mistake Recorded</strong>. The mapping is spelled out in <a href="#name-map">the table at the end of this chapter</a>.</p>
+      </div>
+    </div>
+
+    <h2 id="host-actor">Attaching the component</h2>
+
+    <p>Add Component &#8594; <strong>SimFlow Component</strong>. The interesting decision is which actor hosts it. Get that right early, because moving a flow later means moving every binding with it.</p>
+
+    <div class="tw">
+      <table>
+        <caption>Host actor by scenario shape</caption>
+        <thead><tr><th scope="col">Host</th><th scope="col">Suits</th><th scope="col">Watch out for</th></tr></thead>
+        <tbody>
+          <tr>
+            <td class="t-name">Game Mode</td>
+            <td>A single-player scenario that owns the whole session.</td>
+            <td>Exists before the level's actors do, which is an advantage for setup and a reason to prefer <code>Auto - On First Tick</code> over <code>On Begin Play</code>.</td>
+          </tr>
+          <tr>
+            <td class="t-name">Level actor</td>
+            <td>A flow tied to one room, rig or machine.</td>
+            <td>Dies with the level. Fine for per-area drills, wrong for anything that must survive a travel.</td>
+          </tr>
+          <tr>
+            <td class="t-name">Game State</td>
+            <td>Multiplayer, one shared scenario everyone sees.</td>
+            <td>The recommended home with <code>Replicate Flow</code> on, because the host actor has to replicate itself.</td>
+          </tr>
+          <tr>
+            <td class="t-name">Player State</td>
+            <td>Multiplayer, one independent flow per trainee.</td>
+            <td>Also replicates properly. Each trainee gets their own blackboard and score.</td>
+          </tr>
+          <tr>
+            <td class="t-name">VR pawn</td>
+            <td>Flows that follow the player between levels.</td>
+            <td>The pawn may respawn, taking the flow with it. Prefer Player State if respawning is possible.</td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+
+    <p>The Level Blueprint is a workable place to <em>bind</em> to a component, but a poor place to host one. It cannot be reused across levels and it is awkward to reference from widgets. Put the component on an actor and let the Level Blueprint find it.</p>
+
+    <h3 id="component-fields">The fields that matter on day one</h3>
+
+    <div class="tw">
+      <table>
+        <caption>USimFlowComponent, Details panel</caption>
+        <thead><tr><th scope="col">Group</th><th scope="col">Field</th><th scope="col">Default</th><th scope="col">Meaning</th></tr></thead>
+        <tbody>
+          <tr><td class="t-type">Top level</td><td class="t-name">Flow Asset</td><td class="t-def">null</td><td>The flow this component runs.</td></tr>
+          <tr><td class="t-type">Top level</td><td class="t-name">Entry Name</td><td class="t-def">Default</td><td>Which <strong>Start</strong> node to begin from. Must match a Start node's own <code>Entry Name</code>.</td></tr>
+          <tr><td class="t-type">Start</td><td class="t-name">Start Mode</td><td class="t-def">Manual</td><td>When the flow begins. See below.</td></tr>
+          <tr><td class="t-type">Start</td><td class="t-name">Auto Start Delay</td><td class="t-def">1.0</td><td>Only shown when Start Mode is <code>Auto - After Delay</code>.</td></tr>
+          <tr><td class="t-type">Network</td><td class="t-name">Replicate Flow</td><td class="t-def">false</td><td>Run server-authoritatively and mirror to clients. Read-only at runtime.</td></tr>
+          <tr><td class="t-type">Network</td><td class="t-name">Net Refresh Interval</td><td class="t-def">1.0</td><td>How often the server refreshes the elapsed-time field. Structural changes replicate immediately.</td></tr>
+          <tr><td class="t-type">Network</td><td class="t-name">Replicate Blackboard</td><td class="t-def">true</td><td>Send the blackboard to clients so their UI can read score and answers.</td></tr>
+          <tr><td class="t-type">Save</td><td class="t-name">Flow Save Id</td><td class="t-def">None</td><td>Identifies this flow inside a save file, and addresses it over the network. Set it on anything you will target with <code>Send Flow Event</code>.</td></tr>
+          <tr><td class="t-type">Save</td><td class="t-name">Default Save Slot Name</td><td class="t-def">SimFlowSave</td><td>Slot used by Quick Save and Quick Load.</td></tr>
+          <tr><td class="t-type">Save</td><td class="t-name">Auto Resume From Save On Begin Play</td><td class="t-def">false</td><td>When a save exists on BeginPlay, resume from it instead of starting fresh.</td></tr>
+          <tr><td class="t-type">Save</td><td class="t-name">Default Load Mode</td><td class="t-def">Exact State</td><td><code>Exact State</code> or <code>From Last Checkpoint</code>.</td></tr>
+          <tr><td class="t-type">Debug</td><td class="t-name">Show Debug HUD</td><td class="t-def">false</td><td>Draws this flow's status on screen. Also toggled globally by <code>SimFlow.Debug</code>.</td></tr>
+          <tr><td class="t-type">Advanced</td><td class="t-name">Follow Game Pause</td><td class="t-def">true</td><td>Pauses the flow when the game pauses, on the authority only.</td></tr>
+        </tbody>
+      </table>
+    </div>
+
+    <h3 id="start-modes">Start Mode</h3>
+
+    <p><code>Manual</code> waits for you to call <strong>Start Flow</strong>. <code>Auto - On Begin Play</code> starts on BeginPlay, <code>Auto - On First Tick</code> on the first tick after it, and <code>Auto - After Delay</code> waits <code>Auto Start Delay</code> seconds.</p>
+
+    <div class="warn">
+      <svg class="ico" width="16" height="16" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5" aria-hidden="true"><path d="M8 2.4 15 14H1Z"/><path d="M8 6.4v3.2M8 11.6v.6"/></svg>
+      <div>
+        <span class="ct">Prefer On First Tick over On Begin Play</span>
+        <p>On BeginPlay, other actors in the level may not have begun play yet, so a flow that immediately goes looking for a zone or an item can fail to find it. By the first tick every actor has begun play. There is a second reason too: if you bind dispatchers in your own BeginPlay, an On Begin Play start can fire <code>On Flow Started</code> before your bindings exist.</p>
+      </div>
+    </div>
+
+    <h2 id="controls">Controls</h2>
+
+    <p>All of these are safe to call from either side. On a client with <code>Replicate Flow</code> on they forward to the server through the local <strong>SimFlow Player Component</strong>, which the PlayerController has to have for the forwarding to work.</p>
+
+    <div class="tw">
+      <table>
+        <caption>Blueprint-callable controls on USimFlowComponent</caption>
+        <thead><tr><th scope="col">Function</th><th scope="col">Notes</th></tr></thead>
+        <tbody>
+          <tr><td class="t-name">Start Flow</td><td>Starts from <code>Entry Name</code>.</td></tr>
+          <tr><td class="t-name">Start Flow From Entry (Name)</td><td>Starts from a named Start node. This is how one asset holds several scenarios.</td></tr>
+          <tr><td class="t-name">Stop Flow</td><td>No parameters.</td></tr>
+          <tr><td class="t-name">Restart Flow</td><td>Stops and starts again from <code>Entry Name</code>.</td></tr>
+          <tr><td class="t-name">Pause Flow / Resume Flow / Toggle Pause</td><td>Tasks with <code>Tick While Paused</code> off stop accruing elapsed time.</td></tr>
+          <tr><td class="t-name">Retry Current Task</td><td>Honours the task's <code>Allow Retry</code> and <code>Max Retries</code>.</td></tr>
+          <tr><td class="t-name">Skip Current Task</td><td>Honours the task's <code>Allow Skip</code>.</td></tr>
+          <tr><td class="t-name">Fail Current Task</td><td>Drives the Task node's <code>Failed</code> pin.</td></tr>
+          <tr><td class="t-name">Send Event (Tag, Payload)</td><td>Raises an event tag on this flow.</td></tr>
+          <tr><td class="t-name">Submit Quiz Answer (Index)</td><td>Answers the quiz currently on screen.</td></tr>
+        </tbody>
+      </table>
+    </div>
+
+    <h3 id="switching">Switching the active procedure at runtime</h3>
+
+    <p>Three approaches, in order of how often you will want them.</p>
+
+    <ol class="steps">
+      <li>
+        <span class="sh">Same asset, different entry</span>
+        <p>Call <strong>Start Flow From Entry</strong> with the name of another <strong>Start</strong> node. One asset can hold a training entry and an evaluation entry, or a short and long version of the same drill. Nothing needs reloading.</p>
+      </li>
+      <li>
+        <span class="sh">Different asset</span>
+        <p>Call <strong>Stop Flow</strong>, set <strong>Flow Asset</strong> to the new asset, then <strong>Start Flow</strong>. Do the stop first. Swapping the asset under a running flow does not migrate the instance, and the running copy keeps its old nodes because they were duplicated at start.</p>
+        <p class="tip"><b>The blackboard goes with the instance.</b> If the next procedure needs values from the last one, read them out before stopping, or compose the two with a Sub Flow instead.</p>
+      </li>
+      <li>
+        <span class="sh">Composed, with Sub Flow</span>
+        <p>For a sequence of procedures that share state, do not switch assets at all. Author a parent flow with <strong>Sub Flow</strong> nodes and let the blackboard merge between parent and child. This is the approach that survives a save and reload cleanly.</p>
+      </li>
+    </ol>
+
+    <h2 id="events-in">Pushing events from the world into a flow</h2>
+
+    <p>Three entry points. All Blueprint-callable; the two statics take a world context, which Blueprint supplies for you.</p>
+
+    <div class="tw">
+      <table>
+        <caption>Raising an event</caption>
+        <thead><tr><th scope="col">Call</th><th scope="col">Reaches</th><th scope="col">Use when</th></tr></thead>
+        <tbody>
+          <tr>
+            <td class="t-name">Broadcast Flow Event (Tag, Payload)</td>
+            <td>Every running flow</td>
+            <td>The usual case. A prop does not know which flow is running, and should not have to.</td>
+          </tr>
+          <tr>
+            <td class="t-name">Send Flow Event (Flow Save Id, Tag, Payload)</td>
+            <td>One specific flow</td>
+            <td>Several flows are running and only one should hear it. Requires <code>Flow Save Id</code> to be set on the target component.</td>
+          </tr>
+          <tr>
+            <td class="t-name">Send Event (Tag, Payload) on a component</td>
+            <td>That component's flow</td>
+            <td>You already hold the component reference. This is also the call that forwards correctly from a client.</td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+
+    <pre><code>[BP_ValveHandle]  Event On Interacted
+    │
+    └─▶ Broadcast Flow Event
+          Event Tag = SimFlow.Event.Interact
+          Payload   = self            ← the ACTOR, not a widget</code></pre>
+
+    <div class="trap">
+      <svg class="ico" width="16" height="16" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5" aria-hidden="true"><circle cx="8" cy="8" r="6.3"/><path d="M5.6 5.6l4.8 4.8M10.4 5.6l-4.8 4.8"/></svg>
+      <div>
+        <span class="ct">The payload must be an Actor or an Actor Component</span>
+        <p>An Actor Query accepts an Actor, or an Actor Component that it unwraps to its owner. Anything else scores <code>No Match</code> and logs a warning naming the class. Broadcasting <code>self</code> from a UMG widget graph is the single most common first bug in the plugin, because a <code>UUserWidget</code> is neither.</p>
+      </div>
+    </div>
+
+    <h3 id="tags">Tags and child matching</h3>
+
+    <p>These native tags ship with the plugin and need no setup:</p>
+
+    <div class="tw">
+      <table>
+        <caption>Built-in event tags</caption>
+        <thead><tr><th scope="col">Tag</th><th scope="col">Meaning</th></tr></thead>
+        <tbody>
+          <tr><td class="t-name">SimFlow.Event</td><td>Parent of all built-in event tags.</td></tr>
+          <tr><td class="t-name">SimFlow.Event.Generic</td><td>General-purpose event.</td></tr>
+          <tr><td class="t-name">SimFlow.Event.Interact</td><td>The trainee interacted with something.</td></tr>
+          <tr><td class="t-name">SimFlow.Event.Grab / .Release</td><td>Object picked up, object let go.</td></tr>
+          <tr><td class="t-name">SimFlow.Event.ButtonPressed</td><td>Button press.</td></tr>
+          <tr><td class="t-name">SimFlow.Event.Placed / .Removed</td><td>Raised by a zone when an object settles or leaves, when that zone's <strong>Broadcast Flow Events</strong> is on.</td></tr>
+        </tbody>
+      </table>
+    </div>
+
+    <p>Listening tasks default to <strong>Match Child Tags</strong> being on, so a task listening for <code>Sim.Grab</code> also accepts <code>Sim.Grab.Extinguisher</code>. That lets the hierarchy carry specificity for you. Turn it off when you want an exact-tag-only match.</p>
+
+    <p>Add your own tags in <strong>Project Settings &#8594; Project &#8594; Gameplay Tags</strong>, or inline from any tag picker. Keep them in your own namespace rather than under <code>SimFlow.</code>, because that hierarchy belongs to the plugin and a future version may add to it.</p>
+
+    <h2 id="delegates">Subscribing to SimFlow delegates</h2>
+
+    <p>The component exposes nine Blueprint-assignable dispatchers. In your Blueprint, get the SimFlow Component and drag off <strong>Assign On Task Started</strong> and the rest; they appear as red event nodes.</p>
+
+    <div class="tw">
+      <table>
+        <caption>Dispatchers on USimFlowComponent</caption>
+        <thead><tr><th scope="col">Dispatcher</th><th scope="col">Pins</th><th scope="col">Drive this from it</th></tr></thead>
+        <tbody>
+          <tr><td class="t-name">On Flow Started</td><td class="t-type">none</td><td>Show the HUD, fade in, start session logging.</td></tr>
+          <tr><td class="t-name">On Flow Paused / On Flow Resumed</td><td class="t-type">none</td><td>Pause menus, freezing a countdown widget.</td></tr>
+          <tr><td class="t-name">On Flow Finished</td><td class="t-type">Final State</td><td>The debrief screen. <code>Final State</code> is <code>Completed</code>, <code>Failed</code>, <code>Aborted</code> and so on.</td></tr>
+          <tr><td class="t-name">On Task Started</td><td class="t-type">Node, Task</td><td>The main one. Update the instruction panel, highlight the target, play the cue.</td></tr>
+          <tr><td class="t-name">On Task Finished</td><td class="t-type">Node, Task, Result</td><td>Tick the checklist item. Branch on <code>Result</code> for success against failure against timeout.</td></tr>
+          <tr><td class="t-name">On Task Retried</td><td class="t-type">Node, Task</td><td>Reset a step widget, replay a hint.</td></tr>
+          <tr><td class="t-name">On Checkpoint Reached</td><td class="t-type">Checkpoint</td><td>A "progress saved" toast.</td></tr>
+          <tr><td class="t-name">On Quiz Presented</td><td class="t-type">Quiz</td><td>Show the quiz widget.</td></tr>
+          <tr><td class="t-name">On Net State Changed</td><td class="t-type">none</td><td>Client UI refresh. Fires on clients whenever replicated state changes, and the server fires it too.</td></tr>
+        </tbody>
+      </table>
+    </div>
+
+    <h3 id="instance-delegates">Two more on the flow instance</h3>
+
+    <p>Call <strong>Get Flow Instance</strong> on the component to reach these. The instance mirrors all nine above and adds:</p>
+
+    <div class="tw">
+      <table>
+        <caption>Additional dispatchers on USimFlowInstance</caption>
+        <thead><tr><th scope="col">Dispatcher</th><th scope="col">Pins</th><th scope="col">Use for</th></tr></thead>
+        <tbody>
+          <tr><td class="t-name">On Event Raised</td><td class="t-type">Event Tag, Payload</td><td>Reacting to any event the flow received, including ones no task was waiting for.</td></tr>
+          <tr><td class="t-name">On Mistake Recorded</td><td class="t-type">Mistake</td><td>The rule-violation hook. This is where a warning message, a red flash or a haptic pulse comes from.</td></tr>
+        </tbody>
+      </table>
+    </div>
+
+    <p>Two other objects broadcast as well. The <strong>blackboard</strong> has <strong>On Value Changed</strong> (Key, New Value), which fires on every write and is the right way to drive a live score widget without polling. A <strong>SimFlow Zone</strong> has <strong>On Actor Entered</strong>, <strong>On Actor Exited</strong> and <strong>On Actor Settled</strong>, the last being the one tasks themselves listen to.</p>
+
+    <h3 id="binding-order">Bind before the flow starts</h3>
+
+    <pre><code>Event BeginPlay
+  │
+  ├─▶ Get Component by Class (SimFlow Component) ─▶ promote to variable
+  │
+  ├─▶ Bind Event to On Task Started    ─▶ Custom Event: ShowInstruction
+  ├─▶ Bind Event to On Task Finished   ─▶ Custom Event: AdvanceChecklist
+  ├─▶ Bind Event to On Flow Finished   ─▶ Custom Event: ShowDebrief
+  │
+  └─▶ Start Flow          (only when Start Mode is Manual)</code></pre>
+
+    <div class="warn">
+      <svg class="ico" width="16" height="16" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5" aria-hidden="true"><path d="M8 2.4 15 14H1Z"/><path d="M8 6.4v3.2M8 11.6v.6"/></svg>
+      <div>
+        <span class="ct">A missed first event usually means a binding race</span>
+        <p>With <code>Start Mode</code> set to <code>Auto - On Begin Play</code> and your bindings made in your own BeginPlay, <code>On Flow Started</code> and often the first <code>On Task Started</code> can fire before the bindings exist. Use <code>Auto - On First Tick</code>, or keep <code>Manual</code> and call <strong>Start Flow</strong> yourself after binding.</p>
+      </div>
+    </div>
+
+    <h2 id="queries">Reading state</h2>
+
+    <p>These work on clients too, reading replicated state and resolving names, instructions and quiz content from the flow asset that every machine already has.</p>
+
+    <div class="tw">
+      <table>
+        <caption>Query functions</caption>
+        <thead><tr><th scope="col">Function</th><th scope="col">Returns</th></tr></thead>
+        <tbody>
+          <tr><td class="t-name">Get Flow Instance / Get Blackboard</td><td>The live objects.</td></tr>
+          <tr><td class="t-name">Get Run State</td><td><code>Not Started</code>, <code>Running</code>, <code>Paused</code>, <code>Completed</code>, <code>Failed</code>, <code>Aborted</code>.</td></tr>
+          <tr><td class="t-name">Is Flow Running / Is Flow Paused</td><td>Booleans.</td></tr>
+          <tr><td class="t-name">Get Current Task / Get Current Task Name / Get Current Instruction</td><td>For tutorial UI.</td></tr>
+          <tr><td class="t-name">Get Progress</td><td>0 to 1.</td></tr>
+          <tr><td class="t-name">Get Score</td><td>The <code>Score</code> blackboard key.</td></tr>
+          <tr><td class="t-name">Get Current Task Remaining Time</td><td>Seconds left on the task's time limit, or <code>-1</code> when it has none.</td></tr>
+          <tr><td class="t-name">Get Current Quiz</td><td>The quiz being asked, or null. On clients this is the authored template.</td></tr>
+          <tr><td class="t-name">Is Client Mirror / Has Flow Authority</td><td>Which side am I on.</td></tr>
+          <tr><td class="t-name">Get Debug Text</td><td>Multi-line status, ready for a world-space VR debug widget.</td></tr>
+        </tbody>
+      </table>
+    </div>
+
+    <h2 id="save-load">Save and load</h2>
+
+    <p>Authority-only. On a client these log and return, which is deliberate.</p>
+
+    <div class="split wide-left">
+      <div class="tw">
+        <table>
+          <caption>Save and load functions</caption>
+          <thead><tr><th scope="col">Function</th><th scope="col">Notes</th></tr></thead>
+          <tbody>
+            <tr><td class="t-name">Save Flow State</td><td>Returns a save-state struct.</td></tr>
+            <tr><td class="t-name">Load Flow State (State, Load Mode)</td><td>Restores from a struct.</td></tr>
+            <tr><td class="t-name">Save Flow To Slot / Load Flow From Slot</td><td>Slot plus user index.</td></tr>
+            <tr><td class="t-name">Quick Save / Quick Load</td><td>Uses <code>Default Save Slot Name</code> and <code>Default Save User Index</code>.</td></tr>
+            <tr><td class="t-name">Has Save In Slot</td><td>Test before offering a resume button.</td></tr>
+          </tbody>
+        </table>
+      </div>
+      <div class="panel">
+        <h4>Two load modes</h4>
+        <p><strong>Exact State</strong> restores the exact set of active nodes, elapsed times included.</p>
+        <p><strong>From Last Checkpoint</strong> restores the blackboard and re-runs the flow from the last <a href="nodes/checkpoint.html">checkpoint</a> the trainee passed. This is the friendlier option for a training session resumed the next day.</p>
+        <p><strong>Object references in the blackboard are stripped on save</strong>, by design. A blackboard key holding an actor will be null after a load, so store an identity tag or a name if you need to re-resolve it.</p>
+      </div>
+    </div>
+
+    <h2 id="multiplayer">Multiplayer wiring</h2>
+
+    <ol class="steps">
+      <li>
+        <span class="sh">Host the component on a replicating actor</span>
+        <p>Game State for a shared scenario, Player State for one flow per trainee. Tick <strong>Replicate Flow</strong>. The owning actor must replicate itself, which is the whole reason those two are recommended.</p>
+      </li>
+      <li>
+        <span class="sh">Add a SimFlow Player Component to the PlayerController</span>
+        <p>Without it a client has no route to the server, and client control calls do nothing at all. This is the single most common multiplayer setup miss.</p>
+      </li>
+      <li>
+        <span class="sh">Set Flow Save Id</span>
+        <p>It addresses the flow over the network as well as inside a save file. <strong>Request Flow Control</strong> and <strong>Send Flow Event</strong> both target by it.</p>
+      </li>
+      <li>
+        <span class="sh">Drive client UI from replicated state</span>
+        <p>Bind <strong>On Net State Changed</strong> and read the query functions. Leave <strong>Replicate Blackboard</strong> on if client widgets need score or answers.</p>
+        <p class="tip"><b>Instructor panels</b> should call <strong>Request Flow Control</strong> (a static taking <code>Flow Save Id</code> and a control request). It takes the right route automatically: straight through on the server, via a server RPC on a client.</p>
+      </li>
+    </ol>
+
+    <h2 id="name-map">Spec name to SimFlow name</h2>
+
+    <div class="tw">
+      <table>
+        <caption>Common procedure-system vocabulary mapped to the shipped API</caption>
+        <thead><tr><th scope="col">If your spec says</th><th scope="col">Use</th><th scope="col">Note</th></tr></thead>
+        <tbody>
+          <tr><td><code>UProcedureComponent</code></td><td class="t-name">USimFlow&shy;Component</td><td>Added as <strong>SimFlow Component</strong>.</td></tr>
+          <tr><td>Procedure Graph Asset</td><td class="t-name">SimFlow Graph</td><td>Created from the Content Browser under <strong>SimFlow</strong>.</td></tr>
+          <tr><td><code>ReportActionCompleted(Tag)</code></td><td class="t-name">Broadcast Flow Event</td><td>Takes the tag and the payload in one call.</td></tr>
+          <tr><td><code>SendCustomPayload</code></td><td class="t-name">The Payload pin</td><td>There is no separate payload call. The payload must be an Actor or Actor Component.</td></tr>
+          <tr><td><code>OnStepStarted</code></td><td class="t-name">On Task Started</td><td>Carries the Node and the Task.</td></tr>
+          <tr><td><code>OnStepCompleted</code></td><td class="t-name">On Task Finished</td><td>Branch on the <code>Result</code> pin for success.</td></tr>
+          <tr><td><code>OnStepFailed</code></td><td class="t-name">On Task Finished</td><td>Same dispatcher. <code>Result</code> carries <code>Failed</code>, <code>Timed Out</code> or <code>Skipped</code>.</td></tr>
+          <tr><td><code>OnRuleViolation</code></td><td class="t-name">On Mistake Recorded</td><td>On the flow instance, not the component. Reach it with <strong>Get Flow Instance</strong>.</td></tr>
+        </tbody>
+      </table>
+    </div>
+
+    <nav class="pager" aria-label="Chapter navigation">
+      <a href="04-rules-and-policies.html"><span class="d">Previous</span><span class="t">Rules &amp; Failure Policies</span></a>
+      <a class="next" href="06-ui-and-vr.html"><span class="d">Next</span><span class="t">Driving UI &amp; VR Feedback</span></a>
+    </nav>
+
+    <div class="foot">
+      <p>SimFlow 1.1.4 &middot; User Guide &middot; Unreal Engine 5.6 and 5.8</p>
+    </div>
+  </main>
+
+  <aside class="rail" id="rail" aria-label="On this page">
+    <h2>On this page</h2>
+  </aside>
+
+</div>
+</body>
+</html>

@@ -1,0 +1,486 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Rules, Out-of-Order Handling and Failure Policies | SimFlow User Guide</title>
+<meta name="description" content="Mismatch Policy, Out Of Order Policy, mistake severity, prerequisite gates, recovery paths, step timeouts and retry rules, with a training against evaluation preset comparison.">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500;600&family=IBM+Plex+Sans:wght@400;500;600&display=swap">
+<link rel="stylesheet" href="assets/guide.css">
+<script src="assets/search-index.js" defer></script>
+<script src="assets/guide.js" defer></script>
+</head>
+<body>
+<a class="skip-link" href="#content">Skip to content</a>
+
+<header class="topbar">
+  <button id="navToggle" class="icon-btn" aria-expanded="false" aria-controls="sidebar" aria-label="Open chapter navigation">
+    <svg width="16" height="16" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.6" aria-hidden="true"><path d="M2 4.5h12M2 8h12M2 11.5h12"/></svg>
+  </button>
+
+  <a class="brand" href="index.html">
+    <svg width="20" height="20" viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.5" aria-hidden="true">
+      <rect x="1.4" y="2.6" width="6.4" height="4.6" rx="1"/>
+      <rect x="12.2" y="7.4" width="6.4" height="4.6" rx="1"/>
+      <rect x="1.4" y="12.8" width="6.4" height="4.6" rx="1"/>
+      <path d="M7.8 4.9h2.2a1.4 1.4 0 0 1 1.4 1.4v1.1M7.8 15.1h2.2a1.4 1.4 0 0 0 1.4-1.4v-1.4"/>
+    </svg>
+    SimFlow <span class="ver">1.1.4</span>
+  </a>
+
+  <div class="spacer"></div>
+
+  <div class="search" role="search">
+    <svg class="mag" width="14" height="14" viewBox="0 0 14 14" fill="none" stroke="currentColor" stroke-width="1.6" aria-hidden="true"><circle cx="6" cy="6" r="4.2"/><path d="M9.2 9.2 12.5 12.5"/></svg>
+    <input id="q" type="search" placeholder="Search the guide" autocomplete="off" aria-label="Search the guide" aria-controls="results">
+    <kbd>/</kbd>
+    <div class="results" id="results" hidden role="listbox" aria-label="Search results"></div>
+  </div>
+
+  <button id="themeToggle" class="icon-btn" aria-pressed="false" aria-label="Switch to light theme">
+    <svg class="i-moon" width="15" height="15" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5" aria-hidden="true"><path d="M13.4 9.8A5.9 5.9 0 0 1 6.2 2.6a5.9 5.9 0 1 0 7.2 7.2Z"/></svg>
+    <svg class="i-sun" width="15" height="15" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5" aria-hidden="true" hidden><circle cx="8" cy="8" r="3.1"/><path d="M8 1v1.8M8 13.2V15M15 8h-1.8M2.8 8H1m11-4.9-1.3 1.3M5.3 10.7 4 12m0-8 1.3 1.3m5.4 5.4L12 12"/></svg>
+  </button>
+</header>
+<div class="scrim" id="scrim" hidden></div>
+
+<div class="shell">
+
+  <aside class="sidebar" id="sidebar">
+  <nav aria-label="Guide navigation">
+    <h2>User Guide</h2>
+    <ol>
+      <li><a href="index.html"><span class="num">00</span><span>Overview</span></a></li>
+      <li><a href="01-getting-started.html"><span class="num">01</span><span>Getting Started &amp; Installation</span></a></li>
+      <li><a href="02-architecture.html"><span class="num">02</span><span>Core Mental Model</span></a></li>
+      <li><a href="03-authoring.html"><span class="num">03</span><span>Authoring in the Node Graph</span></a></li>
+      <li><a href="04-rules-and-policies.html" aria-current="page"><span class="num">04</span><span>Rules &amp; Failure Policies</span></a></li>
+      <li><a href="05-runtime-blueprint.html"><span class="num">05</span><span>Runtime &amp; Blueprint Wiring</span></a></li>
+      <li><a href="06-ui-and-vr.html"><span class="num">06</span><span>Driving UI &amp; VR Feedback</span></a></li>
+      <li><a href="07-troubleshooting.html"><span class="num">07</span><span>Troubleshooting</span></a></li>
+    </ol>
+    <details class="navgroup">
+      <summary>Node Reference</summary>
+      <ul>
+        <li><a href="nodes/start.html"><span class="num">&#183;</span><span>Start</span></a></li>
+        <li><a href="nodes/delay.html"><span class="num">&#183;</span><span>Delay</span></a></li>
+        <li><a href="nodes/branch.html"><span class="num">&#183;</span><span>Branch</span></a></li>
+        <li><a href="nodes/random-branch.html"><span class="num">&#183;</span><span>Random Branch</span></a></li>
+        <li><a href="nodes/parallel.html"><span class="num">&#183;</span><span>Parallel</span></a></li>
+        <li><a href="nodes/join.html"><span class="num">&#183;</span><span>Join</span></a></li>
+        <li><a href="nodes/loop.html"><span class="num">&#183;</span><span>Loop</span></a></li>
+        <li><a href="nodes/finish.html"><span class="num">&#183;</span><span>Finish</span></a></li>
+        <li><a href="nodes/task.html"><span class="num">&#183;</span><span>Task</span></a></li>
+        <li><a href="nodes/sub-flow.html"><span class="num">&#183;</span><span>Sub Flow</span></a></li>
+        <li><a href="nodes/checkpoint.html"><span class="num">&#183;</span><span>Checkpoint</span></a></li>
+        <li><a href="nodes/set-blackboard.html"><span class="num">&#183;</span><span>Set Blackboard Value</span></a></li>
+      </ul>
+    </details>
+    <details class="navgroup">
+      <summary>Task Reference</summary>
+      <ul>
+        <li><a href="tasks/delay.html"><span class="num">&#183;</span><span>Delay</span></a></li>
+        <li><a href="tasks/log-message.html"><span class="num">&#183;</span><span>Log Message</span></a></li>
+        <li><a href="tasks/set-blackboard.html"><span class="num">&#183;</span><span>Set Blackboard Value</span></a></li>
+        <li><a href="tasks/wait-for-event.html"><span class="num">&#183;</span><span>Wait For Event</span></a></li>
+        <li><a href="tasks/wait-for-condition.html"><span class="num">&#183;</span><span>Wait For Condition</span></a></li>
+        <li><a href="tasks/go-to-location.html"><span class="num">&#183;</span><span>Go To Location</span></a></li>
+        <li><a href="tasks/quiz.html"><span class="num">&#183;</span><span>Quiz</span></a></li>
+        <li><a href="tasks/parallel-group.html"><span class="num">&#183;</span><span>Parallel Group</span></a></li>
+        <li><a href="tasks/place-object-in-zone.html"><span class="num">&#183;</span><span>Place Object In Zone</span></a></li>
+        <li><a href="tasks/ordered-sequence.html"><span class="num">&#183;</span><span>Ordered Sequence</span></a></li>
+      </ul>
+    </details>
+    <details class="navgroup">
+      <summary>Developer Guide</summary>
+      <ul>
+        <li><a href="dev/architecture.html"><span class="num">&#183;</span><span>Architecture & Modules</span></a></li>
+        <li><a href="dev/execution-model.html"><span class="num">&#183;</span><span>Execution Model</span></a></li>
+        <li><a href="dev/custom-nodes.html"><span class="num">&#183;</span><span>Writing a Custom Node</span></a></li>
+        <li><a href="dev/custom-tasks.html"><span class="num">&#183;</span><span>Custom Tasks & Conditions</span></a></li>
+        <li><a href="dev/blackboard-internals.html"><span class="num">&#183;</span><span>Blackboard & Values</span></a></li>
+        <li><a href="dev/persistence.html"><span class="num">&#183;</span><span>Save and Load Internals</span></a></li>
+        <li><a href="dev/replication.html"><span class="num">&#183;</span><span>Replication</span></a></li>
+        <li><a href="dev/editor-module.html"><span class="num">&#183;</span><span>The Editor Module</span></a></li>
+        <li><a href="dev/api-reference.html"><span class="num">&#183;</span><span>API Reference</span></a></li>
+        <li><a href="dev/diagnostics.html"><span class="num">&#183;</span><span>Diagnostics & Limits</span></a></li>
+      </ul>
+    </details>
+    <h2>Reference</h2>
+    <ul>
+      <li><a href="../Cheatsheet.md"><span class="num">&#8599;</span><span>Cheat sheet</span></a></li>
+      <li><a href="../glossary.md"><span class="num">&#8599;</span><span>Glossary</span></a></li>
+    </ul>
+  </nav>
+</aside>
+
+  <main id="content">
+    <nav class="crumbs" aria-label="Breadcrumb">
+      <ol>
+        <li><a href="index.html">User Guide</a></li>
+        <li><svg width="11" height="11" viewBox="0 0 12 12" fill="none" stroke="currentColor" stroke-width="1.6" aria-hidden="true"><path d="m4.5 2.5 3.5 3.5-3.5 3.5"/></svg><span aria-current="page">Rules &amp; Failure Policies</span></li>
+      </ol>
+    </nav>
+
+    <p class="eyebrow">Chapter 04</p>
+    <h1>Rules, Out-of-Order Handling and Failure Policies</h1>
+    <p class="lede">This is the part of SimFlow that separates a training scenario from a scripted demo. A trainee who does the right thing at the wrong moment, or the wrong thing at the right moment, is the interesting case, and the plugin treats it as a first-class outcome rather than something you detect by accident.</p>
+
+    <h2 id="two-policies">Two policies, two situations</h2>
+
+    <p>Wrong-action handling lives in two enums. Which one you are configuring depends on the task, not on a global setting.</p>
+
+    <div class="split wide-right">
+      <div class="panel">
+        <h4>Mismatch Policy</h4>
+        <p>Used by <a href="tasks/wait-for-event.html">Wait For Event</a> and <a href="tasks/place-object-in-zone.html">Place Object In Zone</a>. Answers: <em>the trainee acted on an object, and it was the wrong object.</em></p>
+      </div>
+      <div class="panel">
+        <h4>Out Of Order Policy</h4>
+        <p>Used by <a href="tasks/ordered-sequence.html">Ordered Sequence</a>. Answers: <em>the object is part of the procedure, but this was not its turn.</em> Note the difference. This is a trainee who knows the steps and got the order wrong, which is a different error from grabbing a random prop.</p>
+      </div>
+    </div>
+
+    <h3 id="mismatch-policy">Mismatch Policy values</h3>
+
+    <div class="tw">
+      <table>
+        <caption>Wrong Item Policy on Place Object In Zone, Mismatch Policy on Wait For Event</caption>
+        <thead><tr><th scope="col">Value</th><th scope="col">Behaviour</th><th scope="col">Reach for it when</th></tr></thead>
+        <tbody>
+          <tr>
+            <td class="t-name">Ignore (Keep Waiting)</td>
+            <td>Says nothing and keeps waiting. The wrong object is not the one we want.</td>
+            <td>Free exploration, or a bay that props legitimately pass through.</td>
+          </tr>
+          <tr>
+            <td class="t-name">Count Mistake (Keep Waiting)</td>
+            <td>Records a mistake and keeps waiting, so the trainee can correct themselves. <strong>The default.</strong></td>
+            <td>Almost all training. It captures the error without stopping the run.</td>
+          </tr>
+          <tr>
+            <td class="t-name">Count Mistake And Fail Task</td>
+            <td>Records a mistake and fails, driving the Task node's <code>Failed</code> pin.</td>
+            <td>Assessment, or a safety-critical step where the wrong object ends the attempt.</td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+
+    <h3 id="out-of-order-policy">Out Of Order Policy values</h3>
+
+    <div class="tw">
+      <table>
+        <caption>Out Of Order Policy on Ordered Sequence</caption>
+        <thead><tr><th scope="col">Value</th><th scope="col">Behaviour</th><th scope="col">Reach for it when</th></tr></thead>
+        <tbody>
+          <tr><td class="t-name">Ignore</td><td>Ignores anything that is not the expected step.</td><td>Free exploration.</td></tr>
+          <tr><td class="t-name">Count Mistake (Stay On Step)</td><td>Records a mistake but holds on the current step. <strong>The default.</strong></td><td>Training. Let them find it.</td></tr>
+          <tr><td class="t-name">Count Mistake And Restart</td><td>Records a mistake and sends the trainee back to step one.</td><td>Procedures where a wrong order invalidates the result.</td></tr>
+          <tr><td class="t-name">Count Mistake And Fail Task</td><td>Records a mistake and fails, driving the <code>Failed</code> pin.</td><td>Assessment.</td></tr>
+        </tbody>
+      </table>
+    </div>
+
+    <div class="warn">
+      <svg class="ico" width="16" height="16" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5" aria-hidden="true"><path d="M8 2.4 15 14H1Z"/><path d="M8 6.4v3.2M8 11.6v.6"/></svg>
+      <div>
+        <span class="ct">Restart is stricter than it sounds</span>
+        <p>A single slip on step 5 of a seven-step procedure sends the trainee back to step 1. That is correct for a safety procedure where a wrong order invalidates everything, and merely infuriating everywhere else. Use it deliberately, not as a default.</p>
+      </div>
+    </div>
+
+    <h3 id="policy-mapping">Mapping the four outcomes people usually ask for</h3>
+
+    <p>Requirements documents tend to describe four outcomes: ignore, warn, penalise, fail. Three of those are policy values. One is built from two settings.</p>
+
+    <div class="tw">
+      <table>
+        <caption>Requested outcome mapped to actual configuration</caption>
+        <thead><tr><th scope="col">You want</th><th scope="col">Set</th><th scope="col">Plus</th></tr></thead>
+        <tbody>
+          <tr>
+            <td class="t-name">Ignore</td>
+            <td>Policy to <code>Ignore</code></td>
+            <td>Nothing. No mistake is recorded and no counter moves.</td>
+          </tr>
+          <tr>
+            <td class="t-name">Warning event</td>
+            <td>Policy to <code>Count Mistake (Keep Waiting)</code> or <code>Count Mistake (Stay On Step)</code></td>
+            <td>Bind <code>On Mistake Recorded</code> on the flow instance. That dispatcher carries the mistake struct, which is where your warning text, screen flash or haptic pulse comes from.</td>
+          </tr>
+          <tr>
+            <td class="t-name">Penalty point</td>
+            <td>Policy to a <code>Count Mistake</code> value</td>
+            <td>Set the task's <strong>Score On Failure</strong> to a negative number, or branch on the <code>WrongAttempts</code> blackboard key. Recording a mistake does not itself move the score.</td>
+          </tr>
+          <tr>
+            <td class="t-name">Hard procedure fail</td>
+            <td>Policy to <code>Count Mistake And Fail Task</code></td>
+            <td>Wire the Task node's <code>Failed</code> pin to a <strong>Finish</strong> node with a failure result. Leaving <code>Failed</code> unwired with <code>Fallback To Completed</code> on turns the fail back into a success.</td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+
+    <h2 id="judging">How input is judged</h2>
+
+    <p>For an Ordered Sequence, every event with a matching tag runs this ladder. Knowing the order explains why a given press was graded the way it was.</p>
+
+    <ol class="steps">
+      <li>
+        <span class="sh">Is it the expected step?</span>
+        <p>An <code>Exact Match</code> against the current step's <strong>Target</strong> fires <code>On Step Completed</code> and advances. If that was the last step, the task finishes with <code>Succeeded</code>.</p>
+      </li>
+      <li>
+        <span class="sh">Is it a different step in the sequence?</span>
+        <p>Every other step's target is checked. This is what decides severity, and it is why a well-shaped tag tree pays off here.</p>
+      </li>
+      <li>
+        <span class="sh">Is it unlisted?</span>
+        <p>With <strong>Unlisted Input Is Mistake</strong> off, which is the default, unrelated input is ignored silently. That is the right behaviour when unrelated props share the tag.</p>
+      </li>
+      <li>
+        <span class="sh">Otherwise the policy applies</span>
+        <p>A mistake is recorded as <code>SimFlow.Mistake.WrongOrder</code> with a description such as <em>"Step 2: used Valve One - expected Control.Valve.Three"</em>, and the <code>WrongAttempts</code> blackboard key is incremented.</p>
+      </li>
+    </ol>
+
+    <h3 id="severity">Severity is graded, not binary</h3>
+
+    <div class="split wide-left">
+      <div>
+        <p>When a mistake is recorded, its severity reflects what kind of error it was:</p>
+        <ul>
+          <li>Using a step of the procedure at the wrong moment is <strong>Related (Near Miss)</strong>. They know the procedure and got the order wrong.</li>
+          <li>Grabbing a prop that was never part of it is <strong>No Match</strong>, a different kind of error entirely.</li>
+        </ul>
+        <p>This distinction only exists if your tag hierarchy supports it. Confusable things have to share a parent. <code>Control.Valve.One</code> and <code>Control.Valve.Three</code> are near misses of each other. <code>Valve1</code> and <code>Valve3</code> as flat tags are not, and every wrong answer collapses to "completely wrong".</p>
+        <p><strong>Min Related Tag Depth</strong> on the Actor Query, default <code>2</code>, controls how many leading tag nodes have to agree before something counts as related.</p>
+      </div>
+      <div class="panel">
+        <h4>What a mistake record carries</h4>
+        <ul>
+          <li>A kind tag, for example <code>SimFlow.Mistake.WrongOrder</code>.</li>
+          <li>The involved actor, and the display name used in the generated description.</li>
+          <li>A severity derived from match quality.</li>
+          <li>A timestamp.</li>
+          <li>The <strong>Task Id</strong> of the step it happened under.</li>
+        </ul>
+        <p>Mistakes collect on the flow instance, which is what makes an end-of-run debrief possible without you logging anything yourself.</p>
+      </div>
+    </div>
+
+    <h2 id="counters">The counters the policies move</h2>
+
+    <div class="tw">
+      <table>
+        <caption>Blackboard keys written by the built-in tasks. Treat these names as reserved.</caption>
+        <thead><tr><th scope="col">Key</th><th scope="col">Type</th><th scope="col">Written by</th></tr></thead>
+        <tbody>
+          <tr><td class="t-name">WrongAttempts</td><td class="t-type">Int</td><td>Incremented every time a task rejects the wrong object. This is the one to branch on for a three-strikes rule.</td></tr>
+          <tr><td class="t-name">Mistakes</td><td class="t-type">Int</td><td>The Quiz task, when <code>Count Mistakes</code> is on.</td></tr>
+          <tr><td class="t-name">Score</td><td class="t-type">Float</td><td>Task success and failure scoring, and <code>Add Score</code>.</td></tr>
+          <tr><td class="t-name">CurrentStep</td><td class="t-type">Int</td><td>Ordered Sequence, when <strong>Step Blackboard Key</strong> is set.</td></tr>
+          <tr><td class="t-name">LastResult</td><td class="t-type">varies</td><td>The runtime, after each task finishes.</td></tr>
+          <tr><td class="t-name">LastAnswerIndex, LastAnswerCorrect</td><td class="t-type">Int, Bool</td><td>The Quiz task.</td></tr>
+        </tbody>
+      </table>
+    </div>
+
+    <div class="trap">
+      <svg class="ico" width="16" height="16" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5" aria-hidden="true"><circle cx="8" cy="8" r="6.3"/><path d="M5.6 5.6l4.8 4.8M10.4 5.6l-4.8 4.8"/></svg>
+      <div>
+        <span class="ct">Scoring is opt-in and starts at zero</span>
+        <p><strong>Score On Success</strong> and <strong>Score On Failure</strong> both default to <code>0.0</code> on every task, so a flow scores nothing until you set them. That is the whole answer to "why does <code>Get Score</code> always return 0". The failure value is usually negative.</p>
+      </div>
+    </div>
+
+    <h2 id="recovery">Recovery paths</h2>
+
+    <p>A policy decides what happens at the moment of the error. A recovery path decides where the trainee goes next, and that is graph wiring rather than a setting.</p>
+
+    <h3 id="three-strikes">Three strikes, then remediation</h3>
+
+    <p>The built-in tasks already increment <code>WrongAttempts</code>, so there is nothing to write yourself.</p>
+
+    <ol class="steps">
+      <li><span class="sh">Add a Branch after the task</span><p>Right-click, then <strong>Flow Control &#8594; Branch</strong>.</p></li>
+      <li><span class="sh">Add one case</span><p>Label it <code>Needs remediation</code>. Set its <strong>Condition</strong> to <strong>Blackboard Compare</strong>, key <code>WrongAttempts</code>, operation <code>&gt;=</code>, value Int <code>3</code>.</p></li>
+      <li><span class="sh">Wire the two routes</span><p>The case pin goes to your remediation section. <code>Default</code> continues the normal path.</p>
+        <p class="tip"><b>Cases evaluate top to bottom and the first match wins.</b> Put the most specific case first. A case whose condition slot is empty is treated as false, so it never fires and execution falls through to <code>Default</code>, silently.</p>
+      </li>
+    </ol>
+
+    <h3 id="pass-or-remediate">Pass or remediate at the end of an assessment</h3>
+
+    <p>Sending trainees who scored under 70 to a remediation section:</p>
+
+    <ol class="steps">
+      <li><span class="sh">Branch after the last task</span><p>One case, <strong>Score Threshold</strong>, operation <code>&lt;</code>, threshold <code>70</code>.</p></li>
+      <li><span class="sh">Wire the case to remediation, Default to the pass section</span><p>That is the simple form.</p></li>
+      <li><span class="sh">To require a score and a mistake ceiling</span><p>Use <strong>All Of</strong> with two children, <strong>Score Threshold</strong> at <code>&gt;=</code> <code>70</code> and <strong>Blackboard Compare</strong> on <code>Mistakes</code> at <code>&lt;=</code> Int <code>2</code>, and put that composite on the <em>pass</em> case rather than the remediation one.</p>
+        <p class="tip"><b>An empty All Of is true.</b> Standard logic makes an empty AND pass and an empty OR fail, so a composite you added but never filled in passes every single time. If a composite behaves oddly, check it actually has children.</p>
+      </li>
+    </ol>
+
+    <h2 id="gates">Prerequisite gates</h2>
+
+    <p>A gate stops a step from being satisfiable until something else is true. SimFlow has three ways to express one, and they differ in where the wait happens.</p>
+
+    <div class="tw">
+      <table>
+        <caption>Three ways to gate a step</caption>
+        <thead><tr><th scope="col">Mechanism</th><th scope="col">Where it sits</th><th scope="col">Behaviour</th><th scope="col">Use for</th></tr></thead>
+        <tbody>
+          <tr>
+            <td class="t-name">Wait For Condition task</td>
+            <td>Its own Task node</td>
+            <td>Blocks until a condition becomes true.</td>
+            <td>"Do not continue until the pressure is below 2 bar."</td>
+          </tr>
+          <tr>
+            <td class="t-name">Branch with a condition</td>
+            <td>A Branch node before the step</td>
+            <td>Routes rather than waits. Evaluated once, on arrival.</td>
+            <td>"Skip the donning section if they are already wearing gloves."</td>
+          </tr>
+          <tr>
+            <td class="t-name">Abort Condition</td>
+            <td>On the Task node, under Early Out</td>
+            <td>Ends a running task early, leaving via <strong>Abort Result</strong>. Evaluated every frame.</td>
+            <td>"Cancel this step if the trainee walks away."</td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+
+    <p><strong>Event Was Raised</strong> is the condition that turns a gate into a real prerequisite. It asks "has this tag been raised at any point in this run", reading the instance's event history rather than waiting live. Gate step 6 on <code>Event Was Raised</code> for the tag step 3 raises, and step 6 becomes unreachable until step 3 genuinely happened, regardless of the order the trainee attempted things in.</p>
+
+    <div class="trap">
+      <svg class="ico" width="16" height="16" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5" aria-hidden="true"><circle cx="8" cy="8" r="6.3"/><path d="M5.6 5.6l4.8 4.8M10.4 5.6l-4.8 4.8"/></svg>
+      <div>
+        <span class="ct">Gates are where circular dependencies appear</span>
+        <p>Gating A on B while B is gated on A produces a flow that stalls with no error, because <strong>Wait For Condition</strong> goes on waiting. Worse, a <strong>Sub Flow</strong> that calls itself, directly or through a cycle, hangs the editor on Play: there is no recursion guard. Draw the prerequisite graph on paper before wiring more than two gates.</p>
+      </div>
+    </div>
+
+    <h3 id="empty-conditions">Empty conditions are false, quietly</h3>
+
+    <p>Worth memorising, because every one of these is a silent hang rather than an error:</p>
+
+    <ul>
+      <li>A Branch case with no condition is false, so that case never fires.</li>
+      <li>A <strong>Wait For Condition</strong> with an empty <code>Condition</code> slot waits forever.</li>
+      <li>A <strong>Blackboard Compare</strong> whose key does not exist returns <strong>Result When Key Missing</strong>, default <code>false</code>. Change that setting when a check should pass on the first run, before anything has written the key.</li>
+      <li>An <strong>Event Was Raised</strong> with no tag is false, because an invalid tag was never raised.</li>
+      <li>An empty <strong>All Of</strong> is true. An empty <strong>Any Of</strong> is false.</li>
+    </ul>
+
+    <p>Every condition also carries an <strong>Invert</strong> field, applied after the condition evaluates. An inverted <strong>All Of</strong> means "not all of them", not "none of them".</p>
+
+    <h2 id="timeouts">Step timeouts and countdowns</h2>
+
+    <p>Timeouts live on the <a href="03-authoring.html#task-node">Task node</a>, not on the task. One field and one pin:</p>
+
+    <div class="tw">
+      <table>
+        <caption>Timeout behaviour</caption>
+        <thead><tr><th scope="col">Setting</th><th scope="col">Effect</th></tr></thead>
+        <tbody>
+          <tr><td class="t-name">Time Limit = 0</td><td>No limit. A task waiting on something that never arrives blocks the flow forever.</td></tr>
+          <tr><td class="t-name">Time Limit &gt; 0</td><td>The task leaves via <code>Timed Out</code> when the limit elapses.</td></tr>
+          <tr><td class="t-name">Timed Out unwired, fallback on</td><td>A timeout routes back to <code>Completed</code> and reads as success.</td></tr>
+          <tr><td class="t-name">Auto Retry On Timeout</td><td>Restarts the task instead of leaving. <code>Timed Out</code> is only taken once the retries are used up.</td></tr>
+        </tbody>
+      </table>
+    </div>
+
+    <p>The countdown resets on each retry, because auto-retry restarts the task and <code>Elapsed Time</code> restarts with it. For a live countdown in UI, read <code>Get Current Task Remaining Time</code> on the component. It returns <code>-1</code> when the current task has no limit, which is the value your widget should treat as "hide the timer" rather than as zero.</p>
+
+    <div class="note">
+      <svg class="ico" width="16" height="16" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5" aria-hidden="true"><circle cx="8" cy="8" r="6.3"/><path d="M8 7.2v4M8 4.9v.7"/></svg>
+      <div>
+        <span class="ct">Set a Time Limit on everything while developing</span>
+        <p>Even a generous one. Wire <code>Timed Out</code> to a <strong>Log Message</strong> task. A hang then becomes a message naming the task instead of a flow that silently stops, and finding a stall this way takes seconds rather than an afternoon.</p>
+      </div>
+    </div>
+
+    <h2 id="retry-skip">Retry and skip need both layers to agree</h2>
+
+    <p>The node and the task each get a say, and both have to allow it. This trips people up once.</p>
+
+    <div class="split wide-right">
+      <div class="panel">
+        <h4>On the Task node</h4>
+        <ul>
+          <li><strong>Auto Retry On Failure</strong></li>
+          <li><strong>Auto Retry Limit</strong></li>
+          <li><strong>Auto Retry On Timeout</strong></li>
+        </ul>
+      </div>
+      <div class="panel">
+        <h4>On the task, under Rules</h4>
+        <ul>
+          <li><strong>Allow Retry</strong>, bool, default <code>true</code>: whether the player may retry through the component.</li>
+          <li><strong>Max Retries</strong>, int, default <code>0</code>: <code>0</code> is unlimited. Once exceeded, a retry request fails the task instead.</li>
+          <li><strong>Allow Skip</strong>, bool, default <code>true</code>: whether the player or instructor may skip it.</li>
+          <li><strong>Tick While Paused</strong>, bool, default <code>false</code>: leave it off unless you know you want it.</li>
+        </ul>
+      </div>
+    </div>
+
+    <p>Turn on auto-retry at the node while the task's own <code>Allow Retry</code> is off and nothing retries. The task's rule wins. Automatic retry also happens <em>inside</em> the node: when the task fails, the node restarts it without leaving through any pin, and execution only leaves via <code>Failed</code> once the retries are used up.</p>
+
+    <p>Manual retry, skip and fail come from outside, through <code>Retry Current Task</code>, <code>Skip Current Task</code> and <code>Fail Current Task</code> on the component. Those are what an instructor panel calls. See <a href="05-runtime-blueprint.html#controls">Chapter 05</a>.</p>
+
+    <h2 id="training-vs-evaluation">Training mode against evaluation mode</h2>
+
+    <p>There is no global mode switch in the plugin. "Training" and "evaluation" are combinations of the settings above, and the cleanest way to ship both is two flow assets, or one asset with two <strong>Start</strong> node entries routing into differently configured sections.</p>
+
+    <div class="tw">
+      <table>
+        <caption>Suggested settings per mode</caption>
+        <thead><tr><th scope="col">Setting</th><th scope="col">Training</th><th scope="col">Evaluation</th></tr></thead>
+        <tbody>
+          <tr><td class="t-name">Out Of Order Policy</td><td><code>Count Mistake (Stay On Step)</code></td><td><code>Count Mistake And Fail Task</code>, or <code>And Restart</code> for order-critical procedures</td></tr>
+          <tr><td class="t-name">Mismatch Policy</td><td><code>Count Mistake (Keep Waiting)</code></td><td><code>Count Mistake And Fail Task</code></td></tr>
+          <tr><td class="t-name">Unlisted Input Is Mistake</td><td><code>false</code></td><td><code>true</code>, when picking up unrelated equipment should count</td></tr>
+          <tr><td class="t-name">Allow Retry</td><td><code>true</code>, <code>Max Retries</code> 0 for unlimited</td><td><code>false</code>, or a hard <code>Max Retries</code> of 1</td></tr>
+          <tr><td class="t-name">Allow Skip</td><td><code>true</code>, so an instructor can move a stuck trainee on</td><td><code>false</code></td></tr>
+          <tr><td class="t-name">Auto Retry On Failure</td><td><code>true</code> with a limit of 1, routing to a hint</td><td><code>false</code></td></tr>
+          <tr><td class="t-name">Time Limit</td><td>Generous, or 0 with a hint branch</td><td>The real procedural limit</td></tr>
+          <tr><td class="t-name">Fallback To Completed</td><td><code>true</code></td><td><code>false</code>, so a failure cannot read as success</td></tr>
+          <tr><td class="t-name">Score On Failure</td><td><code>0</code>, feedback only</td><td>Negative</td></tr>
+          <tr><td class="t-name">Checkpoints</td><td>Frequent, with auto-save</td><td>None, or one at the start</td></tr>
+        </tbody>
+      </table>
+    </div>
+
+    <div class="note">
+      <svg class="ico" width="16" height="16" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5" aria-hidden="true"><circle cx="8" cy="8" r="6.3"/><path d="M8 7.2v4M8 4.9v.7"/></svg>
+      <div>
+        <span class="ct">Build the drill once, wrap it twice</span>
+        <p>Author the procedure as one asset, then use <strong>Sub Flow</strong> nodes to run it inside a training wrapper and an evaluation wrapper. The wrappers differ in their branch logic, debrief and scoring; the drill itself stays single-source. The blackboard merges back into the parent, so the wrapper can read <code>Score</code> and <code>WrongAttempts</code> from the child run.</p>
+      </div>
+    </div>
+
+    <nav class="pager" aria-label="Chapter navigation">
+      <a href="03-authoring.html"><span class="d">Previous</span><span class="t">Authoring in the Node Graph</span></a>
+      <a class="next" href="05-runtime-blueprint.html"><span class="d">Next</span><span class="t">Runtime &amp; Blueprint Wiring</span></a>
+    </nav>
+
+    <div class="foot">
+      <p>SimFlow 1.1.4 &middot; User Guide &middot; Unreal Engine 5.6 and 5.8</p>
+    </div>
+  </main>
+
+  <aside class="rail" id="rail" aria-label="On this page">
+    <h2>On this page</h2>
+  </aside>
+
+</div>
+</body>
+</html>

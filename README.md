@@ -13,7 +13,11 @@ graph, run them from a component, and drive your VR UI from the events they fire
 
 Built for UE **5.8** (the same source still builds on 5.4–5.6 — see *Engine compatibility* below).
 
-**Full documentation:** [reyvanair.github.io/SimFlow](https://reyvanair.github.io/SimFlow/)
+**Documentation:** [reyvanair.github.io/SimFlow](https://reyvanair.github.io/SimFlow/)
+
+Seven chapters for authoring scenarios, a page for every node and every task, and a
+ten-page developer guide for working on the C++. Browsable offline from
+[`docs/guide/`](docs/guide/index.html).
 
 The Markdown cheat sheet is in [`docs/Cheatsheet.md`](docs/Cheatsheet.md).
 

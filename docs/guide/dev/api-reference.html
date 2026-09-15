@@ -1,0 +1,328 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>API Reference | SimFlow User Guide</title>
+<meta name="description" content="SimFlow developer guide: Every public class, function, enum and native tag.">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500;600&family=IBM+Plex+Sans:wght@400;500;600&display=swap">
+<link rel="stylesheet" href="../assets/guide.css">
+<script src="../assets/search-index.js" defer></script>
+<script src="../assets/guide.js" defer></script>
+</head>
+<body>
+<a class="skip-link" href="#content">Skip to content</a>
+
+<header class="topbar">
+  <button id="navToggle" class="icon-btn" aria-expanded="false" aria-controls="sidebar" aria-label="Open chapter navigation">
+    <svg width="16" height="16" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.6" aria-hidden="true"><path d="M2 4.5h12M2 8h12M2 11.5h12"/></svg>
+  </button>
+
+  <a class="brand" href="../index.html">
+    <svg width="20" height="20" viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.5" aria-hidden="true"><rect x="1.4" y="2.6" width="6.4" height="4.6" rx="1"/><rect x="12.2" y="7.4" width="6.4" height="4.6" rx="1"/><rect x="1.4" y="12.8" width="6.4" height="4.6" rx="1"/><path d="M7.8 4.9h2.2a1.4 1.4 0 0 1 1.4 1.4v1.1M7.8 15.1h2.2a1.4 1.4 0 0 0 1.4-1.4v-1.4"/></svg>
+    SimFlow <span class="ver">1.1.4</span>
+  </a>
+
+  <div class="spacer"></div>
+
+  <div class="search" role="search">
+    <svg class="mag" width="14" height="14" viewBox="0 0 14 14" fill="none" stroke="currentColor" stroke-width="1.6" aria-hidden="true"><circle cx="6" cy="6" r="4.2"/><path d="M9.2 9.2 12.5 12.5"/></svg>
+    <input id="q" type="search" placeholder="Search the guide" autocomplete="off" aria-label="Search the guide" aria-controls="results">
+    <kbd>/</kbd>
+    <div class="results" id="results" hidden role="listbox" aria-label="Search results"></div>
+  </div>
+
+  <button id="themeToggle" class="icon-btn" aria-pressed="false" aria-label="Switch to light theme">
+    <svg class="i-moon" width="15" height="15" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5" aria-hidden="true"><path d="M13.4 9.8A5.9 5.9 0 0 1 6.2 2.6a5.9 5.9 0 1 0 7.2 7.2Z"/></svg>
+    <svg class="i-sun" width="15" height="15" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5" aria-hidden="true" hidden><circle cx="8" cy="8" r="3.1"/><path d="M8 1v1.8M8 13.2V15M15 8h-1.8M2.8 8H1m11-4.9-1.3 1.3M5.3 10.7 4 12m0-8 1.3 1.3m5.4 5.4L12 12"/></svg>
+  </button>
+</header>
+<div class="scrim" id="scrim" hidden></div>
+
+<div class="shell">
+
+<aside class="sidebar" id="sidebar">
+  <nav aria-label="Guide navigation">
+    <h2>User Guide</h2>
+    <ol>
+      <li><a href="../index.html"><span class="num">00</span><span>Overview</span></a></li>
+      <li><a href="../01-getting-started.html"><span class="num">01</span><span>Getting Started &amp; Installation</span></a></li>
+      <li><a href="../02-architecture.html"><span class="num">02</span><span>Core Mental Model</span></a></li>
+      <li><a href="../03-authoring.html"><span class="num">03</span><span>Authoring in the Node Graph</span></a></li>
+      <li><a href="../04-rules-and-policies.html"><span class="num">04</span><span>Rules &amp; Failure Policies</span></a></li>
+      <li><a href="../05-runtime-blueprint.html"><span class="num">05</span><span>Runtime &amp; Blueprint Wiring</span></a></li>
+      <li><a href="../06-ui-and-vr.html"><span class="num">06</span><span>Driving UI &amp; VR Feedback</span></a></li>
+      <li><a href="../07-troubleshooting.html"><span class="num">07</span><span>Troubleshooting</span></a></li>
+    </ol>
+    <details class="navgroup">
+      <summary>Node Reference</summary>
+      <ul>
+        <li><a href="../nodes/start.html"><span class="num">&#183;</span><span>Start</span></a></li>
+        <li><a href="../nodes/delay.html"><span class="num">&#183;</span><span>Delay</span></a></li>
+        <li><a href="../nodes/branch.html"><span class="num">&#183;</span><span>Branch</span></a></li>
+        <li><a href="../nodes/random-branch.html"><span class="num">&#183;</span><span>Random Branch</span></a></li>
+        <li><a href="../nodes/parallel.html"><span class="num">&#183;</span><span>Parallel</span></a></li>
+        <li><a href="../nodes/join.html"><span class="num">&#183;</span><span>Join</span></a></li>
+        <li><a href="../nodes/loop.html"><span class="num">&#183;</span><span>Loop</span></a></li>
+        <li><a href="../nodes/finish.html"><span class="num">&#183;</span><span>Finish</span></a></li>
+        <li><a href="../nodes/task.html"><span class="num">&#183;</span><span>Task</span></a></li>
+        <li><a href="../nodes/sub-flow.html"><span class="num">&#183;</span><span>Sub Flow</span></a></li>
+        <li><a href="../nodes/checkpoint.html"><span class="num">&#183;</span><span>Checkpoint</span></a></li>
+        <li><a href="../nodes/set-blackboard.html"><span class="num">&#183;</span><span>Set Blackboard Value</span></a></li>
+      </ul>
+    </details>
+    <details class="navgroup">
+      <summary>Task Reference</summary>
+      <ul>
+        <li><a href="../tasks/delay.html"><span class="num">&#183;</span><span>Delay</span></a></li>
+        <li><a href="../tasks/log-message.html"><span class="num">&#183;</span><span>Log Message</span></a></li>
+        <li><a href="../tasks/set-blackboard.html"><span class="num">&#183;</span><span>Set Blackboard Value</span></a></li>
+        <li><a href="../tasks/wait-for-event.html"><span class="num">&#183;</span><span>Wait For Event</span></a></li>
+        <li><a href="../tasks/wait-for-condition.html"><span class="num">&#183;</span><span>Wait For Condition</span></a></li>
+        <li><a href="../tasks/go-to-location.html"><span class="num">&#183;</span><span>Go To Location</span></a></li>
+        <li><a href="../tasks/quiz.html"><span class="num">&#183;</span><span>Quiz</span></a></li>
+        <li><a href="../tasks/parallel-group.html"><span class="num">&#183;</span><span>Parallel Group</span></a></li>
+        <li><a href="../tasks/place-object-in-zone.html"><span class="num">&#183;</span><span>Place Object In Zone</span></a></li>
+        <li><a href="../tasks/ordered-sequence.html"><span class="num">&#183;</span><span>Ordered Sequence</span></a></li>
+      </ul>
+    </details>
+    <details class="navgroup" open>
+      <summary>Developer Guide</summary>
+      <ul>
+        <li><a href="../dev/architecture.html"><span class="num">&#183;</span><span>Architecture & Modules</span></a></li>
+        <li><a href="../dev/execution-model.html"><span class="num">&#183;</span><span>Execution Model</span></a></li>
+        <li><a href="../dev/custom-nodes.html"><span class="num">&#183;</span><span>Writing a Custom Node</span></a></li>
+        <li><a href="../dev/custom-tasks.html"><span class="num">&#183;</span><span>Custom Tasks & Conditions</span></a></li>
+        <li><a href="../dev/blackboard-internals.html"><span class="num">&#183;</span><span>Blackboard & Values</span></a></li>
+        <li><a href="../dev/persistence.html"><span class="num">&#183;</span><span>Save and Load Internals</span></a></li>
+        <li><a href="../dev/replication.html"><span class="num">&#183;</span><span>Replication</span></a></li>
+        <li><a href="../dev/editor-module.html"><span class="num">&#183;</span><span>The Editor Module</span></a></li>
+        <li><a href="../dev/api-reference.html" aria-current="page"><span class="num">&#183;</span><span>API Reference</span></a></li>
+        <li><a href="../dev/diagnostics.html"><span class="num">&#183;</span><span>Diagnostics & Limits</span></a></li>
+      </ul>
+    </details>
+    <h2>Reference</h2>
+    <ul>
+      <li><a href="../../Cheatsheet.md"><span class="num">&#8599;</span><span>Cheat sheet</span></a></li>
+      <li><a href="../../glossary.md"><span class="num">&#8599;</span><span>Glossary</span></a></li>
+    </ul>
+  </nav>
+</aside>
+
+  <main id="content">
+    <nav class="crumbs" aria-label="Breadcrumb">
+      <ol>
+        <li><a href="../index.html">User Guide</a></li>
+        <li><svg width="11" height="11" viewBox="0 0 12 12" fill="none" stroke="currentColor" stroke-width="1.6" aria-hidden="true"><path d="m4.5 2.5 3.5 3.5-3.5 3.5"/></svg><span>Developer Guide</span></li>
+        <li><svg width="11" height="11" viewBox="0 0 12 12" fill="none" stroke="currentColor" stroke-width="1.6" aria-hidden="true"><path d="m4.5 2.5 3.5 3.5-3.5 3.5"/></svg><span aria-current="page">API Reference</span></li>
+      </ol>
+    </nav>
+
+    <p class="eyebrow">Developer Guide</p>
+    <h1>API Reference</h1>
+
+    <dl class="idcard">
+      <dt>Module</dt><dd><code>SimFlowRuntime</code>, export macro <code>SIMFLOWRUNTIME_API</code></dd>
+      <dt>Scope</dt><dd>Every public class, function, enum and native tag</dd>
+      <dt>Blueprint</dt><dd>Everything listed here is Blueprint-callable unless noted</dd>
+    </dl>
+
+    <h2 id="component">USimFlowComponent</h2>
+
+    <h3 id="component-props">Authoring properties</h3>
+
+    <div class="tw">
+      <table>
+        <thead><tr><th scope="col">Property</th><th scope="col">Type</th><th scope="col">Default</th></tr></thead>
+        <tbody>
+          <tr><td class="t-name">FlowAsset</td><td class="t-type">USimFlowAsset*</td><td class="t-def">null</td></tr>
+          <tr><td class="t-name">EntryName</td><td class="t-type">FName</td><td class="t-def">Default</td></tr>
+          <tr><td class="t-name">StartMode</td><td class="t-type">ESimFlowStartMode</td><td class="t-def">Manual</td></tr>
+          <tr><td class="t-name">AutoStartDelay</td><td class="t-type">float</td><td class="t-def">1.0</td></tr>
+          <tr><td class="t-name">bReplicateFlow</td><td class="t-type">bool</td><td class="t-def">false</td></tr>
+          <tr><td class="t-name">NetRefreshInterval</td><td class="t-type">float</td><td class="t-def">1.0</td></tr>
+          <tr><td class="t-name">bReplicateBlackboard</td><td class="t-type">bool</td><td class="t-def">true</td></tr>
+          <tr><td class="t-name">FlowSaveId</td><td class="t-type">FName</td><td class="t-def">None</td></tr>
+          <tr><td class="t-name">DefaultSaveSlotName</td><td class="t-type">FString</td><td class="t-def">SimFlowSave</td></tr>
+          <tr><td class="t-name">DefaultSaveUserIndex</td><td class="t-type">int32</td><td class="t-def">0</td></tr>
+          <tr><td class="t-name">bAutoResumeFromSaveOnBeginPlay</td><td class="t-type">bool</td><td class="t-def">false</td></tr>
+          <tr><td class="t-name">DefaultLoadMode</td><td class="t-type">ESimFlowLoadMode</td><td class="t-def">ExactState</td></tr>
+          <tr><td class="t-name">bShowDebugHUD</td><td class="t-type">bool</td><td class="t-def">false</td></tr>
+          <tr><td class="t-name">bFollowGamePause</td><td class="t-type">bool</td><td class="t-def">true</td></tr>
+        </tbody>
+      </table>
+    </div>
+
+    <h3 id="component-controls">Controls, safe from either side</h3>
+
+    <pre><code>bool  StartFlow()
+bool  StartFlowFromEntry(FName InEntryName)
+void  StopFlow()
+bool  RestartFlow()
+void  PauseFlow() / ResumeFlow() / TogglePause()
+bool  RetryCurrentTask() / SkipCurrentTask() / FailCurrentTask()
+void  SendEvent(FGameplayTag EventTag, UObject* Payload = nullptr)
+void  SubmitQuizAnswer(int32 OptionIndex)</code></pre>
+
+    <h3 id="component-save">Save and load, authority only</h3>
+
+    <pre><code>FSimFlowSaveState SaveFlowState() const
+bool  LoadFlowState(const FSimFlowSaveState&amp; State, ESimFlowLoadMode = ExactState)
+bool  SaveFlowToSlot(const FString&amp; SlotName, int32 UserIndex = 0)
+bool  LoadFlowFromSlot(const FString&amp; SlotName, int32 UserIndex = 0, ESimFlowLoadMode = ExactState)
+bool  QuickSave() / QuickLoad()
+bool  HasSaveInSlot(const FString&amp; SlotName, int32 UserIndex = 0) const</code></pre>
+
+    <h3 id="component-queries">Queries, client-safe</h3>
+
+    <pre><code>USimFlowInstance*   GetFlowInstance() const
+USimFlowBlackboard* GetBlackboard() const
+ESimFlowRunState    GetRunState() const
+bool  IsFlowRunning() / IsFlowPaused() const
+USimFlowTask* GetCurrentTask() const           // template task on a client
+FText GetCurrentTaskName() / GetCurrentInstruction() const
+float GetProgress() / GetScore() const
+float GetCurrentTaskRemainingTime() const      // -1 when no limit
+USimFlowTask_Quiz* GetCurrentQuiz() const
+bool  IsClientMirror() / HasFlowAuthority() const
+FSimFlowNetState GetNetState() const
+FString GetDebugText() const
+FName   GetEffectiveSaveId() const</code></pre>
+
+    <h3 id="component-delegates">Delegates</h3>
+
+    <p><code>OnFlowStarted</code>, <code>OnFlowPaused</code>, <code>OnFlowResumed</code>, <code>OnFlowFinished(FinalState)</code>, <code>OnTaskStarted(Node, Task)</code>, <code>OnTaskFinished(Node, Task, Result)</code>, <code>OnTaskRetried(Node, Task)</code>, <code>OnCheckpointReached(Checkpoint)</code>, <code>OnQuizPresented(Quiz)</code>, <code>OnNetStateChanged</code>.</p>
+
+    <p>Two more live on <code>USimFlowInstance</code> rather than the component: <code>OnEventRaised(EventTag, Payload)</code> and <code>OnMistakeRecorded(Mistake)</code>.</p>
+
+    <h2 id="statics">USimFlowStatics</h2>
+
+    <p>The Blueprint function library. World-context functions take it implicitly in Blueprint.</p>
+
+    <pre><code>USimFlowComponent* GetPrimaryFlow(WorldContext)
+USimFlowComponent* FindFlowById(WorldContext, FName FlowSaveId)
+USimFlowComponent* GetFlowFromActor(AActor* Actor)
+
+void  BroadcastFlowEvent(WorldContext, FGameplayTag EventTag, UObject* Payload = nullptr)
+void  SendFlowEvent(WorldContext, FName FlowSaveId, FGameplayTag EventTag, UObject* Payload = nullptr)
+void  RequestFlowControl(WorldContext, FName FlowSaveId, ESimFlowControlRequest Request)
+void  PauseAllFlows(WorldContext) / ResumeAllFlows(WorldContext)
+
+bool  SaveAllFlows(WorldContext, const FString&amp; SlotName, int32 UserIndex = 0)
+int32 LoadAllFlows(WorldContext, const FString&amp; SlotName, int32 UserIndex = 0, ESimFlowLoadMode = ExactState)
+bool  DeleteFlowSave(const FString&amp; SlotName, int32 UserIndex = 0)
+
+FSimFlowValue MakeFlowBool/Int/Float/String/Name/Vector/Object(...)
+bool/int32/float/FString FlowValueToBool/Int/Float/String(const FSimFlowValue&amp;)
+FText ResultToText(ESimFlowResult) / RunStateToText(ESimFlowRunState) / FormatSeconds(float)</code></pre>
+
+    <h2 id="subsystem">USimFlowSubsystem</h2>
+
+    <p>A GameInstance subsystem. The registry every running flow reports into.</p>
+
+    <pre><code>static USimFlowSubsystem* Get(WorldContext)
+TArray&lt;USimFlowComponent*&gt; GetAllFlowComponents() const
+USimFlowComponent* FindFlowById(FName) / GetPrimaryFlow() const
+void  PauseAllFlows() / ResumeAllFlows() / StopAllFlows()
+bool  SaveAllFlowsToSlot(const FString&amp; SlotName, int32 UserIndex = 0)
+int32 LoadAllFlowsFromSlot(const FString&amp; SlotName, int32 UserIndex = 0, ESimFlowLoadMode = ExactState)
+static bool DeleteSaveSlot(const FString&amp; SlotName, int32 UserIndex = 0)
+void  SetDebugHUDEnabled(bool) / bool IsDebugHUDEnabled() const
+FString BuildGlobalDebugText() const</code></pre>
+
+    <h2 id="player-component">USimFlowPlayerComponent</h2>
+
+    <p>Lives on the PlayerController. The only route a client has to a flow it does not own. See <a href="replication.html#control-channel">the control channel</a>.</p>
+
+    <pre><code>UPROPERTY bRestrictToOwnedFlows = false
+
+static USimFlowPlayerComponent* GetLocal(WorldContext)
+void RequestControl(FName FlowSaveId, ESimFlowControlRequest Request)
+void RequestQuizAnswer(FName FlowSaveId, FGuid QuizNodeGuid, int32 OptionIndex)
+void RequestEvent(FName FlowSaveId, FGameplayTag EventTag, UObject* Payload = nullptr)
+
+virtual bool IsRequestAuthorised_Implementation(
+        USimFlowComponent* TargetFlow, ESimFlowControlRequest) const</code></pre>
+
+    <h2 id="asset-api">USimFlowAsset authoring API</h2>
+
+    <pre><code>USimFlowNode* AddNode(TSubclassOf&lt;USimFlowNode&gt; NodeClass)
+void  RemoveNode(USimFlowNode* Node)
+bool  ConnectNodes(USimFlowNode* From, FName FromPin, USimFlowNode* To, FName ToPin)
+bool  DisconnectNodes(USimFlowNode* From, FName FromPin, USimFlowNode* To, FName ToPin)
+void  ValidateFlow(TArray&lt;FString&gt;&amp; OutErrors, TArray&lt;FString&gt;&amp; OutWarnings) const
+USimFlowNode* FindNodeByGuid(const FGuid&amp;) const
+TArray&lt;FName&gt; GetEntryNames() const
+FText GetDisplayNameText() const</code></pre>
+
+    <div class="note">
+      <svg class="ico" width="16" height="16" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5" aria-hidden="true"><circle cx="8" cy="8" r="6.3"/><path d="M8 7.2v4M8 4.9v.7"/></svg>
+      <div>
+        <span class="ct">Flows can be built entirely in code</span>
+        <p>All of the above is Blueprint-callable and safe at runtime, so a procedural flow generator is a supported use. <code>SimFlowSampleBuilder.cpp</code> is a complete worked example, reachable from the Tools menu or <code>SimFlow.CreateSample</code>.</p>
+      </div>
+    </div>
+
+    <h2 id="enums">Enums</h2>
+
+    <div class="tw">
+      <table>
+        <thead><tr><th scope="col">Enum</th><th scope="col">Values</th></tr></thead>
+        <tbody>
+          <tr><td class="t-name">ESimFlowStartMode</td><td>Manual, AutoOnBeginPlay, AutoOnFirstTick, AutoAfterDelay</td></tr>
+          <tr><td class="t-name">ESimFlowRunState</td><td>NotStarted, Running, Paused, Completed, Failed, Aborted</td></tr>
+          <tr><td class="t-name">ESimFlowResult</td><td>Succeeded, Failed, Skipped, TimedOut, Aborted</td></tr>
+          <tr><td class="t-name">ESimFlowFinishMode</td><td>Complete, Fail, Abort</td></tr>
+          <tr><td class="t-name">ESimFlowValueType</td><td>None, Bool, Int, Float, String, Name, Vector, Object</td></tr>
+          <tr><td class="t-name">ESimFlowCompareOp</td><td>Equal, NotEqual, Less, LessOrEqual, Greater, GreaterOrEqual</td></tr>
+          <tr><td class="t-name">ESimFlowJoinMode</td><td>WaitForAll, WaitForAny</td></tr>
+          <tr><td class="t-name">ESimFlowLoadMode</td><td>ExactState, FromLastCheckpoint</td></tr>
+          <tr><td class="t-name">ESimFlowControlRequest</td><td>Start, Stop, Restart, Pause, Resume, TogglePause, Retry, Skip, Fail</td></tr>
+        </tbody>
+      </table>
+    </div>
+
+    <h2 id="namespaces">Name constants</h2>
+
+    <div class="split wide-left">
+      <div>
+        <p><code>namespace SimFlowPins</code> holds <code>In</code>, <code>Out</code>, <code>Completed</code>, <code>Failed</code>, <code>Skipped</code>, <code>TimedOut</code>, <code>Default</code>, <code>LoopBody</code>. Loop's <code>Continue</code> pin is <code>USimFlowNode_Loop::ContinuePin</code>.</p>
+        <p><code>namespace SimFlowKeys</code> holds <code>Score</code>, <code>Mistakes</code>, <code>LastResult</code>, <code>LastAnswerIndex</code>, <code>LastAnswerCorrect</code>, <code>WrongAttempts</code>, <code>CurrentStep</code>.</p>
+      </div>
+      <div class="panel">
+        <h4>Use the constants</h4>
+        <p>They are exported with <code>SIMFLOWRUNTIME_API</code>, so a game module can link against them. A string literal that drifts from the constant produces a pin that silently never connects.</p>
+      </div>
+    </div>
+
+    <h2 id="tags">Native gameplay tags</h2>
+
+    <p>In <code>namespace SimFlowTags</code>:</p>
+
+    <pre><code>Event, Event_Generic, Event_Interact, Event_Grab, Event_Release, Event_ButtonPressed
+Sample_GrabExtinguisher, Sample_PullPin        // used by the sample flow only</code></pre>
+
+    <p>Declare your project's own with <code>UE_DECLARE_GAMEPLAY_TAG_EXTERN</code> and <code>UE_DEFINE_GAMEPLAY_TAG</code>, or in the Gameplay Tags project settings, and raise them with <code>BroadcastFlowEvent</code>. Keep them out of the <code>SimFlow.</code> hierarchy, which belongs to the plugin.</p>
+
+    <h2 id="related">Related</h2>
+    <p><a href="replication.html">Replication</a> &middot; <a href="persistence.html">Save and load internals</a> &middot; <a href="diagnostics.html">Diagnostics and limits</a></p>
+
+    <nav class="pager" aria-label="Page navigation">
+      <a href="editor-module.html"><span class="d">Previous</span><span class="t">The Editor Module</span></a>
+      <a class="next" href="diagnostics.html"><span class="d">Next</span><span class="t">Diagnostics & Limits</span></a>
+    </nav>
+
+    <div class="foot">
+      <p>SimFlow 1.1.4 &middot; User Guide &middot; Unreal Engine 5.6 and 5.8</p>
+    </div>
+  </main>
+
+  <aside class="rail" id="rail" aria-label="On this page">
+    <h2>On this page</h2>
+  </aside>
+
+</div>
+</body>
+</html>

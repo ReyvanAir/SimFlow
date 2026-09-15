@@ -1,0 +1,440 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Getting Started and Installation | SimFlow User Guide</title>
+<meta name="description" content="Install SimFlow into an Unreal Engine 5.6 or 5.8 project, enable it, and verify the install by building a first flow and attaching a SimFlow Component.">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500;600&family=IBM+Plex+Sans:wght@400;500;600&display=swap">
+<link rel="stylesheet" href="assets/guide.css">
+<script src="assets/search-index.js" defer></script>
+<script src="assets/guide.js" defer></script>
+</head>
+<body>
+<a class="skip-link" href="#content">Skip to content</a>
+
+<header class="topbar">
+  <button id="navToggle" class="icon-btn" aria-expanded="false" aria-controls="sidebar" aria-label="Open chapter navigation">
+    <svg width="16" height="16" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.6" aria-hidden="true"><path d="M2 4.5h12M2 8h12M2 11.5h12"/></svg>
+  </button>
+
+  <a class="brand" href="index.html">
+    <svg width="20" height="20" viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.5" aria-hidden="true">
+      <rect x="1.4" y="2.6" width="6.4" height="4.6" rx="1"/>
+      <rect x="12.2" y="7.4" width="6.4" height="4.6" rx="1"/>
+      <rect x="1.4" y="12.8" width="6.4" height="4.6" rx="1"/>
+      <path d="M7.8 4.9h2.2a1.4 1.4 0 0 1 1.4 1.4v1.1M7.8 15.1h2.2a1.4 1.4 0 0 0 1.4-1.4v-1.4"/>
+    </svg>
+    SimFlow <span class="ver">1.1.4</span>
+  </a>
+
+  <div class="spacer"></div>
+
+  <div class="search" role="search">
+    <svg class="mag" width="14" height="14" viewBox="0 0 14 14" fill="none" stroke="currentColor" stroke-width="1.6" aria-hidden="true"><circle cx="6" cy="6" r="4.2"/><path d="M9.2 9.2 12.5 12.5"/></svg>
+    <input id="q" type="search" placeholder="Search the guide" autocomplete="off" aria-label="Search the guide" aria-controls="results">
+    <kbd>/</kbd>
+    <div class="results" id="results" hidden role="listbox" aria-label="Search results"></div>
+  </div>
+
+  <button id="themeToggle" class="icon-btn" aria-pressed="false" aria-label="Switch to light theme">
+    <svg class="i-moon" width="15" height="15" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5" aria-hidden="true"><path d="M13.4 9.8A5.9 5.9 0 0 1 6.2 2.6a5.9 5.9 0 1 0 7.2 7.2Z"/></svg>
+    <svg class="i-sun" width="15" height="15" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5" aria-hidden="true" hidden><circle cx="8" cy="8" r="3.1"/><path d="M8 1v1.8M8 13.2V15M15 8h-1.8M2.8 8H1m11-4.9-1.3 1.3M5.3 10.7 4 12m0-8 1.3 1.3m5.4 5.4L12 12"/></svg>
+  </button>
+</header>
+<div class="scrim" id="scrim" hidden></div>
+
+<div class="shell">
+
+  <aside class="sidebar" id="sidebar">
+  <nav aria-label="Guide navigation">
+    <h2>User Guide</h2>
+    <ol>
+      <li><a href="index.html"><span class="num">00</span><span>Overview</span></a></li>
+      <li><a href="01-getting-started.html" aria-current="page"><span class="num">01</span><span>Getting Started &amp; Installation</span></a></li>
+      <li><a href="02-architecture.html"><span class="num">02</span><span>Core Mental Model</span></a></li>
+      <li><a href="03-authoring.html"><span class="num">03</span><span>Authoring in the Node Graph</span></a></li>
+      <li><a href="04-rules-and-policies.html"><span class="num">04</span><span>Rules &amp; Failure Policies</span></a></li>
+      <li><a href="05-runtime-blueprint.html"><span class="num">05</span><span>Runtime &amp; Blueprint Wiring</span></a></li>
+      <li><a href="06-ui-and-vr.html"><span class="num">06</span><span>Driving UI &amp; VR Feedback</span></a></li>
+      <li><a href="07-troubleshooting.html"><span class="num">07</span><span>Troubleshooting</span></a></li>
+    </ol>
+    <details class="navgroup">
+      <summary>Node Reference</summary>
+      <ul>
+        <li><a href="nodes/start.html"><span class="num">&#183;</span><span>Start</span></a></li>
+        <li><a href="nodes/delay.html"><span class="num">&#183;</span><span>Delay</span></a></li>
+        <li><a href="nodes/branch.html"><span class="num">&#183;</span><span>Branch</span></a></li>
+        <li><a href="nodes/random-branch.html"><span class="num">&#183;</span><span>Random Branch</span></a></li>
+        <li><a href="nodes/parallel.html"><span class="num">&#183;</span><span>Parallel</span></a></li>
+        <li><a href="nodes/join.html"><span class="num">&#183;</span><span>Join</span></a></li>
+        <li><a href="nodes/loop.html"><span class="num">&#183;</span><span>Loop</span></a></li>
+        <li><a href="nodes/finish.html"><span class="num">&#183;</span><span>Finish</span></a></li>
+        <li><a href="nodes/task.html"><span class="num">&#183;</span><span>Task</span></a></li>
+        <li><a href="nodes/sub-flow.html"><span class="num">&#183;</span><span>Sub Flow</span></a></li>
+        <li><a href="nodes/checkpoint.html"><span class="num">&#183;</span><span>Checkpoint</span></a></li>
+        <li><a href="nodes/set-blackboard.html"><span class="num">&#183;</span><span>Set Blackboard Value</span></a></li>
+      </ul>
+    </details>
+    <details class="navgroup">
+      <summary>Task Reference</summary>
+      <ul>
+        <li><a href="tasks/delay.html"><span class="num">&#183;</span><span>Delay</span></a></li>
+        <li><a href="tasks/log-message.html"><span class="num">&#183;</span><span>Log Message</span></a></li>
+        <li><a href="tasks/set-blackboard.html"><span class="num">&#183;</span><span>Set Blackboard Value</span></a></li>
+        <li><a href="tasks/wait-for-event.html"><span class="num">&#183;</span><span>Wait For Event</span></a></li>
+        <li><a href="tasks/wait-for-condition.html"><span class="num">&#183;</span><span>Wait For Condition</span></a></li>
+        <li><a href="tasks/go-to-location.html"><span class="num">&#183;</span><span>Go To Location</span></a></li>
+        <li><a href="tasks/quiz.html"><span class="num">&#183;</span><span>Quiz</span></a></li>
+        <li><a href="tasks/parallel-group.html"><span class="num">&#183;</span><span>Parallel Group</span></a></li>
+        <li><a href="tasks/place-object-in-zone.html"><span class="num">&#183;</span><span>Place Object In Zone</span></a></li>
+        <li><a href="tasks/ordered-sequence.html"><span class="num">&#183;</span><span>Ordered Sequence</span></a></li>
+      </ul>
+    </details>
+    <details class="navgroup">
+      <summary>Developer Guide</summary>
+      <ul>
+        <li><a href="dev/architecture.html"><span class="num">&#183;</span><span>Architecture & Modules</span></a></li>
+        <li><a href="dev/execution-model.html"><span class="num">&#183;</span><span>Execution Model</span></a></li>
+        <li><a href="dev/custom-nodes.html"><span class="num">&#183;</span><span>Writing a Custom Node</span></a></li>
+        <li><a href="dev/custom-tasks.html"><span class="num">&#183;</span><span>Custom Tasks & Conditions</span></a></li>
+        <li><a href="dev/blackboard-internals.html"><span class="num">&#183;</span><span>Blackboard & Values</span></a></li>
+        <li><a href="dev/persistence.html"><span class="num">&#183;</span><span>Save and Load Internals</span></a></li>
+        <li><a href="dev/replication.html"><span class="num">&#183;</span><span>Replication</span></a></li>
+        <li><a href="dev/editor-module.html"><span class="num">&#183;</span><span>The Editor Module</span></a></li>
+        <li><a href="dev/api-reference.html"><span class="num">&#183;</span><span>API Reference</span></a></li>
+        <li><a href="dev/diagnostics.html"><span class="num">&#183;</span><span>Diagnostics & Limits</span></a></li>
+      </ul>
+    </details>
+    <h2>Reference</h2>
+    <ul>
+      <li><a href="../Cheatsheet.md"><span class="num">&#8599;</span><span>Cheat sheet</span></a></li>
+      <li><a href="../glossary.md"><span class="num">&#8599;</span><span>Glossary</span></a></li>
+    </ul>
+  </nav>
+</aside>
+
+  <main id="content">
+    <nav class="crumbs" aria-label="Breadcrumb">
+      <ol>
+        <li><a href="index.html">User Guide</a></li>
+        <li><svg width="11" height="11" viewBox="0 0 12 12" fill="none" stroke="currentColor" stroke-width="1.6" aria-hidden="true"><path d="m4.5 2.5 3.5 3.5-3.5 3.5"/></svg><span aria-current="page">Getting Started</span></li>
+      </ol>
+    </nav>
+
+    <p class="eyebrow">Chapter 01</p>
+    <h1>Getting Started and Installation</h1>
+    <p class="lede">Get SimFlow into a project on Unreal Engine 5.6 or 5.8, confirm the editor module actually loaded, and prove it end to end with a three-node flow running on a test actor. Budget about twenty minutes including the build.</p>
+
+    <div class="spec">
+      <svg class="ico" width="16" height="16" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5" aria-hidden="true"><path d="M8 1.8 14.2 5v6L8 14.2 1.8 11V5Z"/><path d="M1.8 5 8 8.2 14.2 5M8 8.2v6"/></svg>
+      <div>
+        <span class="ct">Naming</span>
+        <p>If you arrived from a procedure-training spec, the vocabulary maps like this: a <strong>Procedure Graph Asset</strong> is a <strong>SimFlow Graph</strong> asset, and a <strong>Procedure Component</strong> is the <strong>SimFlow Component</strong> (<code>USimFlowComponent</code>). Those are the names you will see in the editor and in Blueprint.</p>
+      </div>
+    </div>
+
+    <h2 id="requirements">Before you install</h2>
+
+    <p>SimFlow ships as two C++ modules, <code>SimFlowRuntime</code> and <code>SimFlowEditor</code>. That produces exactly one hard prerequisite, and it is the one that catches most people on the first attempt:</p>
+
+    <div class="warn">
+      <svg class="ico" width="16" height="16" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5" aria-hidden="true"><path d="M8 2.4 15 14H1Z"/><path d="M8 6.4v3.2M8 11.6v.6"/></svg>
+      <div>
+        <span class="ct">Your project needs a C++ module</span>
+        <p>A Blueprint-only project cannot compile the plugin, so the editor offers you nothing in the Content Browser and gives no obvious reason why. Fix it once: <strong>Tools &#8594; New C++ Class &#8594; None</strong>, create any empty class, and let Unreal convert the project. You never have to write C++ after that. Everything in this guide is Blueprint and the Details panel.</p>
+      </div>
+    </div>
+
+    <div class="tw">
+      <table>
+        <caption>What you need before starting</caption>
+        <thead><tr><th scope="col">Requirement</th><th scope="col">Why</th></tr></thead>
+        <tbody>
+          <tr><td class="t-name">UE 5.6 or 5.8</td><td>The shipped descriptor targets 5.8.0. See <a href="#engine-versions">engine versions</a> for the 5.6 path.</td></tr>
+          <tr><td class="t-name">A C++ project</td><td>Both plugin modules compile from source with your project.</td></tr>
+          <tr><td class="t-name">A configured compiler</td><td>Visual Studio with the Game Development with C++ workload on Windows, Xcode on macOS.</td></tr>
+          <tr><td class="t-name">GameplayTags</td><td>An engine plugin, on by default. SimFlow uses gameplay tags for identity and for events.</td></tr>
+        </tbody>
+      </table>
+    </div>
+
+    <h2 id="install-project">Install into the project Plugins directory</h2>
+
+    <p>This is the supported path and the one to use unless you have a specific reason not to. The plugin lives with the project, gets versioned with the project, and compiles against the exact engine the project uses.</p>
+
+    <ol class="steps">
+      <li>
+        <span class="sh">Copy the plugin folder</span>
+        <p>Place the <code>SimFlow</code> folder at <code>YourProject/Plugins/SimFlow</code>. The <code>SimFlow.uplugin</code> file must sit directly inside it, not one level deeper.</p>
+        <p class="tip"><b>Check:</b> <code>YourProject/Plugins/SimFlow/SimFlow.uplugin</code> should exist, alongside <code>Source/</code> and <code>Resources/</code>.</p>
+      </li>
+      <li>
+        <span class="sh">Regenerate project files</span>
+        <p>Right-click the <code>.uproject</code> and choose <strong>Generate Visual Studio project files</strong>. On macOS or from a terminal, run the engine's <code>GenerateProjectFiles</code> script against the project.</p>
+      </li>
+      <li>
+        <span class="sh">Build the editor target</span>
+        <p>Build <code>YourProjectEditor</code> in the Development Editor configuration, with the editor closed. A first build of both modules takes a few minutes.</p>
+        <p class="tip"><b>If the build fails here</b>, read the first error rather than the last. A missing <code>GameplayTags</code> dependency in your own module and a stale Intermediate folder are the two usual causes. Deleting <code>Binaries/</code> and <code>Intermediate/</code> then regenerating clears the second.</p>
+      </li>
+      <li>
+        <span class="sh">Open the project</span>
+        <p>Launch from your IDE, or open the <code>.uproject</code>. If Unreal offers to rebuild missing modules, accept.</p>
+      </li>
+    </ol>
+
+    <h2 id="engine-versions">Unreal Engine 5.6 and 5.8</h2>
+
+    <div class="split wide-left">
+      <div>
+        <p>The descriptor that ships with 1.1.4 declares 5.8.0:</p>
+        <pre><code>"VersionName": "1.1.4",
+"EngineVersion": "5.8.0",
+"Modules": [
+  { "Name": "SimFlowRuntime", "Type": "Runtime", "LoadingPhase": "PreDefault" },
+  { "Name": "SimFlowEditor",  "Type": "Editor",  "LoadingPhase": "Default" }
+]</code></pre>
+        <p>Because the plugin is distributed as source and compiles with your project, targeting 5.6 is a descriptor edit plus a rebuild. Open <code>SimFlow.uplugin</code>, set <code>"EngineVersion": "5.6.0"</code>, regenerate project files, and build.</p>
+        <p>Verify rather than assume. If a module fails to compile on 5.6, expect it to be <code>SimFlowEditor</code>: editor and graph-editor API shifts more between releases than runtime API does. The runtime module is the one that matters at ship time, so a 5.6 port that stalls is usually a small number of editor-side call sites.</p>
+      </div>
+      <div class="panel">
+        <h4>Per-version checklist</h4>
+        <ul>
+          <li>Set <code>EngineVersion</code> to match the engine you are opening with.</li>
+          <li>Regenerate project files after every descriptor change.</li>
+          <li>Delete <code>Binaries/</code> and <code>Intermediate/</code> when moving a project between engine versions.</li>
+          <li>Build with the editor closed.</li>
+          <li>Confirm both modules loaded before debugging anything else. See <a href="#verify">Verify the install</a>.</li>
+        </ul>
+      </div>
+    </div>
+
+    <h2 id="marketplace">Marketplace and engine-level installs</h2>
+
+    <p>The plugin descriptor ships with an empty <code>MarketplaceURL</code>, so there is no store listing wired into this build. Treat the project <code>Plugins</code> directory as the canonical install route.</p>
+
+    <p>If your studio distributes SimFlow as a prebuilt binary through Fab, the Epic Games Launcher or an internal package, the rules are the standard engine-plugin ones:</p>
+
+    <div class="tw">
+      <table>
+        <caption>Install locations and what each implies</caption>
+        <thead><tr><th scope="col">Location</th><th scope="col">Path</th><th scope="col">Implication</th></tr></thead>
+        <tbody>
+          <tr>
+            <td class="t-name">Project (recommended)</td>
+            <td><code>YourProject/Plugins/SimFlow</code></td>
+            <td>Compiles from source with the project. Versioned in your repo. Works on any engine version you can build against.</td>
+          </tr>
+          <tr>
+            <td class="t-name">Engine, launcher-installed</td>
+            <td><code>Engine/Plugins/Marketplace/SimFlow</code></td>
+            <td>Shared by every project on that engine install. The binary is built for one engine version only, so a 5.8 package will not load in 5.6.</td>
+          </tr>
+          <tr>
+            <td class="t-name">Engine, source build</td>
+            <td><code>Engine/Plugins/SimFlow</code></td>
+            <td>For teams on a custom engine. Rebuilt whenever the engine is.</td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+
+    <div class="note">
+      <svg class="ico" width="16" height="16" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5" aria-hidden="true"><circle cx="8" cy="8" r="6.3"/><path d="M8 7.2v4M8 4.9v.7"/></svg>
+      <div>
+        <span class="ct">Do not install in both places</span>
+        <p>A project copy and an engine copy of the same plugin conflict, and the error names a duplicate plugin rather than the real problem. Pick one location per machine.</p>
+      </div>
+    </div>
+
+    <h2 id="enable">Enable SimFlow in Edit &#8594; Plugins</h2>
+
+    <p>A project-directory install is usually enabled automatically on first load. Confirm it anyway, because the rest of this chapter depends on it.</p>
+
+    <ol class="steps">
+      <li>
+        <span class="sh">Open the plugin browser</span>
+        <p><strong>Edit &#8594; Plugins</strong>, then search for <code>SimFlow</code>. It appears under the <strong>Gameplay</strong> category.</p>
+      </li>
+      <li>
+        <span class="sh">Tick Enabled</span>
+        <p>If the checkbox is already ticked, leave it. If you tick it now, Unreal asks to restart. Accept.</p>
+        <p class="tip"><b>If SimFlow is not listed at all</b>, the modules did not build. Go back to <a href="#install-project">step 3</a> and read the build output. An unlisted plugin is a build problem, never a settings problem.</p>
+      </li>
+      <li>
+        <span class="sh">Confirm the version</span>
+        <p>The entry should read version <code>1.1.4</code>. That confirms the editor is reading the descriptor you think it is, which matters when a stale copy is sitting in an engine directory.</p>
+      </li>
+    </ol>
+
+    <h2 id="verify">Verify the install</h2>
+
+    <p>Two checks, thirty seconds. Do both before building anything.</p>
+
+    <div class="split wide-right">
+      <div class="panel">
+        <h4>Check 1: the editor module</h4>
+        <p>Right-click empty space in the Content Browser. A <strong>SimFlow</strong> section containing <strong>SimFlow Graph</strong> means the editor module loaded and registered its asset type.</p>
+        <p>No section means the runtime module may have loaded while the editor module did not. Check the Output Log for <code>SimFlowEditor</code> at startup.</p>
+      </div>
+      <div class="panel">
+        <h4>Check 2: the sample flow</h4>
+        <p>Run <strong>Tools &#8594; SimFlow &#8594; Create Sample VR Tutorial Flow</strong>. It generates a complete flow that exercises most of the plugin and opens it for you.</p>
+        <p>This is the fastest way to see nodes, tasks and conditions working together, and it is a better first read than any diagram. Open it, read it top to bottom, then come back and build your own.</p>
+      </div>
+    </div>
+
+    <h2 id="first-flow">Build your first flow</h2>
+
+    <p>Three nodes. The point is not the flow, it is confirming that authoring, execution and output all work on your machine.</p>
+
+    <ol class="steps">
+      <li>
+        <span class="sh">Create the asset</span>
+        <p><strong>Content Browser &#8594; right-click &#8594; SimFlow &#8594; SimFlow Graph</strong>. Name it <code>F_HelloFlow</code> and open it. A <strong>Start</strong> node is already in the graph. Every flow needs one, and it is where execution begins.</p>
+      </li>
+      <li>
+        <span class="sh">Add a Task node</span>
+        <p>Right-click the graph, choose <strong>Tasks &#8594; Task</strong>, then drag from the Start node's <code>Out</code> pin onto the new node's <code>In</code> pin.</p>
+      </li>
+      <li>
+        <span class="sh">Assign a task to it</span>
+        <p>Select the Task node. In the Details panel find the <strong>Task</strong> field, open the dropdown and choose <strong>Log Message</strong>. The field expands to show that task's own settings inline. Set <strong>Message</strong> to <code>Hello from SimFlow</code>.</p>
+        <p class="tip"><b>One thing to know before you hit Play:</b> a Task node with an empty <code>Task</code> slot does not fail. It logs a warning and passes straight out of <code>Completed</code>. That is deliberate, so a half-built flow still runs end to end, and it is also why a forgotten task slot can look like success.</p>
+      </li>
+      <li>
+        <span class="sh">Terminate the flow</span>
+        <p>Right-click, choose <strong>Flow Control &#8594; Finish</strong>, and wire the Task node's <code>Completed</code> pin into the Finish node's <code>In</code> pin. Save the asset.</p>
+      </li>
+    </ol>
+
+    <figure>
+      <pre class="graph"><code>  ┌───────┐      ┌──────────────────┐          ┌────────┐
+  │ Start │ Out──┤In   Task         │Completed─┤In      │
+  │       │      │     (Log Message)│          │ Finish │
+  └───────┘      │                  │Failed    └────────┘
+                 │                  │Skipped
+                 │                  │Timed Out
+                 └──────────────────┘</code></pre>
+      <figcaption>Three nodes. The Task node's other three output pins stay unwired, which is normal here: <code>Fallback To Completed</code> is on by default, so they route back to <code>Completed</code>.</figcaption>
+    </figure>
+
+    <h2 id="run-it">Attach the component and run it</h2>
+
+    <ol class="steps">
+      <li>
+        <span class="sh">Pick a host actor</span>
+        <p>For this test, anything works. The Game Mode, a level actor or your VR pawn are all valid. <a href="05-runtime-blueprint.html#host-actor">Chapter 05</a> covers which to choose for real work, and why it matters once replication is involved.</p>
+      </li>
+      <li>
+        <span class="sh">Add the component</span>
+        <p><strong>Add Component &#8594; SimFlow Component</strong>. In its Details panel set <strong>Flow Asset</strong> to <code>F_HelloFlow</code>.</p>
+      </li>
+      <li>
+        <span class="sh">Set Start Mode to Auto - On First Tick</span>
+        <p>Not <strong>On Begin Play</strong>. On BeginPlay, other actors in the level may not have begun play yet, so a flow that immediately looks for a zone or an item can fail to find it. By the first tick every actor has begun play.</p>
+      </li>
+      <li>
+        <span class="sh">Press Play</span>
+        <p><code>Hello from SimFlow</code> prints on screen. If it does not, go to <a href="#install-trouble">the checklist below</a>.</p>
+      </li>
+    </ol>
+
+    <h3 id="debug-overlay">Turn on the debug overlay</h3>
+
+    <p>Open the console with the tilde key and enter:</p>
+
+    <pre><code>SimFlow.Debug 1</code></pre>
+
+    <p>Live flow state draws on screen: the active node, the current task, elapsed time and the whole blackboard. This is the most useful debugging tool in the plugin, and most reports of "it does not work" are answered by seeing which node is actually active. <code>SimFlow.Debug 0</code> turns it off. For one flow rather than all of them, tick <strong>Show Debug HUD</strong> on the component.</p>
+
+    <h2 id="react">Make it react to the world</h2>
+
+    <p>A flow that prints a message proves the pipeline. The next step proves the part you will actually use: the flow waiting for the trainee to do something.</p>
+
+    <ol class="steps">
+      <li>
+        <span class="sh">Swap the task</span>
+        <p>Select the Task node and change <strong>Task</strong> to <strong>Wait For Event</strong>. Set <strong>Event Tag</strong> to <code>SimFlow.Event.Interact</code>. The flow now blocks at that node until something raises the tag.</p>
+      </li>
+      <li>
+        <span class="sh">Raise the event from a Blueprint</span>
+        <p>In any actor Blueprint (a button, a grabbable prop, an animation notify), call <strong>Broadcast Flow Event</strong> with <code>Event Tag</code> set to <code>SimFlow.Event.Interact</code> and <code>Payload</code> set to <code>self</code>.</p>
+      </li>
+      <li>
+        <span class="sh">Play and trigger it</span>
+        <p>The flow advances past the Task node and reaches Finish.</p>
+      </li>
+    </ol>
+
+    <div class="trap">
+      <svg class="ico" width="16" height="16" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5" aria-hidden="true"><circle cx="8" cy="8" r="6.3"/><path d="M5.6 5.6l4.8 4.8M10.4 5.6l-4.8 4.8"/></svg>
+      <div>
+        <span class="ct">Broadcast from the actor, never from a widget</span>
+        <p>Passing <code>self</code> from inside a UMG widget graph is the most common first bug in the whole plugin. A <code>UUserWidget</code> is neither an Actor nor an Actor Component, so it can never satisfy a payload check. It scores <code>No Match</code> and logs a warning naming the offending class. Broadcast from the actor that owns the widget instead.</p>
+      </div>
+    </div>
+
+    <h2 id="install-trouble">If something did not work</h2>
+
+    <div class="tw">
+      <table>
+        <caption>Install and first-run symptoms</caption>
+        <thead><tr><th scope="col">Symptom</th><th scope="col">Cause</th><th scope="col">Fix</th></tr></thead>
+        <tbody>
+          <tr>
+            <td>No SimFlow entry in the Content Browser right-click menu</td>
+            <td>The editor module did not build or did not load</td>
+            <td>Rebuild the editor target with the editor closed. Check the Output Log at startup for <code>SimFlowEditor</code>.</td>
+          </tr>
+          <tr>
+            <td>SimFlow is missing from Edit &#8594; Plugins</td>
+            <td>The descriptor is not where Unreal looks, or the build failed</td>
+            <td>Confirm <code>YourProject/Plugins/SimFlow/SimFlow.uplugin</code>, then regenerate project files.</td>
+          </tr>
+          <tr>
+            <td>Build fails immediately on a Blueprint-only project</td>
+            <td>No C++ module to compile the plugin into</td>
+            <td>Add any empty C++ class once, then regenerate and build.</td>
+          </tr>
+          <tr>
+            <td>Nothing prints on Play</td>
+            <td>Usually <code>Flow Asset</code> unset, <code>Start Mode</code> left on <code>Manual</code>, or the Start node's <code>Out</code> pin unwired</td>
+            <td>Run <code>SimFlow.Debug 1</code> and look at which node is active. An unwired pin ends execution without a word.</td>
+          </tr>
+          <tr>
+            <td>The flow starts, then cannot find zones or props</td>
+            <td><code>Start Mode</code> is <code>Auto - On Begin Play</code></td>
+            <td>Switch to <code>Auto - On First Tick</code>.</td>
+          </tr>
+          <tr>
+            <td>Events never reach the flow</td>
+            <td>Broadcasting from a widget, or a tag mismatch</td>
+            <td>Broadcast from the owning actor. Filter the Output Log by <code>LogSimFlow</code>.</td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+
+    <p>Everything above logs under the <code>LogSimFlow</code> category. Filter the Output Log by it before guessing. <a href="07-troubleshooting.html">Chapter 07</a> covers the silent failures, which are the ones that log nothing at all.</p>
+
+    <nav class="pager" aria-label="Chapter navigation">
+      <a href="index.html"><span class="d">Previous</span><span class="t">Overview</span></a>
+      <a class="next" href="02-architecture.html"><span class="d">Next</span><span class="t">Core Mental Model</span></a>
+    </nav>
+
+    <div class="foot">
+      <p>SimFlow 1.1.4 &middot; User Guide &middot; Unreal Engine 5.6 and 5.8</p>
+    </div>
+  </main>
+
+  <aside class="rail" id="rail" aria-label="On this page">
+    <h2>On this page</h2>
+  </aside>
+
+</div>
+</body>
+</html>

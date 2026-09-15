@@ -1,0 +1,241 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Set Blackboard Value Node | SimFlow User Guide</title>
+<meta name="description" content="Set Blackboard Value Node (USimFlowNode_SetBlackboard) in SimFlow: Writes a blackboard key inline in the graph. Fields, pins, worked example and failure modes.">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500;600&family=IBM+Plex+Sans:wght@400;500;600&display=swap">
+<link rel="stylesheet" href="../assets/guide.css">
+<script src="../assets/search-index.js" defer></script>
+<script src="../assets/guide.js" defer></script>
+</head>
+<body>
+<a class="skip-link" href="#content">Skip to content</a>
+
+<header class="topbar">
+  <button id="navToggle" class="icon-btn" aria-expanded="false" aria-controls="sidebar" aria-label="Open chapter navigation">
+    <svg width="16" height="16" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.6" aria-hidden="true"><path d="M2 4.5h12M2 8h12M2 11.5h12"/></svg>
+  </button>
+
+  <a class="brand" href="../index.html">
+    <svg width="20" height="20" viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.5" aria-hidden="true"><rect x="1.4" y="2.6" width="6.4" height="4.6" rx="1"/><rect x="12.2" y="7.4" width="6.4" height="4.6" rx="1"/><rect x="1.4" y="12.8" width="6.4" height="4.6" rx="1"/><path d="M7.8 4.9h2.2a1.4 1.4 0 0 1 1.4 1.4v1.1M7.8 15.1h2.2a1.4 1.4 0 0 0 1.4-1.4v-1.4"/></svg>
+    SimFlow <span class="ver">1.1.4</span>
+  </a>
+
+  <div class="spacer"></div>
+
+  <div class="search" role="search">
+    <svg class="mag" width="14" height="14" viewBox="0 0 14 14" fill="none" stroke="currentColor" stroke-width="1.6" aria-hidden="true"><circle cx="6" cy="6" r="4.2"/><path d="M9.2 9.2 12.5 12.5"/></svg>
+    <input id="q" type="search" placeholder="Search the guide" autocomplete="off" aria-label="Search the guide" aria-controls="results">
+    <kbd>/</kbd>
+    <div class="results" id="results" hidden role="listbox" aria-label="Search results"></div>
+  </div>
+
+  <button id="themeToggle" class="icon-btn" aria-pressed="false" aria-label="Switch to light theme">
+    <svg class="i-moon" width="15" height="15" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5" aria-hidden="true"><path d="M13.4 9.8A5.9 5.9 0 0 1 6.2 2.6a5.9 5.9 0 1 0 7.2 7.2Z"/></svg>
+    <svg class="i-sun" width="15" height="15" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5" aria-hidden="true" hidden><circle cx="8" cy="8" r="3.1"/><path d="M8 1v1.8M8 13.2V15M15 8h-1.8M2.8 8H1m11-4.9-1.3 1.3M5.3 10.7 4 12m0-8 1.3 1.3m5.4 5.4L12 12"/></svg>
+  </button>
+</header>
+<div class="scrim" id="scrim" hidden></div>
+
+<div class="shell">
+
+<aside class="sidebar" id="sidebar">
+  <nav aria-label="Guide navigation">
+    <h2>User Guide</h2>
+    <ol>
+      <li><a href="../index.html"><span class="num">00</span><span>Overview</span></a></li>
+      <li><a href="../01-getting-started.html"><span class="num">01</span><span>Getting Started &amp; Installation</span></a></li>
+      <li><a href="../02-architecture.html"><span class="num">02</span><span>Core Mental Model</span></a></li>
+      <li><a href="../03-authoring.html"><span class="num">03</span><span>Authoring in the Node Graph</span></a></li>
+      <li><a href="../04-rules-and-policies.html"><span class="num">04</span><span>Rules &amp; Failure Policies</span></a></li>
+      <li><a href="../05-runtime-blueprint.html"><span class="num">05</span><span>Runtime &amp; Blueprint Wiring</span></a></li>
+      <li><a href="../06-ui-and-vr.html"><span class="num">06</span><span>Driving UI &amp; VR Feedback</span></a></li>
+      <li><a href="../07-troubleshooting.html"><span class="num">07</span><span>Troubleshooting</span></a></li>
+    </ol>
+    <details class="navgroup" open>
+      <summary>Node Reference</summary>
+      <ul>
+        <li><a href="../nodes/start.html"><span class="num">&#183;</span><span>Start</span></a></li>
+        <li><a href="../nodes/delay.html"><span class="num">&#183;</span><span>Delay</span></a></li>
+        <li><a href="../nodes/branch.html"><span class="num">&#183;</span><span>Branch</span></a></li>
+        <li><a href="../nodes/random-branch.html"><span class="num">&#183;</span><span>Random Branch</span></a></li>
+        <li><a href="../nodes/parallel.html"><span class="num">&#183;</span><span>Parallel</span></a></li>
+        <li><a href="../nodes/join.html"><span class="num">&#183;</span><span>Join</span></a></li>
+        <li><a href="../nodes/loop.html"><span class="num">&#183;</span><span>Loop</span></a></li>
+        <li><a href="../nodes/finish.html"><span class="num">&#183;</span><span>Finish</span></a></li>
+        <li><a href="../nodes/task.html"><span class="num">&#183;</span><span>Task</span></a></li>
+        <li><a href="../nodes/sub-flow.html"><span class="num">&#183;</span><span>Sub Flow</span></a></li>
+        <li><a href="../nodes/checkpoint.html"><span class="num">&#183;</span><span>Checkpoint</span></a></li>
+        <li><a href="../nodes/set-blackboard.html" aria-current="page"><span class="num">&#183;</span><span>Set Blackboard Value</span></a></li>
+      </ul>
+    </details>
+    <details class="navgroup">
+      <summary>Task Reference</summary>
+      <ul>
+        <li><a href="../tasks/delay.html"><span class="num">&#183;</span><span>Delay</span></a></li>
+        <li><a href="../tasks/log-message.html"><span class="num">&#183;</span><span>Log Message</span></a></li>
+        <li><a href="../tasks/set-blackboard.html"><span class="num">&#183;</span><span>Set Blackboard Value</span></a></li>
+        <li><a href="../tasks/wait-for-event.html"><span class="num">&#183;</span><span>Wait For Event</span></a></li>
+        <li><a href="../tasks/wait-for-condition.html"><span class="num">&#183;</span><span>Wait For Condition</span></a></li>
+        <li><a href="../tasks/go-to-location.html"><span class="num">&#183;</span><span>Go To Location</span></a></li>
+        <li><a href="../tasks/quiz.html"><span class="num">&#183;</span><span>Quiz</span></a></li>
+        <li><a href="../tasks/parallel-group.html"><span class="num">&#183;</span><span>Parallel Group</span></a></li>
+        <li><a href="../tasks/place-object-in-zone.html"><span class="num">&#183;</span><span>Place Object In Zone</span></a></li>
+        <li><a href="../tasks/ordered-sequence.html"><span class="num">&#183;</span><span>Ordered Sequence</span></a></li>
+      </ul>
+    </details>
+    <details class="navgroup">
+      <summary>Developer Guide</summary>
+      <ul>
+        <li><a href="../dev/architecture.html"><span class="num">&#183;</span><span>Architecture & Modules</span></a></li>
+        <li><a href="../dev/execution-model.html"><span class="num">&#183;</span><span>Execution Model</span></a></li>
+        <li><a href="../dev/custom-nodes.html"><span class="num">&#183;</span><span>Writing a Custom Node</span></a></li>
+        <li><a href="../dev/custom-tasks.html"><span class="num">&#183;</span><span>Custom Tasks & Conditions</span></a></li>
+        <li><a href="../dev/blackboard-internals.html"><span class="num">&#183;</span><span>Blackboard & Values</span></a></li>
+        <li><a href="../dev/persistence.html"><span class="num">&#183;</span><span>Save and Load Internals</span></a></li>
+        <li><a href="../dev/replication.html"><span class="num">&#183;</span><span>Replication</span></a></li>
+        <li><a href="../dev/editor-module.html"><span class="num">&#183;</span><span>The Editor Module</span></a></li>
+        <li><a href="../dev/api-reference.html"><span class="num">&#183;</span><span>API Reference</span></a></li>
+        <li><a href="../dev/diagnostics.html"><span class="num">&#183;</span><span>Diagnostics & Limits</span></a></li>
+      </ul>
+    </details>
+    <h2>Reference</h2>
+    <ul>
+      <li><a href="../../Cheatsheet.md"><span class="num">&#8599;</span><span>Cheat sheet</span></a></li>
+      <li><a href="../../glossary.md"><span class="num">&#8599;</span><span>Glossary</span></a></li>
+    </ul>
+  </nav>
+</aside>
+
+  <main id="content">
+    <nav class="crumbs" aria-label="Breadcrumb">
+      <ol>
+        <li><a href="../index.html">User Guide</a></li>
+        <li><svg width="11" height="11" viewBox="0 0 12 12" fill="none" stroke="currentColor" stroke-width="1.6" aria-hidden="true"><path d="m4.5 2.5 3.5 3.5-3.5 3.5"/></svg><a href="../03-authoring.html">Node Reference</a></li>
+        <li><svg width="11" height="11" viewBox="0 0 12 12" fill="none" stroke="currentColor" stroke-width="1.6" aria-hidden="true"><path d="m4.5 2.5 3.5 3.5-3.5 3.5"/></svg><span aria-current="page">Set Blackboard Value</span></li>
+      </ol>
+    </nav>
+
+    <p class="eyebrow">Node Reference</p>
+    <h1>Set Blackboard Value Node</h1>
+
+    <dl class="idcard">
+      <dt>Class</dt><dd><code>USimFlowNode_SetBlackboard</code></dd>
+      <dt>Add via</dt><dd>Right-click &#8594; <strong>Data &#8594; Set Blackboard Value</strong></dd>
+      <dt>Pins</dt><dd><code>In</code> &#8594; <code>Out</code></dd>
+      <dt>Category</dt><dd>Data</dd>
+    </dl>
+
+    <p class="usefor"><b>Use it for:</b> seeding a key before a <a href="branch.html">Branch</a> reads it, resetting a counter between attempts, or recording which path a run took.</p>
+
+    <p>It writes a blackboard key inline in the graph, with no task object involved. Execution passes straight through.</p>
+
+    <h2 id="fields">Fields</h2>
+
+    <div class="tw">
+      <table>
+        <caption>USimFlowNode_SetBlackboard, Details panel</caption>
+        <thead><tr><th scope="col">Field</th><th scope="col">Type</th><th scope="col">Default</th><th scope="col">Meaning</th></tr></thead>
+        <tbody>
+          <tr><td class="t-name">Key</td><td class="t-type">Name</td><td class="t-def">None</td><td>Which blackboard key to write.</td></tr>
+          <tr><td class="t-name">Value</td><td class="t-type">SimFlow Value</td><td class="t-def">Type None</td><td>Set the <strong>Type</strong> first and the matching value field appears.</td></tr>
+          <tr><td class="t-name">Add</td><td class="t-type">Bool</td><td class="t-def">false</td><td>Add to the existing value instead of replacing it.</td></tr>
+        </tbody>
+      </table>
+    </div>
+
+    <p>Values can be <code>Bool</code>, <code>Int</code>, <code>Float</code>, <code>String</code>, <code>Name</code>, <code>Vector</code> or <code>Object</code>.</p>
+
+    <h2 id="set-vs-add">Set against Add</h2>
+
+    <p>With <code>Add</code> off, the write replaces whatever was stored. With it on, numbers add, vectors add component-wise, and strings <em>concatenate</em>. The key is created if it does not already exist.</p>
+
+    <div class="warn">
+      <svg class="ico" width="16" height="16" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5" aria-hidden="true"><path d="M8 2.4 15 14H1Z"/><path d="M8 6.4v3.2M8 11.6v.6"/></svg>
+      <div>
+        <span class="ct">Strings concatenate</span>
+        <p>Adding <code>"1"</code> to <code>"1"</code> gives you <code>"11"</code>, not <code>2</code>. Use <code>Int</code> for counters. This is the single most common surprise on this node.</p>
+      </div>
+    </div>
+
+    <p>Adding to a missing key creates it with the delta as its value. Adding across mismatched types coerces on a best-effort basis rather than failing.</p>
+
+    <h2 id="silent">Two silent failures</h2>
+
+    <p>Leaving <strong>Key</strong> as <code>None</code> still performs the write, under the literal key name <code>None</code>, with no warning. Leaving <strong>Value Type</strong> as <code>None</code> writes an unset value that conditions cannot usefully compare against. Neither announces itself.</p>
+
+    <p>A key-name typo has the same quiet quality: it produces a condition that is always false.</p>
+
+    <h2 id="node-or-task">Node or task?</h2>
+
+    <div class="decide">
+      <div>
+        <h4>Use the node</h4>
+        <ul>
+          <li>A simple write in the graph, which is the usual case</li>
+          <li>You want the graph to stay readable</li>
+        </ul>
+      </div>
+      <div>
+        <h4>Use the <a href="../tasks/set-blackboard.html">task</a></h4>
+        <ul>
+          <li>You want it inside a <a href="../tasks/parallel-group.html">Parallel Group</a></li>
+          <li>You want scoring or a <code>Task Id</code> attached to the write</li>
+        </ul>
+      </div>
+    </div>
+
+    <h2 id="example">Seed a key, then branch on it</h2>
+
+    <p>Suppose a <a href="branch.html">Branch</a> checks <code>Attempts</code> at the top of the flow, before anything has written it.</p>
+
+    <ol class="steps">
+      <li><span class="sh">Seed the key</span><p>Right after <a href="start.html">Start</a>, right-click then <strong>Data &#8594; Set Blackboard Value</strong>. Set <strong>Key</strong> to <code>Attempts</code>, <strong>Value &#8594; Type</strong> to <code>Int</code>, <strong>Int Value</strong> to <code>0</code>, and leave <strong>Add</strong> off.</p></li>
+      <li><span class="sh">Increment on failure</span><p>After each failed attempt, add another Set Blackboard Value node with the same key, an <code>Int Value</code> of <code>1</code>, and <strong>Add</strong> on.</p></li>
+      <li><span class="sh">Branch reliably</span><p>The Branch can now compare <code>Attempts</code>, because the key always exists.</p>
+        <p class="tip"><b>Seeding saves you relying on <code>Result When Key Missing</code></b>, which is easy to forget is even there.</p></li>
+    </ol>
+
+    <figure>
+      <pre class="graph"><code>   Start ──▶ Set "Attempts" = 0 ──▶ … ──▶ Set "Attempts" += 1 ──▶ Branch</code></pre>
+      <figcaption>A key that always exists is a condition that always means what you think it means.</figcaption>
+    </figure>
+
+    <h2 id="misbehaves">When it misbehaves</h2>
+
+    <div class="tw">
+      <table>
+        <thead><tr><th scope="col">Symptom</th><th scope="col">Cause</th></tr></thead>
+        <tbody>
+          <tr><td>A later condition never sees the value</td><td>The key names differ. They are case-insensitive, but spelling is not forgiven. Print the blackboard with <code>SimFlow.Debug 1</code>.</td></tr>
+          <tr><td>A counter reads "111"</td><td>The type is <code>String</code> with <code>Add</code> on, so it concatenated. Switch to <code>Int</code>.</td></tr>
+          <tr><td>The value vanished after loading a save</td><td>The type is <code>Object</code>, and object references are stripped on save.</td></tr>
+          <tr><td>A key named <code>None</code> appeared in the debug overlay</td><td><strong>Key</strong> was left unset, and the write went through under that literal name.</td></tr>
+        </tbody>
+      </table>
+    </div>
+
+    <h2 id="related">Related</h2>
+    <p><a href="../tasks/set-blackboard.html">Set Blackboard Value task</a> &middot; <a href="branch.html">Branch node</a> &middot; <a href="../04-rules-and-policies.html#counters">Well-known keys</a></p>
+
+    <nav class="pager" aria-label="Page navigation">
+      <a href="checkpoint.html"><span class="d">Previous</span><span class="t">Checkpoint</span></a>
+      <a class="next" href="../tasks/delay.html"><span class="d">Next</span><span class="t">Delay Task</span></a>
+    </nav>
+
+    <div class="foot">
+      <p>SimFlow 1.1.4 &middot; User Guide &middot; Unreal Engine 5.6 and 5.8</p>
+    </div>
+  </main>
+
+  <aside class="rail" id="rail" aria-label="On this page">
+    <h2>On this page</h2>
+  </aside>
+
+</div>
+</body>
+</html>

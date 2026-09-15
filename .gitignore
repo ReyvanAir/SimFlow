@@ -22,3 +22,6 @@ Thumbs.db
 
 # graphify knowledge graph output (generated, ~5 MB)
 graphify-out/
+
+# guide build tooling (generator + content fragments, local only)
+docs/guide/_build/

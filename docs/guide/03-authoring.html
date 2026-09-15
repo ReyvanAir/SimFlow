@@ -1,0 +1,495 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Authoring Procedures in the Node Graph | SimFlow User Guide</title>
+<meta name="description" content="Every SimFlow node and task, their pins and fields, the Task node in depth, and the step metadata that drives tutorial UI and VR targeting.">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500;600&family=IBM+Plex+Sans:wght@400;500;600&display=swap">
+<link rel="stylesheet" href="assets/guide.css">
+<script src="assets/search-index.js" defer></script>
+<script src="assets/guide.js" defer></script>
+</head>
+<body>
+<a class="skip-link" href="#content">Skip to content</a>
+
+<header class="topbar">
+  <button id="navToggle" class="icon-btn" aria-expanded="false" aria-controls="sidebar" aria-label="Open chapter navigation">
+    <svg width="16" height="16" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.6" aria-hidden="true"><path d="M2 4.5h12M2 8h12M2 11.5h12"/></svg>
+  </button>
+
+  <a class="brand" href="index.html">
+    <svg width="20" height="20" viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.5" aria-hidden="true">
+      <rect x="1.4" y="2.6" width="6.4" height="4.6" rx="1"/>
+      <rect x="12.2" y="7.4" width="6.4" height="4.6" rx="1"/>
+      <rect x="1.4" y="12.8" width="6.4" height="4.6" rx="1"/>
+      <path d="M7.8 4.9h2.2a1.4 1.4 0 0 1 1.4 1.4v1.1M7.8 15.1h2.2a1.4 1.4 0 0 0 1.4-1.4v-1.4"/>
+    </svg>
+    SimFlow <span class="ver">1.1.4</span>
+  </a>
+
+  <div class="spacer"></div>
+
+  <div class="search" role="search">
+    <svg class="mag" width="14" height="14" viewBox="0 0 14 14" fill="none" stroke="currentColor" stroke-width="1.6" aria-hidden="true"><circle cx="6" cy="6" r="4.2"/><path d="M9.2 9.2 12.5 12.5"/></svg>
+    <input id="q" type="search" placeholder="Search the guide" autocomplete="off" aria-label="Search the guide" aria-controls="results">
+    <kbd>/</kbd>
+    <div class="results" id="results" hidden role="listbox" aria-label="Search results"></div>
+  </div>
+
+  <button id="themeToggle" class="icon-btn" aria-pressed="false" aria-label="Switch to light theme">
+    <svg class="i-moon" width="15" height="15" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5" aria-hidden="true"><path d="M13.4 9.8A5.9 5.9 0 0 1 6.2 2.6a5.9 5.9 0 1 0 7.2 7.2Z"/></svg>
+    <svg class="i-sun" width="15" height="15" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5" aria-hidden="true" hidden><circle cx="8" cy="8" r="3.1"/><path d="M8 1v1.8M8 13.2V15M15 8h-1.8M2.8 8H1m11-4.9-1.3 1.3M5.3 10.7 4 12m0-8 1.3 1.3m5.4 5.4L12 12"/></svg>
+  </button>
+</header>
+<div class="scrim" id="scrim" hidden></div>
+
+<div class="shell">
+
+  <aside class="sidebar" id="sidebar">
+  <nav aria-label="Guide navigation">
+    <h2>User Guide</h2>
+    <ol>
+      <li><a href="index.html"><span class="num">00</span><span>Overview</span></a></li>
+      <li><a href="01-getting-started.html"><span class="num">01</span><span>Getting Started &amp; Installation</span></a></li>
+      <li><a href="02-architecture.html"><span class="num">02</span><span>Core Mental Model</span></a></li>
+      <li><a href="03-authoring.html" aria-current="page"><span class="num">03</span><span>Authoring in the Node Graph</span></a></li>
+      <li><a href="04-rules-and-policies.html"><span class="num">04</span><span>Rules &amp; Failure Policies</span></a></li>
+      <li><a href="05-runtime-blueprint.html"><span class="num">05</span><span>Runtime &amp; Blueprint Wiring</span></a></li>
+      <li><a href="06-ui-and-vr.html"><span class="num">06</span><span>Driving UI &amp; VR Feedback</span></a></li>
+      <li><a href="07-troubleshooting.html"><span class="num">07</span><span>Troubleshooting</span></a></li>
+    </ol>
+    <details class="navgroup">
+      <summary>Node Reference</summary>
+      <ul>
+        <li><a href="nodes/start.html"><span class="num">&#183;</span><span>Start</span></a></li>
+        <li><a href="nodes/delay.html"><span class="num">&#183;</span><span>Delay</span></a></li>
+        <li><a href="nodes/branch.html"><span class="num">&#183;</span><span>Branch</span></a></li>
+        <li><a href="nodes/random-branch.html"><span class="num">&#183;</span><span>Random Branch</span></a></li>
+        <li><a href="nodes/parallel.html"><span class="num">&#183;</span><span>Parallel</span></a></li>
+        <li><a href="nodes/join.html"><span class="num">&#183;</span><span>Join</span></a></li>
+        <li><a href="nodes/loop.html"><span class="num">&#183;</span><span>Loop</span></a></li>
+        <li><a href="nodes/finish.html"><span class="num">&#183;</span><span>Finish</span></a></li>
+        <li><a href="nodes/task.html"><span class="num">&#183;</span><span>Task</span></a></li>
+        <li><a href="nodes/sub-flow.html"><span class="num">&#183;</span><span>Sub Flow</span></a></li>
+        <li><a href="nodes/checkpoint.html"><span class="num">&#183;</span><span>Checkpoint</span></a></li>
+        <li><a href="nodes/set-blackboard.html"><span class="num">&#183;</span><span>Set Blackboard Value</span></a></li>
+      </ul>
+    </details>
+    <details class="navgroup">
+      <summary>Task Reference</summary>
+      <ul>
+        <li><a href="tasks/delay.html"><span class="num">&#183;</span><span>Delay</span></a></li>
+        <li><a href="tasks/log-message.html"><span class="num">&#183;</span><span>Log Message</span></a></li>
+        <li><a href="tasks/set-blackboard.html"><span class="num">&#183;</span><span>Set Blackboard Value</span></a></li>
+        <li><a href="tasks/wait-for-event.html"><span class="num">&#183;</span><span>Wait For Event</span></a></li>
+        <li><a href="tasks/wait-for-condition.html"><span class="num">&#183;</span><span>Wait For Condition</span></a></li>
+        <li><a href="tasks/go-to-location.html"><span class="num">&#183;</span><span>Go To Location</span></a></li>
+        <li><a href="tasks/quiz.html"><span class="num">&#183;</span><span>Quiz</span></a></li>
+        <li><a href="tasks/parallel-group.html"><span class="num">&#183;</span><span>Parallel Group</span></a></li>
+        <li><a href="tasks/place-object-in-zone.html"><span class="num">&#183;</span><span>Place Object In Zone</span></a></li>
+        <li><a href="tasks/ordered-sequence.html"><span class="num">&#183;</span><span>Ordered Sequence</span></a></li>
+      </ul>
+    </details>
+    <details class="navgroup">
+      <summary>Developer Guide</summary>
+      <ul>
+        <li><a href="dev/architecture.html"><span class="num">&#183;</span><span>Architecture & Modules</span></a></li>
+        <li><a href="dev/execution-model.html"><span class="num">&#183;</span><span>Execution Model</span></a></li>
+        <li><a href="dev/custom-nodes.html"><span class="num">&#183;</span><span>Writing a Custom Node</span></a></li>
+        <li><a href="dev/custom-tasks.html"><span class="num">&#183;</span><span>Custom Tasks & Conditions</span></a></li>
+        <li><a href="dev/blackboard-internals.html"><span class="num">&#183;</span><span>Blackboard & Values</span></a></li>
+        <li><a href="dev/persistence.html"><span class="num">&#183;</span><span>Save and Load Internals</span></a></li>
+        <li><a href="dev/replication.html"><span class="num">&#183;</span><span>Replication</span></a></li>
+        <li><a href="dev/editor-module.html"><span class="num">&#183;</span><span>The Editor Module</span></a></li>
+        <li><a href="dev/api-reference.html"><span class="num">&#183;</span><span>API Reference</span></a></li>
+        <li><a href="dev/diagnostics.html"><span class="num">&#183;</span><span>Diagnostics & Limits</span></a></li>
+      </ul>
+    </details>
+    <h2>Reference</h2>
+    <ul>
+      <li><a href="../Cheatsheet.md"><span class="num">&#8599;</span><span>Cheat sheet</span></a></li>
+      <li><a href="../glossary.md"><span class="num">&#8599;</span><span>Glossary</span></a></li>
+    </ul>
+  </nav>
+</aside>
+
+  <main id="content">
+    <nav class="crumbs" aria-label="Breadcrumb">
+      <ol>
+        <li><a href="index.html">User Guide</a></li>
+        <li><svg width="11" height="11" viewBox="0 0 12 12" fill="none" stroke="currentColor" stroke-width="1.6" aria-hidden="true"><path d="m4.5 2.5 3.5 3.5-3.5 3.5"/></svg><span aria-current="page">Authoring in the Node Graph</span></li>
+      </ol>
+    </nav>
+
+    <p class="eyebrow">Chapter 03</p>
+    <h1>Authoring Procedures in the Node Graph</h1>
+    <p class="lede">The complete node and task inventory, what every pin does, and the metadata fields that feed your tutorial UI. If you read one section here, make it <a href="#task-node">the Task node</a>, because it is the node you will place more than all the others combined.</p>
+
+    <h2 id="common">What every node has in common</h2>
+
+    <p>Execution arrives at an input pin and leaves through an output pin. Most nodes have a single <code>In</code> and a single <code>Out</code>. The interesting ones have more.</p>
+
+    <div class="warn">
+      <svg class="ico" width="16" height="16" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5" aria-hidden="true"><path d="M8 2.4 15 14H1Z"/><path d="M8 6.4v3.2M8 11.6v.6"/></svg>
+      <div>
+        <span class="ct">An unwired output pin ends that line of execution</span>
+        <p>It is not an error, because a flow can legitimately have branches that stop. That is exactly why a misrouted pin fails quietly rather than loudly. When a section of your flow never runs, an unwired pin is the first thing to check.</p>
+      </div>
+    </div>
+
+    <p>Every node also carries a <strong>Node Comment</strong>, a free-form multi-line string drawn on the node in the graph. It is purely for whoever reads the asset next, which on a training project is often a subject-matter expert rather than you.</p>
+
+    <h3 id="node-lifecycle">The node lifecycle</h3>
+
+    <p>Short, and it explains several behaviours that otherwise look arbitrary.</p>
+
+    <ol class="steps">
+      <li>
+        <span class="sh">Execution arrives</span>
+        <p>An input pin fires and the node runs its entry logic.</p>
+      </li>
+      <li>
+        <span class="sh">The node may stay active</span>
+        <p>Task, Delay and Sub Flow nodes stay active and tick every frame. Others push execution straight out and deactivate.</p>
+      </li>
+      <li>
+        <span class="sh">Execution leaves through an output pin</span>
+        <p>Which normally deactivates the node.</p>
+        <p class="tip"><b>Re-entrancy:</b> most nodes ignore execution arriving while they are already active. <strong>Join</strong> and <strong>Loop</strong> are the exceptions, built to be re-entered. That is how a loop body returns to its loop node.</p>
+      </li>
+    </ol>
+
+    <p>Nodes are duplicated per running flow, so they can safely hold runtime state and two actors can run the same asset independently. It is also why editing an asset mid-play changes nothing until you restart.</p>
+
+    <h2 id="node-catalogue">The node catalogue</h2>
+
+    <p>Right-click in the graph to add one. The menu is grouped by the categories below.</p>
+
+    <h3 id="flow-control">Flow Control</h3>
+
+    <div class="tw">
+      <table>
+        <caption>Flow Control nodes, with their pins</caption>
+        <thead><tr><th scope="col">Node</th><th scope="col">Pins</th><th scope="col">What it does, and the field that matters</th></tr></thead>
+        <tbody>
+          <tr>
+            <td class="t-name"><a href="nodes/start.html">Start</a></td>
+            <td><code>Out</code></td>
+            <td>Where execution begins. A flow may have several, each with its own <strong>Entry Name</strong>. The component's <code>Entry Name</code> picks which one runs. Both sides default to <code>Default</code>.</td>
+          </tr>
+          <tr>
+            <td class="t-name"><a href="nodes/delay.html">Delay</a></td>
+            <td><code>In</code> to <code>Out</code></td>
+            <td>Waits, then continues. The lighter choice for a bare pause. Use the Delay <em>task</em> instead when you want the Task node's timeout or retry around it.</td>
+          </tr>
+          <tr>
+            <td class="t-name"><a href="nodes/branch.html">Branch</a></td>
+            <td><code>In</code> to one pin per case, plus <code>Default</code></td>
+            <td>Takes the first output whose <a href="../conditions.md">condition</a> passes. Cases evaluate top to bottom, so put the most specific first. <strong>Has Default Pin</strong> controls whether there is a fallthrough.</td>
+          </tr>
+          <tr>
+            <td class="t-name"><a href="nodes/random-branch.html">Random Branch</a></td>
+            <td><code>In</code> to one pin per option</td>
+            <td>Picks one output at random, optionally weighted, with an avoid-repeats option. For varying which scenario variant a trainee gets.</td>
+          </tr>
+          <tr>
+            <td class="t-name"><a href="nodes/parallel.html">Parallel</a></td>
+            <td><code>In</code> to every output at once</td>
+            <td>Fires all outputs simultaneously. This is concurrency in the flow graph, not threading. Converge the branches again with a Join.</td>
+          </tr>
+          <tr>
+            <td class="t-name"><a href="nodes/join.html">Join</a></td>
+            <td>Several <code>In</code> pins to <code>Out</code></td>
+            <td>Converges parallel branches. <strong>Wait For All</strong> or race mode. <strong>Num Inputs</strong> must match the number of branches you actually wired.</td>
+          </tr>
+          <tr>
+            <td class="t-name"><a href="nodes/loop.html">Loop</a></td>
+            <td><code>In</code>, <code>Continue</code> to <code>Body</code>, <code>Done</code></td>
+            <td>Repeats a section. The body must wire back into <code>Continue</code>. <strong>Iterations</strong> of 0 means "until the break condition passes", guarded by a max-iteration cap.</td>
+          </tr>
+          <tr>
+            <td class="t-name"><a href="nodes/finish.html">Finish</a></td>
+            <td><code>In</code></td>
+            <td>Ends the whole flow with a result. <strong>Stop Other Branches</strong> is on by default, which is the usual cause of a flow ending earlier than expected.</td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+
+    <div class="trap">
+      <svg class="ico" width="16" height="16" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5" aria-hidden="true"><circle cx="8" cy="8" r="6.3"/><path d="M5.6 5.6l4.8 4.8M10.4 5.6l-4.8 4.8"/></svg>
+      <div>
+        <span class="ct">Two wiring mistakes account for most stalled graphs</span>
+        <p>A <strong>Loop</strong> whose body never returns to <code>Continue</code> runs its body exactly once and then stops. A <strong>Join</strong> with <code>Num Inputs</code> set higher than the number of branches that actually arrive waits forever in <code>Wait For All</code> mode, in complete silence. Neither logs anything.</p>
+      </div>
+    </div>
+
+    <h3 id="tasks-composition">Tasks, Composition, Persistence and Data</h3>
+
+    <div class="tw">
+      <table>
+        <caption>The remaining node categories</caption>
+        <thead><tr><th scope="col">Category</th><th scope="col">Node</th><th scope="col">Pins</th><th scope="col">Purpose</th></tr></thead>
+        <tbody>
+          <tr>
+            <td class="t-type">Tasks</td>
+            <td class="t-name"><a href="#task-node">Task</a></td>
+            <td><code>In</code> to <code>Completed</code>, <code>Failed</code>, <code>Skipped</code>, <code>Timed Out</code></td>
+            <td>Runs a single task. The one you will place most, and the bridge between graph routing and actual work.</td>
+          </tr>
+          <tr>
+            <td class="t-type">Composition</td>
+            <td class="t-name"><a href="nodes/sub-flow.html">Sub Flow</a></td>
+            <td><code>In</code> to <code>Completed</code>, <code>Failed</code></td>
+            <td>Runs another flow asset as a child, merging blackboards. This is what makes flows modular: one drill asset reused inside three assessments.</td>
+          </tr>
+          <tr>
+            <td class="t-type">Persistence</td>
+            <td class="t-name"><a href="nodes/checkpoint.html">Checkpoint</a></td>
+            <td><code>In</code> to <code>Out</code></td>
+            <td>Marks a safe resume point and can auto-save. Pairs with the component's <code>From Last Checkpoint</code> load mode.</td>
+          </tr>
+          <tr>
+            <td class="t-type">Data</td>
+            <td class="t-name"><a href="nodes/set-blackboard.html">Set Blackboard Value</a></td>
+            <td><code>In</code> to <code>Out</code></td>
+            <td>Writes a <a href="../blackboard.md">blackboard</a> key inline in the graph, without a Task node around it.</td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+
+    <h2 id="task-node">The Task node in depth</h2>
+
+    <p>Class <code>USimFlowNode_Task</code>. Added via right-click, then <strong>Tasks &#8594; Task</strong>.</p>
+
+    <p>The division of responsibility is worth stating plainly, because it explains the whole field list: <strong>the node handles retry, timeout, early-out and routing. The task handles the work.</strong> Every task therefore inherits timeout and retry without implementing any of it.</p>
+
+    <h3 id="task-pins">The four output pins</h3>
+
+    <ul class="pins">
+      <li><span class="pin in">In</span></li>
+      <li><span class="pin ok">Completed</span></li>
+      <li><span class="pin bad">Failed</span></li>
+      <li><span class="pin">Skipped</span></li>
+      <li><span class="pin warn">Timed Out</span></li>
+    </ul>
+
+    <div class="tw">
+      <table>
+        <caption>When each output pin is taken</caption>
+        <thead><tr><th scope="col">Pin</th><th scope="col">Taken when</th></tr></thead>
+        <tbody>
+          <tr><td class="t-name">Completed</td><td>The task succeeded.</td></tr>
+          <tr><td class="t-name">Failed</td><td>The task failed, or was failed from outside by <code>Fail Current Task</code>.</td></tr>
+          <tr><td class="t-name">Skipped</td><td>The task was skipped, and the task's own <code>Allow Skip</code> permitted it.</td></tr>
+          <tr><td class="t-name">Timed Out</td><td><code>Time Limit</code> elapsed.</td></tr>
+        </tbody>
+      </table>
+    </div>
+
+    <p>While <strong>Fallback To Completed</strong> is on, anything left unwired falls back to <code>Completed</code>. It keeps simple linear flows tidy: wire <code>Completed</code> and ignore the rest. Turn the fallback off when a failure must not be allowed to look like a success. With it off, an unwired <code>Failed</code> pin just ends that line of execution.</p>
+
+    <h3 id="task-node-fields">Task node fields</h3>
+
+    <div class="tw">
+      <table>
+        <caption>USimFlowNode_Task, Details panel</caption>
+        <thead><tr><th scope="col">Field</th><th scope="col">Type</th><th scope="col">Default</th><th scope="col">Meaning</th></tr></thead>
+        <tbody>
+          <tr><td class="t-name">Task</td><td class="t-type">Instanced task</td><td class="t-def">null</td><td>The task to run. Pick a class from the dropdown and its own settings appear inline underneath.</td></tr>
+          <tr><td class="t-name">Time Limit</td><td class="t-type">Float, seconds, min 0</td><td class="t-def">0.0</td><td>Seconds before the task times out and leaves via <code>Timed Out</code>. <code>0</code> means no limit.</td></tr>
+          <tr><td class="t-name">Auto Retry On Failure</td><td class="t-type">Bool</td><td class="t-def">false</td><td>Restart the task automatically when it fails.</td></tr>
+          <tr><td class="t-name">Auto Retry Limit</td><td class="t-type">Int, min 1</td><td class="t-def">1</td><td>How many automatic retries. Only shown with auto retry on.</td></tr>
+          <tr><td class="t-name">Auto Retry On Timeout</td><td class="t-type">Bool</td><td class="t-def">false</td><td>Also restart on a timeout. Only shown with auto retry on.</td></tr>
+          <tr><td class="t-name">Fallback To Completed</td><td class="t-type">Bool</td><td class="t-def">true</td><td>Unwired <code>Failed</code>, <code>Skipped</code> and <code>Timed Out</code> pins fall through to <code>Completed</code>.</td></tr>
+          <tr><td class="t-name">Abort Condition</td><td class="t-type">Condition</td><td class="t-def">null</td><td>Under <strong>Early Out</strong>. Ends the task early. Evaluated every frame, including the first.</td></tr>
+          <tr><td class="t-name">Abort Result</td><td class="t-type">Enum</td><td class="t-def">Failed</td><td>Which pin an abort leaves through.</td></tr>
+        </tbody>
+      </table>
+    </div>
+
+    <h3 id="empty-task">An empty Task node passes through</h3>
+
+    <p>Leave the <code>Task</code> slot empty and the node logs <em>"Task node has no task assigned - passing through"</em> and triggers <code>Completed</code>. It does not fail.</p>
+
+    <p>This is deliberate. A blocked-out flow full of empty Task nodes still runs end to end, so you can build and test the shape of a scenario before writing a single task. The cost is that a genuinely forgotten task slot looks like success, so you need to know which of the two you are looking at.</p>
+
+    <p>Related quiet cases worth committing to memory:</p>
+
+    <ul>
+      <li>A <code>Time Limit</code> of <code>0</code> means a task that never finishes blocks the flow forever.</li>
+      <li>An abort condition that is already true when the task starts aborts it on the first frame, because conditions are evaluated from frame one.</li>
+      <li>With every output pin unwired, the fallback takes <code>Completed</code> into nothing and the flow ends there.</li>
+    </ul>
+
+    <h3 id="worked-timed-step">A timed step that retries once</h3>
+
+    <p>The trainee has 30 seconds to press the start button, with one automatic retry before routing to a hint.</p>
+
+    <ol class="steps">
+      <li><span class="sh">Add the node</span><p>Right-click, then <strong>Tasks &#8594; Task</strong>.</p></li>
+      <li><span class="sh">Assign the task</span><p>Set <strong>Task</strong> to <a href="tasks/wait-for-event.html">Wait For Event</a> with <code>Event Tag</code> set to <code>SimFlow.Event.ButtonPressed</code>.</p></li>
+      <li><span class="sh">Set the limit and retries</span><p><strong>Time Limit</strong> to <code>30</code>. Tick <strong>Auto Retry On Failure</strong>, set <strong>Auto Retry Limit</strong> to <code>1</code>, and tick <strong>Auto Retry On Timeout</strong> so a timeout retries too.</p></li>
+      <li><span class="sh">Wire the routes</span><p><code>Completed</code> onward. <code>Timed Out</code> to a hint section, which is only reached once the retry is used up. Leave <code>Failed</code> and <code>Skipped</code> unwired to fall through.</p></li>
+    </ol>
+
+    <figure>
+      <pre class="graph"><code>              ┌────────────────────────┐
+   Start ─────┤In   Task               │Completed──▶ next step
+              │     (Wait For Event)   │Failed
+              │     Time Limit 30s     │Skipped
+              │     Auto Retry 1       │Timed Out──▶ hint
+              └────────────────────────┘</code></pre>
+      <figcaption>Add an <strong>Abort Condition</strong> of <a href="../conditions.md">Player Near Location</a> with <code>Invert</code> on and the task also aborts if the trainee walks away.</figcaption>
+    </figure>
+
+    <h2 id="task-catalogue">The built-in tasks</h2>
+
+    <p>You do not create task assets. Select a Task node, open the <strong>Task</strong> dropdown in the Details panel and pick a class. Its settings appear inline underneath.</p>
+
+    <div class="tw">
+      <table>
+        <caption>Ten built-in task classes</caption>
+        <thead><tr><th scope="col">Task</th><th scope="col">Purpose</th><th scope="col">The field it cannot work without</th></tr></thead>
+        <tbody>
+          <tr><td class="t-name"><a href="tasks/delay.html">Delay</a></td><td>Waits a number of seconds.</td><td class="t-type">Duration</td></tr>
+          <tr><td class="t-name"><a href="tasks/log-message.html">Log Message</a></td><td>Prints a message. Good for blocking out a flow.</td><td class="t-type">Message</td></tr>
+          <tr><td class="t-name"><a href="tasks/set-blackboard.html">Set Blackboard Value</a></td><td>Writes a blackboard key.</td><td class="t-type">Key</td></tr>
+          <tr><td class="t-name"><a href="tasks/wait-for-event.html">Wait For Event</a></td><td>Blocks until an event tag is raised, optionally by the right object.</td><td class="t-type">Event Tag</td></tr>
+          <tr><td class="t-name"><a href="tasks/wait-for-condition.html">Wait For Condition</a></td><td>Blocks until a condition becomes true.</td><td class="t-type">Condition</td></tr>
+          <tr><td class="t-name"><a href="tasks/go-to-location.html">Go To Location</a></td><td>Blocks until the player reaches a place.</td><td class="t-type">Location</td></tr>
+          <tr><td class="t-name"><a href="tasks/quiz.html">Quiz</a></td><td>A multiple-choice question.</td><td class="t-type">Answers</td></tr>
+          <tr><td class="t-name"><a href="tasks/parallel-group.html">Parallel Group</a></td><td>Runs several child tasks at once inside one node.</td><td class="t-type">Children</td></tr>
+          <tr><td class="t-name"><a href="tasks/place-object-in-zone.html">Place Object In Zone</a></td><td>"Put the foam extinguisher in the bay."</td><td class="t-type">Zone, Accepted Items</td></tr>
+          <tr><td class="t-name"><a href="tasks/ordered-sequence.html">Ordered Sequence</a></td><td>"Press these three buttons, in this order."</td><td class="t-type">Event Tag, Steps</td></tr>
+        </tbody>
+      </table>
+    </div>
+
+    <p>Tasks are <code>Blueprintable</code>. Create a Blueprint Class from <strong>SimFlow Task</strong>, override <strong>On Task Start</strong> for setup, call <strong>Finish Task</strong> with a result when the work is done, and override <strong>On Task End</strong> to unbind whatever you bound. Your class then appears in the Task dropdown alongside the built-ins, and inherits retry, skip, timeout, pause and scoring from the node for free.</p>
+
+    <h2 id="step-metadata">Step metadata</h2>
+
+    <p>Three fields on every task exist purely so the rest of your project can describe the step to a human. They come from the task base class and sit above each task's own settings, under <strong>Presentation</strong>.</p>
+
+    <div class="tw">
+      <table>
+        <caption>Presentation fields, present on every task</caption>
+        <thead><tr><th scope="col">Field</th><th scope="col">Type</th><th scope="col">Default</th><th scope="col">Read back with</th><th scope="col">Use it for</th></tr></thead>
+        <tbody>
+          <tr>
+            <td class="t-name">Display Name</td><td class="t-type">Text</td><td class="t-def">empty</td>
+            <td><code>Get Current Task Name</code></td>
+            <td>The short title in the graph, the debug HUD and your checklist widget. Falls back to the class name, which is why an unnamed task shows as <code>SimFlowTask_WaitForEvent</code> in front of a trainee.</td>
+          </tr>
+          <tr>
+            <td class="t-name">Instruction</td><td class="t-type">Multi-line text</td><td class="t-def">empty</td>
+            <td><code>Get Current Instruction</code></td>
+            <td>The objective description. "Pick up the fire extinguisher." This is what a 3D world widget or a subtitle line should display.</td>
+          </tr>
+          <tr>
+            <td class="t-name">Task Id</td><td class="t-type">Name</td><td class="t-def">None</td>
+            <td>Recorded on every mistake</td>
+            <td>A stable id so UI and analytics can identify this step across runs. Any recorded mistake carries the Task Id it happened under, which is what makes a debrief report groupable.</td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+
+    <h3 id="vr-targeting">Target actor tags for VR interactables</h3>
+
+    <p>There is no "target actor" field on a task. Targeting is done with an <a href="../actor-query.md">Actor Query</a>, the same struct everywhere it appears, and the field you almost always want is <strong>Required Tags</strong>.</p>
+
+    <ol class="steps">
+      <li>
+        <span class="sh">Tag the interactable</span>
+        <p>Add a <strong>SimFlow Identity</strong> component to the actor. Set <strong>Identity Tags</strong> to something like <code>Item.Extinguisher.Foam</code>. Set <strong>Display Name</strong> too, because it appears in generated mistake text.</p>
+        <p class="tip"><b>Put it on the Blueprint, not the placed instance.</b> Tags added to one level instance do not apply to spawned copies, and that difference stays invisible until a spawned prop stops matching.</p>
+      </li>
+      <li>
+        <span class="sh">Point the task at the tag</span>
+        <p>In the task's Actor Query, fill <strong>Required Tags</strong> with <code>Item.Extinguisher.Foam</code>. Leave <strong>Specific Actor</strong> and <strong>Blackboard Key</strong> empty. In the common case you fill in exactly one of those three.</p>
+      </li>
+      <li>
+        <span class="sh">Decide how strict to be</span>
+        <p><strong>Require All Tags</strong> defaults to <code>true</code>, meaning the actor needs every tag you listed. Set it to <code>false</code> for "any of these". <strong>Min Related Tag Depth</strong> (default <code>2</code>) controls how many leading tag nodes count as a near miss.</p>
+      </li>
+    </ol>
+
+    <div class="tw">
+      <table>
+        <caption>Which Actor Query field to use</caption>
+        <thead><tr><th scope="col">You want to say</th><th scope="col">Field</th><th scope="col">Survives spawning?</th></tr></thead>
+        <tbody>
+          <tr><td>"That button, the one on the left wall"</td><td class="t-name">Specific Actor</td><td>No. It points at one placed actor.</td></tr>
+          <tr><td>"Any foam extinguisher"</td><td class="t-name">Required Tags</td><td>Yes. This is the default choice.</td></tr>
+          <tr><td>"Whatever they picked up a moment ago"</td><td class="t-name">Blackboard Key</td><td>Yes.</td></tr>
+          <tr><td>"Any actor of class BP_Valve"</td><td class="t-name">Required Class</td><td>Yes, but coarse.</td></tr>
+          <tr><td>"That third-party actor I cannot modify"</td><td class="t-name">Required Actor Tag</td><td>Yes. Plain <code>AActor</code> tag, no component needed.</td></tr>
+        </tbody>
+      </table>
+    </div>
+
+    <div class="trap">
+      <svg class="ico" width="16" height="16" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5" aria-hidden="true"><circle cx="8" cy="8" r="6.3"/><path d="M5.6 5.6l4.8 4.8M10.4 5.6l-4.8 4.8"/></svg>
+      <div>
+        <span class="ct">An empty query matches nothing</span>
+        <p>It does not fall through to "match anything". What that means depends on where the query sits: an empty <strong>Accepted Items</strong> means the task can never complete, an empty <strong>Zone</strong> means the task fails immediately, and an empty step <strong>Target</strong> means that step hangs with no complaint. Neither of the silent cases logs anything.</p>
+      </div>
+    </div>
+
+    <h3 id="audio-cues">Audio cues</h3>
+
+    <div class="note">
+      <svg class="ico" width="16" height="16" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5" aria-hidden="true"><circle cx="8" cy="8" r="6.3"/><path d="M8 7.2v4M8 4.9v.7"/></svg>
+      <div>
+        <span class="ct">There is no audio cue field on a task in 1.1.4</span>
+        <p>Tasks carry no sound reference, and the plugin plays nothing itself. Drive audio from the feedback layer instead, which is the right place for it: bind <code>On Task Started</code>, read <code>Task Id</code> or <code>Get Current Task Name</code>, and look the cue up in a Data Table keyed by Task Id. That keeps localisation and audio direction out of the flow asset. <a href="06-ui-and-vr.html#audio">Chapter 06</a> has the wiring.</p>
+      </div>
+    </div>
+
+    <p>If you want the cue authored alongside the step rather than in a table, the supported route is a Blueprint task: subclass <strong>SimFlow Task</strong>, add your own <code>Sound Base</code> property, play it in <strong>On Task Start</strong>, and stop it in <strong>On Task End</strong>. Your class then appears in the Task dropdown with the sound field inline, exactly like a built-in.</p>
+
+    <h2 id="node-or-task">Node or task?</h2>
+
+    <p>Several capabilities exist in both forms. There is a Delay node and a Delay task, a Set Blackboard node and a Set Blackboard task. They are not redundant; they trade weight for features.</p>
+
+    <div class="split wide-left">
+      <div class="tw">
+        <table>
+          <caption>Choosing between the two forms</caption>
+          <thead><tr><th scope="col">Use the node when</th><th scope="col">Use the task when</th></tr></thead>
+          <tbody>
+            <tr><td>It is a simple step in the graph</td><td>You want the Task node's timeout, retry or abort handling around it</td></tr>
+            <tr><td>You want the graph to read clearly</td><td>You want it inside a <a href="tasks/parallel-group.html">Parallel Group</a></td></tr>
+            <tr><td>You do not need a <code>Failed</code> pin</td><td>You want scoring, an instruction, or a <code>Task Id</code></td></tr>
+          </tbody>
+        </table>
+      </div>
+      <div class="panel">
+        <h4>Rule of thumb</h4>
+        <p>The node forms are lighter, the task forms richer. For a bare pause, the Delay node is the better choice. The moment a step needs to appear in a trainee-facing checklist it has to be a task, because only tasks carry <strong>Display Name</strong> and <strong>Instruction</strong>.</p>
+      </div>
+    </div>
+
+    <nav class="pager" aria-label="Chapter navigation">
+      <a href="02-architecture.html"><span class="d">Previous</span><span class="t">Core Mental Model</span></a>
+      <a class="next" href="04-rules-and-policies.html"><span class="d">Next</span><span class="t">Rules &amp; Failure Policies</span></a>
+    </nav>
+
+    <div class="foot">
+      <p>SimFlow 1.1.4 &middot; User Guide &middot; Unreal Engine 5.6 and 5.8</p>
+    </div>
+  </main>
+
+  <aside class="rail" id="rail" aria-label="On this page">
+    <h2>On this page</h2>
+  </aside>
+
+</div>
+</body>
+</html>

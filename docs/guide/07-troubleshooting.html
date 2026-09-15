@@ -1,0 +1,425 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Troubleshooting and Common Pitfalls | SimFlow User Guide</title>
+<meta name="description" content="The seven SimFlow gotchas that account for most stalled flows, plus symptom tables for startup, tasks, matching, branching, blackboard, loops and multiplayer.">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500;600&family=IBM+Plex+Sans:wght@400;500;600&display=swap">
+<link rel="stylesheet" href="assets/guide.css">
+<script src="assets/search-index.js" defer></script>
+<script src="assets/guide.js" defer></script>
+</head>
+<body>
+<a class="skip-link" href="#content">Skip to content</a>
+
+<header class="topbar">
+  <button id="navToggle" class="icon-btn" aria-expanded="false" aria-controls="sidebar" aria-label="Open chapter navigation">
+    <svg width="16" height="16" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.6" aria-hidden="true"><path d="M2 4.5h12M2 8h12M2 11.5h12"/></svg>
+  </button>
+
+  <a class="brand" href="index.html">
+    <svg width="20" height="20" viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.5" aria-hidden="true">
+      <rect x="1.4" y="2.6" width="6.4" height="4.6" rx="1"/>
+      <rect x="12.2" y="7.4" width="6.4" height="4.6" rx="1"/>
+      <rect x="1.4" y="12.8" width="6.4" height="4.6" rx="1"/>
+      <path d="M7.8 4.9h2.2a1.4 1.4 0 0 1 1.4 1.4v1.1M7.8 15.1h2.2a1.4 1.4 0 0 0 1.4-1.4v-1.4"/>
+    </svg>
+    SimFlow <span class="ver">1.1.4</span>
+  </a>
+
+  <div class="spacer"></div>
+
+  <div class="search" role="search">
+    <svg class="mag" width="14" height="14" viewBox="0 0 14 14" fill="none" stroke="currentColor" stroke-width="1.6" aria-hidden="true"><circle cx="6" cy="6" r="4.2"/><path d="M9.2 9.2 12.5 12.5"/></svg>
+    <input id="q" type="search" placeholder="Search the guide" autocomplete="off" aria-label="Search the guide" aria-controls="results">
+    <kbd>/</kbd>
+    <div class="results" id="results" hidden role="listbox" aria-label="Search results"></div>
+  </div>
+
+  <button id="themeToggle" class="icon-btn" aria-pressed="false" aria-label="Switch to light theme">
+    <svg class="i-moon" width="15" height="15" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5" aria-hidden="true"><path d="M13.4 9.8A5.9 5.9 0 0 1 6.2 2.6a5.9 5.9 0 1 0 7.2 7.2Z"/></svg>
+    <svg class="i-sun" width="15" height="15" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5" aria-hidden="true" hidden><circle cx="8" cy="8" r="3.1"/><path d="M8 1v1.8M8 13.2V15M15 8h-1.8M2.8 8H1m11-4.9-1.3 1.3M5.3 10.7 4 12m0-8 1.3 1.3m5.4 5.4L12 12"/></svg>
+  </button>
+</header>
+<div class="scrim" id="scrim" hidden></div>
+
+<div class="shell">
+
+  <aside class="sidebar" id="sidebar">
+  <nav aria-label="Guide navigation">
+    <h2>User Guide</h2>
+    <ol>
+      <li><a href="index.html"><span class="num">00</span><span>Overview</span></a></li>
+      <li><a href="01-getting-started.html"><span class="num">01</span><span>Getting Started &amp; Installation</span></a></li>
+      <li><a href="02-architecture.html"><span class="num">02</span><span>Core Mental Model</span></a></li>
+      <li><a href="03-authoring.html"><span class="num">03</span><span>Authoring in the Node Graph</span></a></li>
+      <li><a href="04-rules-and-policies.html"><span class="num">04</span><span>Rules &amp; Failure Policies</span></a></li>
+      <li><a href="05-runtime-blueprint.html"><span class="num">05</span><span>Runtime &amp; Blueprint Wiring</span></a></li>
+      <li><a href="06-ui-and-vr.html"><span class="num">06</span><span>Driving UI &amp; VR Feedback</span></a></li>
+      <li><a href="07-troubleshooting.html" aria-current="page"><span class="num">07</span><span>Troubleshooting</span></a></li>
+    </ol>
+    <details class="navgroup">
+      <summary>Node Reference</summary>
+      <ul>
+        <li><a href="nodes/start.html"><span class="num">&#183;</span><span>Start</span></a></li>
+        <li><a href="nodes/delay.html"><span class="num">&#183;</span><span>Delay</span></a></li>
+        <li><a href="nodes/branch.html"><span class="num">&#183;</span><span>Branch</span></a></li>
+        <li><a href="nodes/random-branch.html"><span class="num">&#183;</span><span>Random Branch</span></a></li>
+        <li><a href="nodes/parallel.html"><span class="num">&#183;</span><span>Parallel</span></a></li>
+        <li><a href="nodes/join.html"><span class="num">&#183;</span><span>Join</span></a></li>
+        <li><a href="nodes/loop.html"><span class="num">&#183;</span><span>Loop</span></a></li>
+        <li><a href="nodes/finish.html"><span class="num">&#183;</span><span>Finish</span></a></li>
+        <li><a href="nodes/task.html"><span class="num">&#183;</span><span>Task</span></a></li>
+        <li><a href="nodes/sub-flow.html"><span class="num">&#183;</span><span>Sub Flow</span></a></li>
+        <li><a href="nodes/checkpoint.html"><span class="num">&#183;</span><span>Checkpoint</span></a></li>
+        <li><a href="nodes/set-blackboard.html"><span class="num">&#183;</span><span>Set Blackboard Value</span></a></li>
+      </ul>
+    </details>
+    <details class="navgroup">
+      <summary>Task Reference</summary>
+      <ul>
+        <li><a href="tasks/delay.html"><span class="num">&#183;</span><span>Delay</span></a></li>
+        <li><a href="tasks/log-message.html"><span class="num">&#183;</span><span>Log Message</span></a></li>
+        <li><a href="tasks/set-blackboard.html"><span class="num">&#183;</span><span>Set Blackboard Value</span></a></li>
+        <li><a href="tasks/wait-for-event.html"><span class="num">&#183;</span><span>Wait For Event</span></a></li>
+        <li><a href="tasks/wait-for-condition.html"><span class="num">&#183;</span><span>Wait For Condition</span></a></li>
+        <li><a href="tasks/go-to-location.html"><span class="num">&#183;</span><span>Go To Location</span></a></li>
+        <li><a href="tasks/quiz.html"><span class="num">&#183;</span><span>Quiz</span></a></li>
+        <li><a href="tasks/parallel-group.html"><span class="num">&#183;</span><span>Parallel Group</span></a></li>
+        <li><a href="tasks/place-object-in-zone.html"><span class="num">&#183;</span><span>Place Object In Zone</span></a></li>
+        <li><a href="tasks/ordered-sequence.html"><span class="num">&#183;</span><span>Ordered Sequence</span></a></li>
+      </ul>
+    </details>
+    <details class="navgroup">
+      <summary>Developer Guide</summary>
+      <ul>
+        <li><a href="dev/architecture.html"><span class="num">&#183;</span><span>Architecture & Modules</span></a></li>
+        <li><a href="dev/execution-model.html"><span class="num">&#183;</span><span>Execution Model</span></a></li>
+        <li><a href="dev/custom-nodes.html"><span class="num">&#183;</span><span>Writing a Custom Node</span></a></li>
+        <li><a href="dev/custom-tasks.html"><span class="num">&#183;</span><span>Custom Tasks & Conditions</span></a></li>
+        <li><a href="dev/blackboard-internals.html"><span class="num">&#183;</span><span>Blackboard & Values</span></a></li>
+        <li><a href="dev/persistence.html"><span class="num">&#183;</span><span>Save and Load Internals</span></a></li>
+        <li><a href="dev/replication.html"><span class="num">&#183;</span><span>Replication</span></a></li>
+        <li><a href="dev/editor-module.html"><span class="num">&#183;</span><span>The Editor Module</span></a></li>
+        <li><a href="dev/api-reference.html"><span class="num">&#183;</span><span>API Reference</span></a></li>
+        <li><a href="dev/diagnostics.html"><span class="num">&#183;</span><span>Diagnostics & Limits</span></a></li>
+      </ul>
+    </details>
+    <h2>Reference</h2>
+    <ul>
+      <li><a href="../Cheatsheet.md"><span class="num">&#8599;</span><span>Cheat sheet</span></a></li>
+      <li><a href="../glossary.md"><span class="num">&#8599;</span><span>Glossary</span></a></li>
+    </ul>
+  </nav>
+</aside>
+
+  <main id="content">
+    <nav class="crumbs" aria-label="Breadcrumb">
+      <ol>
+        <li><a href="index.html">User Guide</a></li>
+        <li><svg width="11" height="11" viewBox="0 0 12 12" fill="none" stroke="currentColor" stroke-width="1.6" aria-hidden="true"><path d="m4.5 2.5 3.5 3.5-3.5 3.5"/></svg><span aria-current="page">Troubleshooting</span></li>
+      </ol>
+    </nav>
+
+    <p class="eyebrow">Chapter 07</p>
+    <h1>Troubleshooting and Common Pitfalls</h1>
+    <p class="lede">SimFlow fails quietly by design. An unwired pin is legal, an empty query matches nothing, and a half-built flow still runs end to end. That makes blocking out a scenario pleasant and makes debugging a finished one a specific skill. This chapter is that skill.</p>
+
+    <h2 id="two-tools">Start with these two tools</h2>
+
+    <div class="split wide-left">
+      <div>
+        <p>The debug overlay, from the console:</p>
+        <pre><code>SimFlow.Debug 1</code></pre>
+        <p>draws live flow state on screen: the active node, the current task, elapsed time and the whole blackboard. <code>SimFlow.Debug 0</code> turns it off.</p>
+        <p>Reach for it before anything else. Most reports of "it does not work" are answered by seeing which node is actually active and what the blackboard holds. For a single flow rather than all of them, tick <strong>Show Debug HUD</strong> on the component, or call <code>Get Debug Text</code> to put the same information into a world-space VR widget.</p>
+        <p>Then the log. SimFlow logs under the <code>LogSimFlow</code> category, so open the Output Log and filter for it. A good number of misconfigurations log a warning naming the exact problem: a task with no zone, an event task with no tag, a loop hitting its iteration cap. Check the log before guessing, because the silent failures below are the ones that log nothing at all, and that is exactly what makes them hard.</p>
+      </div>
+      <div class="panel">
+        <h4>The three-question triage</h4>
+        <ol>
+          <li>Which node is active right now? (<code>SimFlow.Debug 1</code>)</li>
+          <li>Did anything log? (filter <code>LogSimFlow</code>)</li>
+          <li>Does the flow even reach that node? (swap the suspect task for a <a href="tasks/log-message.html">Log Message</a>)</li>
+        </ol>
+        <p>Those three answers separate "never arrived" from "arrived and stalled", which are completely different bugs and are otherwise indistinguishable.</p>
+      </div>
+    </div>
+
+    <h2 id="top-seven">The seven that account for most of it</h2>
+
+    <div class="gotcha">
+      <header>
+        <span class="n">01</span>
+        <h3>An unwired output pin ends execution, silently</h3>
+      </header>
+      <div>
+        <dl>
+          <dt>Symptom</dt><dd>A whole section of the flow never runs. No error, no warning, run state still <code>Running</code>.</dd>
+          <dt>Cause</dt><dd>A pin somewhere upstream leads nowhere. This is legal: a flow may have branches that stop, which is precisely why it is not reported.</dd>
+          <dt>Fix</dt><dd>Trace back from the first node that never activates. Check <code>Failed</code> and <code>Timed Out</code> on Task nodes, every case pin on a Branch, and the Start node's <code>Out</code>.</dd>
+        </dl>
+        <p>The related case: a flow that <em>never ends</em>. Execution running out of wiring does not complete a flow. There must be a <a href="nodes/finish.html">Finish</a> node on the path that ran.</p>
+      </div>
+    </div>
+
+    <div class="gotcha">
+      <header>
+        <span class="n">02</span>
+        <h3>Missing completion tags and empty fields read as success</h3>
+      </header>
+      <div>
+        <p>Several tasks pass through by design when a required field is empty, so that a half-built flow still runs. The cost is that a genuinely forgotten field looks like a completed step.</p>
+        <div class="tw">
+          <table>
+            <thead><tr><th scope="col">Thing</th><th scope="col">Empty field</th><th scope="col">Result</th></tr></thead>
+            <tbody>
+              <tr><td class="t-name">Task node</td><td><code>Task</code></td><td>Warns, triggers <code>Completed</code></td></tr>
+              <tr><td class="t-name">Wait For Event</td><td><code>Event Tag</code></td><td>Warns, succeeds</td></tr>
+              <tr><td class="t-name">Ordered Sequence</td><td><code>Steps</code></td><td>Warns, succeeds</td></tr>
+              <tr><td class="t-name">Sub Flow</td><td><code>Sub Flow</code></td><td>Warns, triggers <code>Completed</code></td></tr>
+            </tbody>
+          </table>
+        </div>
+        <p>All four log a warning, so this one is findable: filter <code>LogSimFlow</code>. The asymmetry in Ordered Sequence is deliberate. An empty <code>Steps</code> array succeeds because it is a flow nobody has filled in yet; an empty <code>Event Tag</code> fails because it is a task that could never have worked.</p>
+      </div>
+    </div>
+
+    <div class="gotcha">
+      <header>
+        <span class="n">03</span>
+        <h3>An empty Actor Query or condition never matches, and never says so</h3>
+      </header>
+      <div>
+        <dl>
+          <dt>Symptom</dt><dd>A task starts normally and then waits forever. Nothing in the log.</dd>
+          <dt>Cause</dt><dd>An empty query returns <code>No Match</code> against everything. It does not fall through to "match anything". An unset condition is false forever.</dd>
+        </dl>
+        <div class="tw">
+          <table>
+            <thead><tr><th scope="col">Where</th><th scope="col">An empty value means</th></tr></thead>
+            <tbody>
+              <tr><td class="t-name">Place Object In Zone &#8594; Accepted Items</td><td>Nothing can ever be accepted. Hangs.</td></tr>
+              <tr><td class="t-name">Place Object In Zone &#8594; Zone</td><td>Fails immediately with a warning. This one is loud.</td></tr>
+              <tr><td class="t-name">Ordered Sequence &#8594; step Target</td><td>That step can never be satisfied. Hangs.</td></tr>
+              <tr><td class="t-name">Wait For Condition &#8594; Condition</td><td>False forever. Hangs.</td></tr>
+              <tr><td class="t-name">Branch case &#8594; Condition</td><td>False, so that case never fires. Falls to <code>Default</code>.</td></tr>
+              <tr><td class="t-name">Wait For Event &#8594; Expected Payload</td><td>The payload is not checked at all, so any sender satisfies the task.</td></tr>
+            </tbody>
+          </table>
+        </div>
+        <p class="tip"><b>Diagnostic that works every time:</b> if the task fails at once, check the <strong>Zone</strong>. If it never completes, check <strong>Accepted Items</strong>. That single split resolves most Place Object In Zone reports.</p>
+      </div>
+    </div>
+
+    <div class="gotcha">
+      <header>
+        <span class="n">04</span>
+        <h3>Events never reach the flow, usually because of the payload</h3>
+      </header>
+      <div>
+        <p>The most common first bug in the plugin: broadcasting <code>self</code> from inside a UMG widget graph. A <code>UUserWidget</code> is neither an Actor nor an Actor Component, so it can never satisfy a payload check. It logs a warning naming the offending class. Broadcast from the owning actor with <code>Payload = self</code> instead.</p>
+        <p>After that, work down this list:</p>
+        <ul>
+          <li>Does the tag actually match, given <strong>Match Child Tags</strong>? A mismatch is silent.</li>
+          <li>Is the broadcast running at all? A print node next to it answers that in ten seconds.</li>
+          <li>Are you on a client? Events have to reach the authority, and the component's <strong>Send Event</strong> is the call that forwards.</li>
+          <li>Did you target the right flow? <strong>Broadcast Flow Event</strong> hits every running flow; <strong>Send Flow Event</strong> targets one by <code>Flow Save Id</code>.</li>
+        </ul>
+      </div>
+    </div>
+
+    <div class="gotcha">
+      <header>
+        <span class="n">05</span>
+        <h3>Loops that run once, and joins that wait forever</h3>
+      </header>
+      <div>
+        <div class="tw">
+          <table>
+            <thead><tr><th scope="col">Symptom</th><th scope="col">Cause</th></tr></thead>
+            <tbody>
+              <tr><td>The loop body runs once, then stops</td><td>The <code>Continue</code> pin is not wired back. The classic Loop mistake.</td></tr>
+              <tr><td>Log says "hit MaxIterations"</td><td><code>Iterations</code> is 0 and the break condition never passes.</td></tr>
+              <tr><td>The body never runs</td><td>The break condition is already true on entry. It is checked before each iteration.</td></tr>
+              <tr><td>The loop stalls partway</td><td>Something in the body ended without returning to <code>Continue</code>, often an unwired <code>Failed</code> pin.</td></tr>
+              <tr><td>The flow stalls at a Join</td><td><code>Num Inputs</code> is higher than the number of branches that actually arrive. In <code>Wait For All</code> mode the join waits forever, in silence.</td></tr>
+            </tbody>
+          </table>
+        </div>
+        <p>Match <code>Num Inputs</code> to the branches you wired. This is the one stall that gives you no log line and no visible state change, so check it early rather than late.</p>
+      </div>
+    </div>
+
+    <div class="gotcha">
+      <header>
+        <span class="n">06</span>
+        <h3>Circular prerequisites, and Sub Flow recursion</h3>
+      </header>
+      <div>
+        <p>Two severities of the same shape.</p>
+        <p><strong>A circular gate</strong> is a stall. Gate step A on "B has happened" while B is gated on "A has happened" and both <strong>Wait For Condition</strong> tasks go on waiting. Nothing errors, because waiting is what they are for. Set a <code>Time Limit</code> on gate tasks during development and wire <code>Timed Out</code> to a Log Message; the stall then names itself.</p>
+        <div class="trap">
+          <svg class="ico" width="16" height="16" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5" aria-hidden="true"><circle cx="8" cy="8" r="6.3"/><path d="M5.6 5.6l4.8 4.8M10.4 5.6l-4.8 4.8"/></svg>
+          <div>
+            <span class="ct">A Sub Flow cycle hangs the editor</span>
+            <p>A <a href="nodes/sub-flow.html">Sub Flow</a> node that references its own asset, directly or through a chain of assets that loops back, has no recursion guard. Pressing Play hangs the editor rather than logging an error. If the editor locks up the instant you hit Play after adding a Sub Flow, that is the first thing to check, and it is the reason to keep a mental map of which assets include which.</p>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="gotcha">
+      <header>
+        <span class="n">07</span>
+        <h3>Multiplayer replication</h3>
+      </header>
+      <div>
+        <div class="tw">
+          <table>
+            <thead><tr><th scope="col">Symptom</th><th scope="col">Cause</th></tr></thead>
+            <tbody>
+              <tr><td>Clients see nothing</td><td><code>Replicate Flow</code> is on but the owning actor does not replicate. Host on Game State or Player State.</td></tr>
+              <tr><td>Client controls do nothing</td><td>The PlayerController has no <strong>SimFlow Player Component</strong>, so there is no route to the server.</td></tr>
+              <tr><td>Save does nothing</td><td>Save and load are authority-only. On a client they log and return.</td></tr>
+              <tr><td>Client UI has no blackboard values</td><td><code>Replicate Blackboard</code> is off.</td></tr>
+              <tr><td>A client countdown jumps in one-second steps</td><td>Elapsed time refreshes on <strong>Net Refresh Interval</strong>, default <code>1.0</code>. Interpolate locally rather than lowering the interval.</td></tr>
+            </tbody>
+          </table>
+        </div>
+        <p>Structural changes replicate immediately; only the elapsed-time field is throttled. If a client is a whole task behind rather than a second behind, the problem is not the refresh interval.</p>
+      </div>
+    </div>
+
+    <h2 id="by-symptom">By symptom</h2>
+
+    <h3 id="nothing-happens">Nothing happens at all</h3>
+
+    <p>Work down this list. Is <code>Flow Asset</code> set on the component? Is <code>Start Mode</code> still <code>Manual</code>, with nothing calling <strong>Start Flow</strong>? Does the component's <code>Entry Name</code> match a <a href="nodes/start.html">Start</a> node's <code>Entry Name</code>? Both default to <code>Default</code>, so a rename on one side breaks it silently. Is there a Start node at all, and is its <code>Out</code> pin actually wired?</p>
+
+    <h3 id="starts-then-fails">The flow starts, then cannot find things</h3>
+
+    <p><code>Start Mode</code> is <code>Auto - On Begin Play</code>. Other actors may not have begun play yet, so a task that immediately looks for a <a href="../zones.md">zone</a> or an item finds nothing. Switch to <strong>Auto - On First Tick</strong>.</p>
+
+    <h3 id="ends-early">The flow ends too early</h3>
+
+    <p>Either a <a href="nodes/finish.html">Finish</a> node was reached with <strong>Stop Other Branches</strong> on, which is the default, while another branch was still working (converge branches with a <a href="nodes/join.html">Join</a> first), or a Sub Flow or Task node's <code>Failed</code> pin is unwired and ended that line of execution.</p>
+
+    <h3 id="task-never-completes">A task never completes</h3>
+
+    <div class="tw">
+      <table>
+        <caption>The largest category by far</caption>
+        <thead><tr><th scope="col">Symptom</th><th scope="col">Likely cause</th></tr></thead>
+        <tbody>
+          <tr><td>Nothing in the log</td><td>An empty Actor Query or an empty condition. Both are silently false.</td></tr>
+          <tr><td>Wait For Condition hangs</td><td>Its <code>Condition</code> slot is empty, and an unset condition is false forever.</td></tr>
+          <tr><td>Place Object In Zone hangs</td><td><code>Accepted Items</code> is empty, so nothing can ever match.</td></tr>
+          <tr><td>Ordered Sequence hangs on a step</td><td>That step's <code>Target</code> is empty or does not match.</td></tr>
+          <tr><td>Quiz hangs</td><td>Nothing calls <strong>Submit Quiz Answer</strong>.</td></tr>
+          <tr><td>Wait For Event hangs</td><td>The tag never arrives. See gotcha 04.</td></tr>
+        </tbody>
+      </table>
+    </div>
+
+    <p>While developing, set a <code>Time Limit</code> on the Task node and wire <code>Timed Out</code> to a Log Message task. A hang then becomes a message naming the task.</p>
+
+    <h3 id="placement">Placement and zones</h3>
+
+    <div class="tw">
+      <table>
+        <thead><tr><th scope="col">Symptom</th><th scope="col">Cause</th></tr></thead>
+        <tbody>
+          <tr><td>Objects count as placed while still held</td><td>Held state is not wired. Call <code>Set Held(true/false)</code> from your grab logic, because attachment alone is unreliable in VR.</td></tr>
+          <tr><td>Nothing is ever tracked</td><td>No collision overlap, or the box is too small. Turn on the zone's <strong>Draw Debug</strong>; silver means nothing tracked.</td></tr>
+          <tr><td>The player pawn is tracked</td><td><strong>Require Identity Component</strong> was turned off.</td></tr>
+          <tr><td>Objects settle then un-settle repeatedly</td><td>Jitter above <strong>Settle Speed Threshold</strong>. Raise <strong>Settle Time</strong> or the threshold.</td></tr>
+          <tr><td>The wrong zone is used</td><td>Two zones share a tag, and tag queries take the first world match. Give them distinct tags.</td></tr>
+        </tbody>
+      </table>
+    </div>
+
+    <h3 id="identity">Matching and identity</h3>
+
+    <div class="tw">
+      <table>
+        <thead><tr><th scope="col">Symptom</th><th scope="col">Cause</th></tr></thead>
+        <tbody>
+          <tr><td>The right object is not recognised</td><td>It has no <a href="../identity.md">Identity</a> component, or no tags on it.</td></tr>
+          <tr><td>Everything is No Match, never a near miss</td><td>The tag tree is flat. Confusable things must share a parent.</td></tr>
+          <tr><td><strong>Require All Tags</strong> blocks everything</td><td>With several tags requested the actor needs all of them. Set it to <code>false</code> for "any".</td></tr>
+          <tr><td>Tags on a placed instance do not apply to spawned copies</td><td>The component went on the level instance, not the Blueprint.</td></tr>
+          <tr><td>Setting <code>Identity Id</code> did not help</td><td>Nothing in SimFlow reads <code>Identity Id</code>. Use Identity Tags.</td></tr>
+        </tbody>
+      </table>
+    </div>
+
+    <h3 id="branching">Conditions and branching</h3>
+
+    <div class="tw">
+      <table>
+        <thead><tr><th scope="col">Symptom</th><th scope="col">Cause</th></tr></thead>
+        <tbody>
+          <tr><td>A branch case never fires</td><td>Its condition slot is empty, and an unset condition is false.</td></tr>
+          <tr><td>Everything goes to <code>Default</code></td><td>The conditions read a key that does not exist. Missing keys return <strong>Result When Key Missing</strong>, default <code>false</code>.</td></tr>
+          <tr><td>An <strong>All Of</strong> always passes</td><td>It has no children. An empty AND is true.</td></tr>
+          <tr><td>The wrong case fires</td><td>Cases evaluate top to bottom and the first match wins. Put the most specific first.</td></tr>
+          <tr><td>Execution stops at a branch</td><td>Nothing matched and <strong>Has Default Pin</strong> is off.</td></tr>
+        </tbody>
+      </table>
+    </div>
+
+    <h3 id="blackboard">Blackboard</h3>
+
+    <div class="tw">
+      <table>
+        <thead><tr><th scope="col">Symptom</th><th scope="col">Cause</th></tr></thead>
+        <tbody>
+          <tr><td>A value is never seen</td><td>Key name mismatch. Typos are silent. Print the blackboard with <code>SimFlow.Debug 1</code>.</td></tr>
+          <tr><td>A counter became <code>"111"</code></td><td>The value type is <code>String</code> with <code>Add</code> on, so it concatenated. Use <code>Int</code>.</td></tr>
+          <tr><td>An object reference is null after loading</td><td>Object values are stripped on save, by design.</td></tr>
+          <tr><td><code>Get Score</code> always returns 0</td><td><strong>Score On Success</strong> and <strong>Score On Failure</strong> default to <code>0</code> on every task. Scoring is opt-in.</td></tr>
+        </tbody>
+      </table>
+    </div>
+
+    <h3 id="editing">Editing and assets</h3>
+
+    <div class="tw">
+      <table>
+        <thead><tr><th scope="col">Symptom</th><th scope="col">Cause</th></tr></thead>
+        <tbody>
+          <tr><td>Editing the flow mid-play changes nothing</td><td>Nodes are duplicated into the instance at start. Stop and restart the flow.</td></tr>
+          <tr><td>Wires moved after adding a Branch case</td><td>Pins are named by index, so inserting in the middle renumbers later ones. Add at the end.</td></tr>
+          <tr><td>The editor hangs on Play</td><td>A Sub Flow calls itself, directly or in a cycle. See gotcha 06.</td></tr>
+          <tr><td>No SimFlow entry in the Content Browser</td><td>The plugin is not loaded, or the editor module failed to build. See <a href="01-getting-started.html#install-trouble">Chapter 01</a>.</td></tr>
+        </tbody>
+      </table>
+    </div>
+
+    <h2 id="still-stuck">Still stuck</h2>
+
+    <p>Run <code>SimFlow.Debug 1</code> and ask which node is actually active. Filter the Output Log by <code>LogSimFlow</code>. Replace the suspect task with a <a href="tasks/log-message.html">Log Message</a> and see whether the flow reaches that node at all. Then check the field the task needs is not empty, because most silent hangs are an empty <a href="../actor-query.md">Actor Query</a> or an empty <a href="../conditions.md">condition</a>, and neither logs anything.</p>
+
+    <p>If the behaviour looks like a plugin bug rather than a configuration problem, the issue tracker is at <a href="https://github.com/ReyvanAir/SimFlow/issues">github.com/ReyvanAir/SimFlow/issues</a>. A report is far more useful with the <code>LogSimFlow</code> output and a screenshot of the debug overlay at the moment it stalls.</p>
+
+    <nav class="pager" aria-label="Chapter navigation">
+      <a href="06-ui-and-vr.html"><span class="d">Previous</span><span class="t">Driving UI &amp; VR Feedback</span></a>
+      <a class="next" href="index.html"><span class="d">Back to</span><span class="t">Guide overview</span></a>
+    </nav>
+
+    <div class="foot">
+      <p>SimFlow 1.1.4 &middot; User Guide &middot; Unreal Engine 5.6 and 5.8</p>
+    </div>
+  </main>
+
+  <aside class="rail" id="rail" aria-label="On this page">
+    <h2>On this page</h2>
+  </aside>
+
+</div>
+</body>
+</html>
