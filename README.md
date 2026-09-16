@@ -1,7 +1,9 @@
 # SimFlow — modular task & flow framework for Unreal Engine 5.8
 
-**v1.1.4** simplifies placement setup. One `Settle Mode` field on a zone replaces
-five settling and filtering fields, and *Place Object In Zone* now leads with four.
+**v1.1.5** repairs two things. A tag in a Zone query matched any actor wearing it,
+so a prop could shadow the zone and kill the task at start. And the editor module
+overrode a `PerformAction` overload that 5.6 deprecated, which a strict build
+refuses; the compat header now picks the location type by engine version.
 See [`CHANGELOG.md`](CHANGELOG.md).
 
 The previous release is tagged [`v1.1.3`](https://github.com/ReyvanAir/SimFlow/tree/v1.1.3),
@@ -410,31 +412,43 @@ and Blueprint-callable. `SimFlowSampleBuilder.cpp` is a complete worked example.
 
 Targets 5.8. The same source still builds on 5.4–5.6.
 
-Unreal has been migrating graph editor coordinates from `FVector2D` to the
-`FVector2f`-backed `UE::Slate::FDeprecateVector2DParameter`, and the exact spelling
-of `FEdGraphSchemaAction::PerformAction`'s location parameter can change between
-versions. `SimFlowEditorCompat.h` selects it with a single switch:
+Unreal is migrating graph editor coordinates from `FVector2D` to `FVector2f`, and
+`FEdGraphSchemaAction::PerformAction`'s location parameter went with them.
+`SimFlowEditorCompat.h` picks the right one by engine version, so a normal build
+needs no setup:
 
 ```cpp
-#define SIMFLOW_PERFORMACTION_LOCATION_MODE 0
-//  0  const FVector2D                                 (correct for 5.4 - 5.8)
-//  1  const UE::Slate::FDeprecateVector2DParameter&
-//  2  const UE::Slate::FDeprecateVector2DParameter
-//  3  const FVector2f&                                (post-migration signature)
+#if UE_VERSION_OLDER_THAN(5, 6, 0)
+    #define SIMFLOW_PERFORMACTION_LOCATION_MODE 0   // const FVector2D
+#else
+    #define SIMFLOW_PERFORMACTION_LOCATION_MODE 3   // const FVector2f&
+#endif
 ```
 
-5.8 still declares the `FVector2D` overload and does not mark it deprecated, so
-mode 0 is correct there as well. A wrong setting fails loudly at compile time with
-*"method with override specifier 'override' did not override any base class
-methods"*. If that happens, switch to mode 3, or check the `PerformAction`
-overload taking a single `UEdGraphPin* FromPin` in
-`Engine/Source/Runtime/Engine/Classes/EdGraph/EdGraphSchema.h` and match its third
-parameter. You can also set it from `SimFlowEditor.Build.cs` without editing the
-header:
+5.4 declares only the `FVector2D` overload. 5.6 added the `FVector2f&` one and
+marked `FVector2D` `UE_DEPRECATED(5.6)`, and 5.8 keeps it that way — which is why
+the switch flips at 5.6. Mode 0 on a newer engine still compiles, since the
+engine's `FVector2f&` overload forwards to the deprecated one, but every override
+warns and any target that treats deprecation warnings as errors stops there. Fab
+submission is one of those targets.
+
+To force a mode from `SimFlowEditor.Build.cs`, use `PublicDefinitions`:
 
 ```csharp
-PrivateDefinitions.Add("SIMFLOW_PERFORMACTION_LOCATION_MODE=3");
+PublicDefinitions.Add("SIMFLOW_PERFORMACTION_LOCATION_MODE=3");
 ```
+
+`PrivateDefinitions` is the wrong knob here. The chosen type appears in the
+`PerformAction` signature of exported structs in the public header
+`SimFlowGraphSchema.h`, so a define that only reaches SimFlowEditor leaves every
+other module compiling against a different signature — an unresolved external at
+link, or a subclass whose `override` quietly binds to the wrong base function.
+
+If the mode is wrong you get *"method with override specifier 'override' did not
+override any base class methods"* at compile time. Open
+`Engine/Source/Runtime/Engine/Classes/EdGraph/EdGraphSchema.h`, find the
+`PerformAction` overload taking a single `UEdGraphPin* FromPin`, and match its
+third parameter.
 
 ## Layout
 

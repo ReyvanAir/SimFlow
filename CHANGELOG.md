@@ -2,7 +2,13 @@
 
 All notable changes to SimFlow. Versions follow the plugin's `VersionName`.
 
-## Unreleased
+## 1.1.5
+
+Two repairs that have nothing to do with each other. A tag in a Zone query could
+match a prop instead of the zone and take the task down at start, and the editor
+module was overriding an engine function that 5.6 deprecated — harmless on a
+warning-tolerant build, fatal on a strict one. No runtime API moved.
+`.uplugin` Version 8.
 
 ### Changed
 
@@ -14,6 +20,15 @@ All notable changes to SimFlow. Versions follow the plugin's `VersionName`.
   `ASimFlowZone` actors, so nothing else can shadow one. `Specific Actor` and
   `Blackboard Key` are unchanged: they name one actor, and being told that actor is
   not a zone is the useful answer there.
+- **The `PerformAction` location type follows the engine version.**
+  `SimFlowEditorCompat.h` used to pin `SIMFLOW_PERFORMACTION_LOCATION_MODE` at
+  `0` on every engine and leave the choice to whoever hit the build error. It now
+  reads `UE_VERSION_OLDER_THAN(5, 6, 0)` and selects `const FVector2D` below 5.6,
+  `const FVector2f&` from 5.6 up, so a fresh 5.8 project compiles with nothing to
+  set. Modes `1` and `2` are gone — they named
+  `UE::Slate::FDeprecateVector2DParameter`, which no release declares as a
+  `PerformAction` parameter, so working down the list meant two dead ends before
+  the one that builds. `0` and `3` keep their numbers.
 
 ### Fixed
 
@@ -24,6 +39,21 @@ All notable changes to SimFlow. Versions follow the plugin's `VersionName`.
   that exist but do not carry the tag — and in that last case lists every zone in
   the level with its actual identity tags, plus a note when a non-zone actor is
   wearing the tag you asked for.
+- **The editor module overrode a deprecated engine virtual on 5.6 and newer.** The
+  `FVector2D` overload of `FEdGraphSchemaAction::PerformAction` has carried
+  `UE_DEPRECATED(5.6)` since 5.6, so the two schema actions that spawn nodes and
+  comment boxes warned on every build. On a target that promotes deprecation
+  warnings to errors, Fab submission included, they failed outright. The header,
+  the README and the developer guide all said the opposite, that 5.8 left the
+  overload undeprecated and that mode `0` was the right pick. Node placement is
+  unchanged: both signatures convert to `FVector2D` before the schema does
+  anything with the position.
+- **The docs told you to set the mode with `PrivateDefinitions`.** The chosen type
+  lands in the `PerformAction` signature of `SIMFLOWEDITOR_API` structs in the
+  public header `SimFlowGraphSchema.h`, so a private define would have left every
+  other module compiling a different signature — a link error, or an `override`
+  bound to the wrong base function without a word from the compiler. Both pages
+  now say `PublicDefinitions` and explain why.
 
 ## 1.1.4
 
