@@ -3,8 +3,8 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>Parallel Group Task | SimFlow User Guide</title>
-<meta name="description" content="Parallel Group Task (USimFlowTask_ParallelGroup) in SimFlow: Runs several child tasks at once inside one node. Fields, pins, worked example and failure modes.">
+<title>Zone and Identity Nodes | SimFlow User Guide</title>
+<meta name="description" content="Zone and Identity Nodes (USimFlowIdentityStatics) in SimFlow: Asking the world what is where and what things are, from your own Blueprint. Node tables, a worked example and the failure modes.">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500;600&family=IBM+Plex+Sans:wght@400;500;600&display=swap">
@@ -73,7 +73,7 @@
         <li><a href="../nodes/set-blackboard.html"><span class="num">&#183;</span><span>Set Blackboard Value</span></a></li>
       </ul>
     </details>
-    <details class="navgroup" open>
+    <details class="navgroup">
       <summary>Task Reference</summary>
       <ul>
         <li><a href="../tasks/delay.html"><span class="num">&#183;</span><span>Delay</span></a></li>
@@ -83,12 +83,12 @@
         <li><a href="../tasks/wait-for-condition.html"><span class="num">&#183;</span><span>Wait For Condition</span></a></li>
         <li><a href="../tasks/go-to-location.html"><span class="num">&#183;</span><span>Go To Location</span></a></li>
         <li><a href="../tasks/quiz.html"><span class="num">&#183;</span><span>Quiz</span></a></li>
-        <li><a href="../tasks/parallel-group.html" aria-current="page"><span class="num">&#183;</span><span>Parallel Group</span></a></li>
+        <li><a href="../tasks/parallel-group.html"><span class="num">&#183;</span><span>Parallel Group</span></a></li>
         <li><a href="../tasks/place-object-in-zone.html"><span class="num">&#183;</span><span>Place Object In Zone</span></a></li>
         <li><a href="../tasks/ordered-sequence.html"><span class="num">&#183;</span><span>Ordered Sequence</span></a></li>
       </ul>
     </details>
-    <details class="navgroup">
+    <details class="navgroup" open>
       <summary>Blueprint Nodes</summary>
       <ul>
         <li><a href="../blueprint/flow-access.html"><span class="num">&#183;</span><span>Flow Access</span></a></li>
@@ -99,7 +99,7 @@
         <li><a href="../blueprint/subsystem.html"><span class="num">&#183;</span><span>Subsystem</span></a></li>
         <li><a href="../blueprint/player-component.html"><span class="num">&#183;</span><span>Player Component</span></a></li>
         <li><a href="../blueprint/status-widget.html"><span class="num">&#183;</span><span>Status Widget</span></a></li>
-        <li><a href="../blueprint/world-queries.html"><span class="num">&#183;</span><span>Zones &amp; Identity</span></a></li>
+        <li><a href="../blueprint/world-queries.html" aria-current="page"><span class="num">&#183;</span><span>Zones &amp; Identity</span></a></li>
         <li><a href="../blueprint/graph-introspection.html"><span class="num">&#183;</span><span>Graph Introspection</span></a></li>
       </ul>
     </details>
@@ -130,87 +130,142 @@
     <nav class="crumbs" aria-label="Breadcrumb">
       <ol>
         <li><a href="../index.html">User Guide</a></li>
-        <li><svg width="11" height="11" viewBox="0 0 12 12" fill="none" stroke="currentColor" stroke-width="1.6" aria-hidden="true"><path d="m4.5 2.5 3.5 3.5-3.5 3.5"/></svg><a href="../03-authoring.html">Task Reference</a></li>
-        <li><svg width="11" height="11" viewBox="0 0 12 12" fill="none" stroke="currentColor" stroke-width="1.6" aria-hidden="true"><path d="m4.5 2.5 3.5 3.5-3.5 3.5"/></svg><span aria-current="page">Parallel Group</span></li>
+        <li><svg width="11" height="11" viewBox="0 0 12 12" fill="none" stroke="currentColor" stroke-width="1.6" aria-hidden="true"><path d="m4.5 2.5 3.5 3.5-3.5 3.5"/></svg><a href="../05-runtime-blueprint.html">Blueprint Nodes</a></li>
+        <li><svg width="11" height="11" viewBox="0 0 12 12" fill="none" stroke="currentColor" stroke-width="1.6" aria-hidden="true"><path d="m4.5 2.5 3.5 3.5-3.5 3.5"/></svg><span aria-current="page">Zones &amp; Identity</span></li>
       </ol>
     </nav>
 
-    <p class="eyebrow">Task Reference</p>
-    <h1>Parallel Group Task</h1>
+    <p class="eyebrow">Blueprint Nodes</p>
+    <h1>Zone and Identity Nodes</h1>
 
     <dl class="idcard">
-      <dt>Class</dt><dd><code>USimFlowTask_ParallelGroup</code></dd>
-      <dt>Select via</dt><dd><a href="../nodes/task.html">Task node</a> &#8594; <strong>Task</strong> dropdown &#8594; <strong>Parallel Group</strong></dd>
-      <dt>Finishes with</dt><dd><code>Succeeded</code> when the wait condition is met; <code>Failed</code> if a child fails and the option is on</dd>
-      <dt>Category</dt><dd>Composition</dd>
+      <dt>Library</dt><dd><code>USimFlowIdentityStatics</code></dd>
+      <dt>Also on</dt><dd><code>ASimFlowZone</code>, which needs the zone actor on its target pin</dd>
+      <dt>Target pin</dt><dd>None for the identity statics</dd>
+      <dt>Category</dt><dd>SimFlow &#124; Identity, SimFlow &#124; Zone</dd>
     </dl>
 
-    <p class="usefor"><b>Use it for:</b> a small parallel group without cluttering the graph with <a href="../nodes/parallel.html">Parallel</a> and <a href="../nodes/join.html">Join</a> nodes. "Play the narration while the trainee dons the helmet" becomes one node rather than five.</p>
+    <p class="usefor"><b>Use them for:</b> a highlight that only appears on the right object, a hint system, or an interaction that behaves differently depending on what the player is holding.</p>
 
-    <h2 id="fields">Fields</h2>
+    <p>Tasks already do this judging for you. These nodes exist for the cases where your own Blueprint needs the same answer.</p>
+
+    <h2 id="identity">Identity</h2>
 
     <div class="tw">
       <table>
-        <caption>USimFlowTask_ParallelGroup, own settings</caption>
-        <thead><tr><th scope="col">Field</th><th scope="col">Type</th><th scope="col">Default</th><th scope="col">Meaning</th></tr></thead>
+        <caption>USimFlowIdentityStatics, reading an actor</caption>
+        <thead><tr><th scope="col">Node</th><th scope="col">Returns</th></tr></thead>
         <tbody>
-          <tr><td class="t-name">Tasks</td><td class="t-type">Array of instanced tasks</td><td class="t-def">empty</td><td>The child tasks. Each gets its own class dropdown and inline settings.</td></tr>
-          <tr><td class="t-name">Wait For All</td><td class="t-type">Bool</td><td class="t-def">true</td><td>With this off, the group finishes as soon as the first child does.</td></tr>
-          <tr><td class="t-name">Fail If Any Child Fails</td><td class="t-type">Bool</td><td class="t-def">true</td><td>Any child failing fails the whole group.</td></tr>
+          <tr><td class="t-name">Get Identity Tags</td><td>Every identity tag on the actor.</td></tr>
+          <tr><td class="t-name">Get Identity Display Name</td><td>The authored name, falling back to the actor's name.</td></tr>
+          <tr><td class="t-name">Actor Has Identity Tag</td><td>bool</td></tr>
         </tbody>
       </table>
     </div>
 
-    <p>Plus the <a href="../03-authoring.html#step-metadata">fields every task has</a>.</p>
+    <p><strong>Get Identity Tags</strong> reads the SimFlow Identity component first, then falls back to <code>IGameplayTagAssetInterface</code>. Actors from a GAS project answer correctly without a second component on them.</p>
+
+    <p><strong>Get Identity Display Name</strong> is what your prompts should use. "Pick up the foam extinguisher" reads better than the actor label <code>BP_Ext_Foam_2</code>, and it stays correct when someone renames the Blueprint.</p>
+
+    <h2 id="grading">Grading against a query</h2>
+
+    <div class="tw">
+      <table>
+        <caption>USimFlowIdentityStatics, query matching</caption>
+        <thead><tr><th scope="col">Node</th><th scope="col">Returns</th></tr></thead>
+        <tbody>
+          <tr><td class="t-name">Match Actor Against Query</td><td><code>No Match</code>, <code>Related (Near Miss)</code> or <code>Exact Match</code>.</td></tr>
+          <tr><td class="t-name">Actor Satisfies Query</td><td>bool, the yes-or-no form.</td></tr>
+        </tbody>
+      </table>
+    </div>
+
+    <p>The middle value is the whole point of the enum. A CO2 extinguisher where a foam one was asked for is a different kind of wrong from a wrench, and your feedback can say so.</p>
+
+    <figure>
+      <pre class="graph"><code>On Grab ──▶ Match Actor Against Query ( Grabbed , Required , Get Flow Instance )
+              ├── Exact Match   ──▶ green outline
+              ├── Related       ──▶ amber outline + "close, but check the label"
+              └── No Match      ──▶ nothing</code></pre>
+      <figcaption>Grading in your own Blueprint gives feedback before the trainee commits, while the task still does the assessment.</figcaption>
+    </figure>
 
     <div class="trap">
       <svg class="ico" width="16" height="16" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5" aria-hidden="true"><circle cx="8" cy="8" r="6.3"/><path d="M5.6 5.6l4.8 4.8M10.4 5.6l-4.8 4.8"/></svg>
       <div>
-        <span class="ct">An empty Tasks array never advances</span>
-        <p>There is nothing to wait for and no child to report completion. Treat that as a configuration error rather than a way to no-op a node.</p>
+        <span class="ct">A null Instance pin breaks any query using a Blackboard Key</span>
+        <p>The pin may be null when the query uses no blackboard key. When it does use one, the query cannot resolve it and never matches. Nothing logs, so it looks like the actor is simply wrong.</p>
       </div>
     </div>
 
-    <p>With <code>Wait For All</code> on, a child that never finishes holds the group forever. Put a <code>Time Limit</code> on the <a href="../nodes/task.html">Task node</a>. With it off, the first child to finish ends the group <em>and</em> the others with it, so do not rely on their side effects having completed.</p>
-
-    <h2 id="inherit">What the children inherit</h2>
-
-    <p>Child tasks are full tasks, so each carries its own presentation, rules and scoring fields. Three consequences follow.</p>
-
-    <ol class="steps">
-      <li><span class="sh">Each child's scoring applies</span><p>Three children with <code>Score On Success</code> of 10 add 30, on top of whatever the group itself scores.</p></li>
-      <li><span class="sh">Pause and resume propagate</span><p>To every child.</p></li>
-      <li><span class="sh">There is no per-child timeout</span><p>The group's <code>Time Limit</code> lives on the <a href="../nodes/task.html">Task node</a>, not on the children.</p>
-        <p class="tip"><b>This is the main limitation.</b> If you need per-branch timeouts, use real <a href="../nodes/parallel.html">Parallel</a> and <a href="../nodes/join.html">Join</a> nodes so each branch gets its own Task node.</p></li>
-    </ol>
-
-    <h2 id="which">Group, or Parallel and Join?</h2>
+    <h2 id="zone-contents">Zone contents</h2>
 
     <div class="tw">
       <table>
-        <caption>Choosing between the two shapes</caption>
-        <thead><tr><th scope="col">Use Parallel Group</th><th scope="col">Use Parallel + Join nodes</th></tr></thead>
+        <caption>ASimFlowZone, queries</caption>
+        <thead><tr><th scope="col">Node</th><th scope="col">Returns</th></tr></thead>
         <tbody>
-          <tr><td>Two or three simple concurrent tasks</td><td>Branches with several steps each</td></tr>
-          <tr><td>You want the graph compact</td><td>You want to see the structure in the graph</td></tr>
-          <tr><td>The branches share one outcome</td><td>Each branch needs its own timeout, retry or routing</td></tr>
-          <tr><td>No per-child failure routing needed</td><td>You need a <code>Failed</code> pin per branch</td></tr>
+          <tr><td class="t-name">Get Contained Actors</td><td>Everything overlapping, settled or not.</td></tr>
+          <tr><td class="t-name">Get Settled Actors</td><td>Everything put down and left alone.</td></tr>
+          <tr><td class="t-name">Contains Actor</td><td>bool</td></tr>
+          <tr><td class="t-name">Is Actor Settled</td><td>bool</td></tr>
+          <tr><td class="t-name">Get Display Name Text</td><td>The zone's authored name.</td></tr>
         </tbody>
       </table>
     </div>
 
-    <h2 id="example">Narration alongside a physical step</h2>
+    <p>The contained against settled split is the thing to get right. An actor the player is holding inside the zone is contained but not settled. Tasks judge on settled, which is why waving an extinguisher over the bay does not count as placing it.</p>
 
-    <p>A narration line plays while the trainee puts on the helmet. Moving on when the helmet is on, because the narration should not hold things up.</p>
+    <p>Use contained for live feedback, such as highlighting the bay while something hovers over it, and settled for anything that decides an outcome.</p>
 
-    <ol class="steps">
-      <li><span class="sh">Add the group</span><p>A <a href="../nodes/task.html">Task node</a> with <strong>Task</strong> of <strong>Parallel Group</strong>. Under <strong>Tasks</strong>, click <strong>+</strong> twice.</p></li>
-      <li><span class="sh">Child 0 is the real step</span><p><a href="wait-for-event.html">Wait For Event</a>, event tag <code>SimFlow.Event.Grab</code>, with Expected Payload &#8594; Required Tags of <code>Item.Helmet</code>.</p></li>
-      <li><span class="sh">Child 1 is the narration window</span><p><a href="delay.html">Delay</a> with a Duration of <code>8</code>, the length of the narration, with your audio triggered from the Instruction UI.</p></li>
-      <li><span class="sh">Let the helmet win</span><p>Turn <strong>Wait For All</strong> off, so donning the helmet early moves things along. Turn <strong>Fail If Any Child Fails</strong> off, since the delay cannot fail.</p></li>
-      <li><span class="sh">Name it for the UI</span><p><strong>Display Name</strong> of <code>Don the helmet</code>.</p>
-        <p class="tip"><b>If the trainee must both don the helmet <em>and</em> hear the whole briefing</b>, leave <strong>Wait For All</strong> on.</p></li>
+    <h2 id="effective">Effective settle values</h2>
+
+    <div class="tw">
+      <table>
+        <caption>ASimFlowZone, what the current mode actually applies</caption>
+        <thead><tr><th scope="col">Node</th><th scope="col">Returns</th></tr></thead>
+        <tbody>
+          <tr><td class="t-name">Get Effective Settle Time</td><td>Still-time the current mode requires.</td></tr>
+          <tr><td class="t-name">Get Effective Settle Speed</td><td>Speed limit the current mode applies. <code>0</code> means no check.</td></tr>
+          <tr><td class="t-name">Get Effective Require Detached</td><td>Whether an attached actor still counts as held.</td></tr>
+        </tbody>
+      </table>
+    </div>
+
+    <p>A zone's settle behaviour comes from a mode, with <strong>Custom</strong> starting from the standard values of 0.35 seconds and 20 units per second. These three report what is being applied after that resolution, rather than the fields in the Details panel.</p>
+
+    <figure>
+      <pre class="graph"><code>Get Effective Settle Time ──▶ [ how long the progress ring takes to fill ]</code></pre>
+      <figcaption>Useful for a debug readout, or a ring showing how long until an object counts as placed.</figcaption>
+    </figure>
+
+    <h2 id="zone-events">Zone events</h2>
+
+    <div class="tw">
+      <table>
+        <caption>ASimFlowZone, dispatchers. All carry the actor.</caption>
+        <thead><tr><th scope="col">Dispatcher</th><th scope="col">Fires</th></tr></thead>
+        <tbody>
+          <tr><td class="t-name">On Actor Entered</td><td>The moment an actor overlaps, before settling.</td></tr>
+          <tr><td class="t-name">On Actor Exited</td><td>It leaves.</td></tr>
+          <tr><td class="t-name">On Actor Settled</td><td>It is genuinely put down. This is the one tasks listen to.</td></tr>
+        </tbody>
+      </table>
+    </div>
+
+    <p>Bind <strong>On Actor Entered</strong> for hover feedback and <strong>On Actor Settled</strong> for anything that counts. A zone can also raise <code>SimFlow.Event.Placed</code> and <code>SimFlow.Event.Removed</code> on every flow, but only when its <strong>Broadcast Flow Events</strong> is ticked, which is off by default.</p>
+
+    <h2 id="example">Highlighting the right object</h2>
+
+    <p>Making a grabbable prop glow when it matches what the current task wants:</p>
+
+    <ol>
+      <li>Store the task's <code>Actor Query</code> where your prop can read it, or expose one on the prop itself.</li>
+      <li>On overlap with the player's hand, call <strong>Match Actor Against Query</strong> with the prop and the <a href="instance.html">flow instance</a>.</li>
+      <li>Switch on the result: green for Exact Match, amber for Related, nothing for No Match.</li>
     </ol>
+
+    <p>Amber on a near miss is worth the extra branch. It tells the trainee they are in the right family without telling them the answer.</p>
 
     <h2 id="misbehaves">When it misbehaves</h2>
 
@@ -218,21 +273,22 @@
       <table>
         <thead><tr><th scope="col">Symptom</th><th scope="col">Cause</th></tr></thead>
         <tbody>
-          <tr><td>The group never finishes</td><td><code>Wait For All</code> is on and a child is waiting for something that never arrives.</td></tr>
-          <tr><td>A child's work got cut short</td><td><code>Wait For All</code> is off, so the first child to finish ended the group and took the others with it.</td></tr>
-          <tr><td>The score is higher than expected</td><td>Every child's <code>Score On Success</code> contributes, on top of the group's own.</td></tr>
-          <tr><td>One child needs its own timeout</td><td>Not possible inside a group. Use <a href="../nodes/parallel.html">Parallel</a> and <a href="../nodes/join.html">Join</a> nodes.</td></tr>
-          <tr><td>A child failure failed everything</td><td><code>Fail If Any Child Fails</code> is on by default. Turn it off for optional children.</td></tr>
+          <tr><td>Every actor scores No Match</td><td>The query uses a <code>Blackboard Key</code> and you passed null for <code>Instance</code>.</td></tr>
+          <tr><td>A query with no tags matches everything</td><td>An empty query is legitimately satisfied by anything, and nothing logs.</td></tr>
+          <tr><td>Get Identity Tags is empty on a tagged actor</td><td>The tags are on a component the fallback does not reach. Add a SimFlow Identity component.</td></tr>
+          <tr><td>Get Settled Actors is empty while the object is visibly in the zone</td><td>It has not settled: still held, still moving, or still attached with <code>Require Detached</code> on.</td></tr>
+          <tr><td>A widget passed to Match Actor Against Query never matches</td><td>A <code>UUserWidget</code> is neither an Actor nor an Actor Component. Pass the owning actor.</td></tr>
+          <tr><td>The zone's settle time does not match the Details panel</td><td>The mode is overriding it. Check Get Effective Settle Time.</td></tr>
         </tbody>
       </table>
     </div>
 
     <h2 id="related">Related</h2>
-    <p><a href="../nodes/parallel.html">Parallel node</a> &middot; <a href="../nodes/join.html">Join node</a> &middot; <a href="../nodes/task.html">Task node</a></p>
+    <p><a href="../tasks/place-object-in-zone.html">Place Object In Zone</a> &middot; <a href="../04-rules-and-policies.html">Rules &amp; Failure Policies</a> &middot; <a href="instance.html">Flow Instance</a></p>
 
     <nav class="pager" aria-label="Page navigation">
-      <a href="quiz.html"><span class="d">Previous</span><span class="t">Quiz</span></a>
-      <a class="next" href="place-object-in-zone.html"><span class="d">Next</span><span class="t">Place Object In Zone</span></a>
+      <a href="status-widget.html"><span class="d">Previous</span><span class="t">Status Widget</span></a>
+      <a class="next" href="graph-introspection.html"><span class="d">Next</span><span class="t">Graph Introspection</span></a>
     </nav>
 
     <div class="foot">

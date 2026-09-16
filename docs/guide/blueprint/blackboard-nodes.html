@@ -3,8 +3,8 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>Parallel Group Task | SimFlow User Guide</title>
-<meta name="description" content="Parallel Group Task (USimFlowTask_ParallelGroup) in SimFlow: Runs several child tasks at once inside one node. Fields, pins, worked example and failure modes.">
+<title>Blackboard Nodes | SimFlow User Guide</title>
+<meta name="description" content="Blackboard Nodes (USimFlowBlackboard) in SimFlow: Every typed getter and setter, the generic accessors, score helpers and On Value Changed. Node tables, a worked example and the failure modes.">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500;600&family=IBM+Plex+Sans:wght@400;500;600&display=swap">
@@ -73,7 +73,7 @@
         <li><a href="../nodes/set-blackboard.html"><span class="num">&#183;</span><span>Set Blackboard Value</span></a></li>
       </ul>
     </details>
-    <details class="navgroup" open>
+    <details class="navgroup">
       <summary>Task Reference</summary>
       <ul>
         <li><a href="../tasks/delay.html"><span class="num">&#183;</span><span>Delay</span></a></li>
@@ -83,18 +83,18 @@
         <li><a href="../tasks/wait-for-condition.html"><span class="num">&#183;</span><span>Wait For Condition</span></a></li>
         <li><a href="../tasks/go-to-location.html"><span class="num">&#183;</span><span>Go To Location</span></a></li>
         <li><a href="../tasks/quiz.html"><span class="num">&#183;</span><span>Quiz</span></a></li>
-        <li><a href="../tasks/parallel-group.html" aria-current="page"><span class="num">&#183;</span><span>Parallel Group</span></a></li>
+        <li><a href="../tasks/parallel-group.html"><span class="num">&#183;</span><span>Parallel Group</span></a></li>
         <li><a href="../tasks/place-object-in-zone.html"><span class="num">&#183;</span><span>Place Object In Zone</span></a></li>
         <li><a href="../tasks/ordered-sequence.html"><span class="num">&#183;</span><span>Ordered Sequence</span></a></li>
       </ul>
     </details>
-    <details class="navgroup">
+    <details class="navgroup" open>
       <summary>Blueprint Nodes</summary>
       <ul>
         <li><a href="../blueprint/flow-access.html"><span class="num">&#183;</span><span>Flow Access</span></a></li>
         <li><a href="../blueprint/control-and-save.html"><span class="num">&#183;</span><span>Control &amp; Save</span></a></li>
         <li><a href="../blueprint/values.html"><span class="num">&#183;</span><span>Values</span></a></li>
-        <li><a href="../blueprint/blackboard-nodes.html"><span class="num">&#183;</span><span>Blackboard Nodes</span></a></li>
+        <li><a href="../blueprint/blackboard-nodes.html" aria-current="page"><span class="num">&#183;</span><span>Blackboard Nodes</span></a></li>
         <li><a href="../blueprint/instance.html"><span class="num">&#183;</span><span>Flow Instance</span></a></li>
         <li><a href="../blueprint/subsystem.html"><span class="num">&#183;</span><span>Subsystem</span></a></li>
         <li><a href="../blueprint/player-component.html"><span class="num">&#183;</span><span>Player Component</span></a></li>
@@ -130,86 +130,135 @@
     <nav class="crumbs" aria-label="Breadcrumb">
       <ol>
         <li><a href="../index.html">User Guide</a></li>
-        <li><svg width="11" height="11" viewBox="0 0 12 12" fill="none" stroke="currentColor" stroke-width="1.6" aria-hidden="true"><path d="m4.5 2.5 3.5 3.5-3.5 3.5"/></svg><a href="../03-authoring.html">Task Reference</a></li>
-        <li><svg width="11" height="11" viewBox="0 0 12 12" fill="none" stroke="currentColor" stroke-width="1.6" aria-hidden="true"><path d="m4.5 2.5 3.5 3.5-3.5 3.5"/></svg><span aria-current="page">Parallel Group</span></li>
+        <li><svg width="11" height="11" viewBox="0 0 12 12" fill="none" stroke="currentColor" stroke-width="1.6" aria-hidden="true"><path d="m4.5 2.5 3.5 3.5-3.5 3.5"/></svg><a href="../05-runtime-blueprint.html">Blueprint Nodes</a></li>
+        <li><svg width="11" height="11" viewBox="0 0 12 12" fill="none" stroke="currentColor" stroke-width="1.6" aria-hidden="true"><path d="m4.5 2.5 3.5 3.5-3.5 3.5"/></svg><span aria-current="page">Blackboard Nodes</span></li>
       </ol>
     </nav>
 
-    <p class="eyebrow">Task Reference</p>
-    <h1>Parallel Group Task</h1>
+    <p class="eyebrow">Blueprint Nodes</p>
+    <h1>Blackboard Nodes</h1>
 
     <dl class="idcard">
-      <dt>Class</dt><dd><code>USimFlowTask_ParallelGroup</code></dd>
-      <dt>Select via</dt><dd><a href="../nodes/task.html">Task node</a> &#8594; <strong>Task</strong> dropdown &#8594; <strong>Parallel Group</strong></dd>
-      <dt>Finishes with</dt><dd><code>Succeeded</code> when the wait condition is met; <code>Failed</code> if a child fails and the option is on</dd>
-      <dt>Category</dt><dd>Composition</dd>
+      <dt>Class</dt><dd><code>USimFlowBlackboard</code></dd>
+      <dt>Get a reference</dt><dd><code>Get Blackboard</code> on the component, an <a href="instance.html">instance</a>, a task, a node or a condition</dd>
+      <dt>Target pin</dt><dd>The blackboard</dd>
+      <dt>Category</dt><dd>SimFlow &#124; Blackboard</dd>
     </dl>
 
-    <p class="usefor"><b>Use it for:</b> a small parallel group without cluttering the graph with <a href="../nodes/parallel.html">Parallel</a> and <a href="../nodes/join.html">Join</a> nodes. "Play the narration while the trainee dons the helmet" becomes one node rather than five.</p>
+    <p class="usefor"><b>Use them for:</b> reading and writing the per-flow key/value store from your own Blueprint.</p>
 
-    <h2 id="fields">Fields</h2>
+    <p>What the blackboard is, which keys are reserved and how coercion works are covered in <a href="../dev/blackboard-internals.html">Blackboard &amp; Values</a>. This page is the node list.</p>
+
+    <figure>
+      <pre class="graph"><code>Get Primary Flow ──▶ Get Blackboard ──▶ Set Int ( Attempts , 0 )</code></pre>
+      <figcaption>Every node here needs a blackboard on its target pin. This is the usual chain.</figcaption>
+    </figure>
+
+    <h2 id="setters">Typed setters</h2>
 
     <div class="tw">
       <table>
-        <caption>USimFlowTask_ParallelGroup, own settings</caption>
-        <thead><tr><th scope="col">Field</th><th scope="col">Type</th><th scope="col">Default</th><th scope="col">Meaning</th></tr></thead>
+        <caption>USimFlowBlackboard, typed writes</caption>
+        <thead><tr><th scope="col">Node</th><th scope="col">Value pin</th></tr></thead>
         <tbody>
-          <tr><td class="t-name">Tasks</td><td class="t-type">Array of instanced tasks</td><td class="t-def">empty</td><td>The child tasks. Each gets its own class dropdown and inline settings.</td></tr>
-          <tr><td class="t-name">Wait For All</td><td class="t-type">Bool</td><td class="t-def">true</td><td>With this off, the group finishes as soon as the first child does.</td></tr>
-          <tr><td class="t-name">Fail If Any Child Fails</td><td class="t-type">Bool</td><td class="t-def">true</td><td>Any child failing fails the whole group.</td></tr>
+          <tr><td class="t-name">Set Bool</td><td class="t-type">bool</td></tr>
+          <tr><td class="t-name">Set Int</td><td class="t-type">int32</td></tr>
+          <tr><td class="t-name">Set Float</td><td class="t-type">float</td></tr>
+          <tr><td class="t-name">Set String</td><td class="t-type">FString</td></tr>
+          <tr><td class="t-name">Set Name</td><td class="t-type">FName</td></tr>
+          <tr><td class="t-name">Set Vector</td><td class="t-type">FVector</td></tr>
+          <tr><td class="t-name">Set Object</td><td class="t-type">UObject reference</td></tr>
         </tbody>
       </table>
     </div>
 
-    <p>Plus the <a href="../03-authoring.html#step-metadata">fields every task has</a>.</p>
+    <p>Each writes the value and sets its type in one node, which is why they beat <code>Set Value</code> plus a <a href="values.html">maker</a> for a literal. Writing over an existing key of a different type replaces it, with no warning and a changed type.</p>
+
+    <p><code>Set Object</code> stores a runtime-only reference. It is cleared on save.</p>
+
+    <h2 id="getters">Typed getters</h2>
+
+    <div class="tw">
+      <table>
+        <caption>USimFlowBlackboard, typed reads</caption>
+        <thead><tr><th scope="col">Node</th><th scope="col">Returns</th><th scope="col">Default pin</th></tr></thead>
+        <tbody>
+          <tr><td class="t-name">Get Bool</td><td class="t-type">bool</td><td class="t-def">false</td></tr>
+          <tr><td class="t-name">Get Int</td><td class="t-type">int32</td><td class="t-def">0</td></tr>
+          <tr><td class="t-name">Get Float</td><td class="t-type">float</td><td class="t-def">0.0</td></tr>
+          <tr><td class="t-name">Get String</td><td class="t-type">FString</td><td class="t-def">empty</td></tr>
+          <tr><td class="t-name">Get Name</td><td class="t-type">FName</td><td class="t-def">None</td></tr>
+          <tr><td class="t-name">Get Vector</td><td class="t-type">FVector</td><td class="t-def">zero</td></tr>
+          <tr><td class="t-name">Get Object</td><td class="t-type">UObject</td><td class="t-def">&#8212; no default pin</td></tr>
+        </tbody>
+      </table>
+    </div>
+
+    <p>The <code>Default Value</code> pin is what comes back when the key does not exist, which makes these safe on a flow that just started. <code>Get Object</code> is the exception with no default; it returns null.</p>
 
     <div class="trap">
       <svg class="ico" width="16" height="16" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5" aria-hidden="true"><circle cx="8" cy="8" r="6.3"/><path d="M5.6 5.6l4.8 4.8M10.4 5.6l-4.8 4.8"/></svg>
       <div>
-        <span class="ct">An empty Tasks array never advances</span>
-        <p>There is nothing to wait for and no child to report completion. Treat that as a configuration error rather than a way to no-op a node.</p>
+        <span class="ct">A missing key never logs anything</span>
+        <p>It returns the default and moves on. A typo in a key name therefore produces no error anywhere. It produces a condition that is quietly always false, which is the single most expensive failure mode in the plugin.</p>
       </div>
     </div>
 
-    <p>With <code>Wait For All</code> on, a child that never finishes holds the group forever. Put a <code>Time Limit</code> on the <a href="../nodes/task.html">Task node</a>. With it off, the first child to finish ends the group <em>and</em> the others with it, so do not rely on their side effects having completed.</p>
-
-    <h2 id="inherit">What the children inherit</h2>
-
-    <p>Child tasks are full tasks, so each carries its own presentation, rules and scoring fields. Three consequences follow.</p>
-
-    <ol class="steps">
-      <li><span class="sh">Each child's scoring applies</span><p>Three children with <code>Score On Success</code> of 10 add 30, on top of whatever the group itself scores.</p></li>
-      <li><span class="sh">Pause and resume propagate</span><p>To every child.</p></li>
-      <li><span class="sh">There is no per-child timeout</span><p>The group's <code>Time Limit</code> lives on the <a href="../nodes/task.html">Task node</a>, not on the children.</p>
-        <p class="tip"><b>This is the main limitation.</b> If you need per-branch timeouts, use real <a href="../nodes/parallel.html">Parallel</a> and <a href="../nodes/join.html">Join</a> nodes so each branch gets its own Task node.</p></li>
-    </ol>
-
-    <h2 id="which">Group, or Parallel and Join?</h2>
+    <h2 id="generic">Generic accessors</h2>
 
     <div class="tw">
       <table>
-        <caption>Choosing between the two shapes</caption>
-        <thead><tr><th scope="col">Use Parallel Group</th><th scope="col">Use Parallel + Join nodes</th></tr></thead>
+        <caption>USimFlowBlackboard, type-agnostic</caption>
+        <thead><tr><th scope="col">Node</th><th scope="col">Notes</th></tr></thead>
         <tbody>
-          <tr><td>Two or three simple concurrent tasks</td><td>Branches with several steps each</td></tr>
-          <tr><td>You want the graph compact</td><td>You want to see the structure in the graph</td></tr>
-          <tr><td>The branches share one outcome</td><td>Each branch needs its own timeout, retry or routing</td></tr>
-          <tr><td>No per-child failure routing needed</td><td>You need a <code>Failed</code> pin per branch</td></tr>
+          <tr><td class="t-name">Set Value</td><td>Takes a <a href="values.html">SimFlow Value</a>.</td></tr>
+          <tr><td class="t-name">Get Value</td><td>Returns an unset value when the key is missing.</td></tr>
+          <tr><td class="t-name">Has Value</td><td>The only way to tell "missing" from "set to the default".</td></tr>
+          <tr><td class="t-name">Remove Value</td><td>Deletes one key.</td></tr>
+          <tr><td class="t-name">Clear All</td><td>Empties the blackboard.</td></tr>
+          <tr><td class="t-name">Add To Value</td><td>Adds to the existing value, creating the key if absent.</td></tr>
         </tbody>
       </table>
     </div>
 
-    <h2 id="example">Narration alongside a physical step</h2>
+    <p>Reach for these when the type is not known until runtime, or when you are copying values around without caring what is in them.</p>
 
-    <p>A narration line plays while the trainee puts on the helmet. Moving on when the helmet is on, because the narration should not hold things up.</p>
+    <p><strong>Has Value</strong> earns its place. Because every typed getter folds a missing key into its default, <code>Get Int("Score", 0)</code> returning zero cannot tell you whether the trainee scored nothing or the key was never written. Has Value can.</p>
 
-    <ol class="steps">
-      <li><span class="sh">Add the group</span><p>A <a href="../nodes/task.html">Task node</a> with <strong>Task</strong> of <strong>Parallel Group</strong>. Under <strong>Tasks</strong>, click <strong>+</strong> twice.</p></li>
-      <li><span class="sh">Child 0 is the real step</span><p><a href="wait-for-event.html">Wait For Event</a>, event tag <code>SimFlow.Event.Grab</code>, with Expected Payload &#8594; Required Tags of <code>Item.Helmet</code>.</p></li>
-      <li><span class="sh">Child 1 is the narration window</span><p><a href="delay.html">Delay</a> with a Duration of <code>8</code>, the length of the narration, with your audio triggered from the Instruction UI.</p></li>
-      <li><span class="sh">Let the helmet win</span><p>Turn <strong>Wait For All</strong> off, so donning the helmet early moves things along. Turn <strong>Fail If Any Child Fails</strong> off, since the delay cannot fail.</p></li>
-      <li><span class="sh">Name it for the UI</span><p><strong>Display Name</strong> of <code>Don the helmet</code>.</p>
-        <p class="tip"><b>If the trainee must both don the helmet <em>and</em> hear the whole briefing</b>, leave <strong>Wait For All</strong> on.</p></li>
+    <h2 id="score">Score and serialisation</h2>
+
+    <div class="tw">
+      <table>
+        <caption>Score helpers and flattening</caption>
+        <thead><tr><th scope="col">Node</th><th scope="col">Notes</th></tr></thead>
+        <tbody>
+          <tr><td class="t-name">Add Score</td><td>Adds to the well-known <code>Score</code> key.</td></tr>
+          <tr><td class="t-name">Get Score</td><td>Reads it.</td></tr>
+          <tr><td class="t-name">To Entries</td><td>Flattens to an array. <code>Strip Object References</code> defaults to true.</td></tr>
+          <tr><td class="t-name">From Entries</td><td>Restores. <code>Clear First</code> defaults to true.</td></tr>
+          <tr><td class="t-name">Merge From</td><td>Copies every entry from another blackboard. <code>Overwrite Existing</code> defaults to true.</td></tr>
+        </tbody>
+      </table>
+    </div>
+
+    <p><strong>Merge From</strong> is what <a href="../nodes/sub-flow.html">Sub Flow</a> uses to hand state between parent and child. Call it directly to seed a fresh flow from a previous run's results.</p>
+
+    <h2 id="changed">On Value Changed</h2>
+
+    <p>An event dispatcher, not a function. It fires on every write, carrying the key and the new value.</p>
+
+    <figure>
+      <pre class="graph"><code>Get Blackboard ──▶ Bind Event to On Value Changed ──▶ [ if Key == Score, refresh widget ]</code></pre>
+      <figcaption>Binding this is how a live score display avoids polling. It fires for every key, so filter.</figcaption>
+    </figure>
+
+    <h2 id="example">A score widget with no polling</h2>
+
+    <ol>
+      <li>On <strong>Event Construct</strong>, get the flow and then <strong>Get Blackboard</strong>.</li>
+      <li><strong>Bind Event to On Value Changed</strong>.</li>
+      <li>In the bound event, branch on <code>Key == Score</code>.</li>
+      <li>On true, call <strong>Get Score</strong> and set your text.</li>
     </ol>
 
     <h2 id="misbehaves">When it misbehaves</h2>
@@ -218,21 +267,21 @@
       <table>
         <thead><tr><th scope="col">Symptom</th><th scope="col">Cause</th></tr></thead>
         <tbody>
-          <tr><td>The group never finishes</td><td><code>Wait For All</code> is on and a child is waiting for something that never arrives.</td></tr>
-          <tr><td>A child's work got cut short</td><td><code>Wait For All</code> is off, so the first child to finish ended the group and took the others with it.</td></tr>
-          <tr><td>The score is higher than expected</td><td>Every child's <code>Score On Success</code> contributes, on top of the group's own.</td></tr>
-          <tr><td>One child needs its own timeout</td><td>Not possible inside a group. Use <a href="../nodes/parallel.html">Parallel</a> and <a href="../nodes/join.html">Join</a> nodes.</td></tr>
-          <tr><td>A child failure failed everything</td><td><code>Fail If Any Child Fails</code> is on by default. Turn it off for optional children.</td></tr>
+          <tr><td>A getter returns the default and the key is definitely set</td><td>Key names are <code>FName</code> and case-insensitive, so that is not it. Check for a trailing space, or print the blackboard with <code>SimFlow.Debug 1</code>.</td></tr>
+          <tr><td>Set Object survived into the next session</td><td>It did not. Object values are stripped on save and read back null.</td></tr>
+          <tr><td>Add To Value concatenated instead of adding</td><td>The key holds a String. <code>"1"</code> plus <code>"1"</code> is <code>"11"</code>. Use Int for counters.</td></tr>
+          <tr><td>On Value Changed fires constantly</td><td>It fires for every key. Filter on the key pin.</td></tr>
+          <tr><td>Changes made on a client vanish</td><td>The blackboard replicates server to client when <code>Replicate Blackboard</code> is on. Client writes are overwritten.</td></tr>
         </tbody>
       </table>
     </div>
 
     <h2 id="related">Related</h2>
-    <p><a href="../nodes/parallel.html">Parallel node</a> &middot; <a href="../nodes/join.html">Join node</a> &middot; <a href="../nodes/task.html">Task node</a></p>
+    <p><a href="values.html">Value Nodes</a> &middot; <a href="../dev/blackboard-internals.html">Blackboard &amp; Values internals</a> &middot; <a href="../nodes/set-blackboard.html">Set Blackboard Value node</a></p>
 
     <nav class="pager" aria-label="Page navigation">
-      <a href="quiz.html"><span class="d">Previous</span><span class="t">Quiz</span></a>
-      <a class="next" href="place-object-in-zone.html"><span class="d">Next</span><span class="t">Place Object In Zone</span></a>
+      <a href="values.html"><span class="d">Previous</span><span class="t">Values</span></a>
+      <a class="next" href="instance.html"><span class="d">Next</span><span class="t">Flow Instance</span></a>
     </nav>
 
     <div class="foot">

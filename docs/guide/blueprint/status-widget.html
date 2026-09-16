@@ -3,8 +3,8 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>Parallel Node | SimFlow User Guide</title>
-<meta name="description" content="Parallel Node (USimFlowNode_Parallel) in SimFlow: Fires every output at once so several sections run together. Fields, pins, worked example and failure modes.">
+<title>Status Widget Nodes | SimFlow User Guide</title>
+<meta name="description" content="Status Widget Nodes (USimFlowStatusWidget) in SimFlow: The UMG base class for tutorial panels: bindings, button handlers and design events. Node tables, a worked example and the failure modes.">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500;600&family=IBM+Plex+Sans:wght@400;500;600&display=swap">
@@ -56,14 +56,14 @@
       <li><a href="../06-ui-and-vr.html"><span class="num">06</span><span>Driving UI &amp; VR Feedback</span></a></li>
       <li><a href="../07-troubleshooting.html"><span class="num">07</span><span>Troubleshooting</span></a></li>
     </ol>
-    <details class="navgroup" open>
+    <details class="navgroup">
       <summary>Node Reference</summary>
       <ul>
         <li><a href="../nodes/start.html"><span class="num">&#183;</span><span>Start</span></a></li>
         <li><a href="../nodes/delay.html"><span class="num">&#183;</span><span>Delay</span></a></li>
         <li><a href="../nodes/branch.html"><span class="num">&#183;</span><span>Branch</span></a></li>
         <li><a href="../nodes/random-branch.html"><span class="num">&#183;</span><span>Random Branch</span></a></li>
-        <li><a href="../nodes/parallel.html" aria-current="page"><span class="num">&#183;</span><span>Parallel</span></a></li>
+        <li><a href="../nodes/parallel.html"><span class="num">&#183;</span><span>Parallel</span></a></li>
         <li><a href="../nodes/join.html"><span class="num">&#183;</span><span>Join</span></a></li>
         <li><a href="../nodes/loop.html"><span class="num">&#183;</span><span>Loop</span></a></li>
         <li><a href="../nodes/finish.html"><span class="num">&#183;</span><span>Finish</span></a></li>
@@ -88,7 +88,7 @@
         <li><a href="../tasks/ordered-sequence.html"><span class="num">&#183;</span><span>Ordered Sequence</span></a></li>
       </ul>
     </details>
-    <details class="navgroup">
+    <details class="navgroup" open>
       <summary>Blueprint Nodes</summary>
       <ul>
         <li><a href="../blueprint/flow-access.html"><span class="num">&#183;</span><span>Flow Access</span></a></li>
@@ -98,7 +98,7 @@
         <li><a href="../blueprint/instance.html"><span class="num">&#183;</span><span>Flow Instance</span></a></li>
         <li><a href="../blueprint/subsystem.html"><span class="num">&#183;</span><span>Subsystem</span></a></li>
         <li><a href="../blueprint/player-component.html"><span class="num">&#183;</span><span>Player Component</span></a></li>
-        <li><a href="../blueprint/status-widget.html"><span class="num">&#183;</span><span>Status Widget</span></a></li>
+        <li><a href="../blueprint/status-widget.html" aria-current="page"><span class="num">&#183;</span><span>Status Widget</span></a></li>
         <li><a href="../blueprint/world-queries.html"><span class="num">&#183;</span><span>Zones &amp; Identity</span></a></li>
         <li><a href="../blueprint/graph-introspection.html"><span class="num">&#183;</span><span>Graph Introspection</span></a></li>
       </ul>
@@ -130,74 +130,148 @@
     <nav class="crumbs" aria-label="Breadcrumb">
       <ol>
         <li><a href="../index.html">User Guide</a></li>
-        <li><svg width="11" height="11" viewBox="0 0 12 12" fill="none" stroke="currentColor" stroke-width="1.6" aria-hidden="true"><path d="m4.5 2.5 3.5 3.5-3.5 3.5"/></svg><a href="../03-authoring.html">Node Reference</a></li>
-        <li><svg width="11" height="11" viewBox="0 0 12 12" fill="none" stroke="currentColor" stroke-width="1.6" aria-hidden="true"><path d="m4.5 2.5 3.5 3.5-3.5 3.5"/></svg><span aria-current="page">Parallel</span></li>
+        <li><svg width="11" height="11" viewBox="0 0 12 12" fill="none" stroke="currentColor" stroke-width="1.6" aria-hidden="true"><path d="m4.5 2.5 3.5 3.5-3.5 3.5"/></svg><a href="../05-runtime-blueprint.html">Blueprint Nodes</a></li>
+        <li><svg width="11" height="11" viewBox="0 0 12 12" fill="none" stroke="currentColor" stroke-width="1.6" aria-hidden="true"><path d="m4.5 2.5 3.5 3.5-3.5 3.5"/></svg><span aria-current="page">Status Widget</span></li>
       </ol>
     </nav>
 
-    <p class="eyebrow">Node Reference</p>
-    <h1>Parallel Node</h1>
+    <p class="eyebrow">Blueprint Nodes</p>
+    <h1>Status Widget Nodes</h1>
 
     <dl class="idcard">
-      <dt>Class</dt><dd><code>USimFlowNode_Parallel</code></dd>
-      <dt>Add via</dt><dd>Right-click &#8594; <strong>Flow Control &#8594; Parallel</strong></dd>
-      <dt>Pins</dt><dd><code>In</code> &#8594; <code>Out 0</code> &#8230; <code>Out N</code></dd>
-      <dt>Category</dt><dd>Flow Control</dd>
+      <dt>Class</dt><dd><code>USimFlowStatusWidget</code>, abstract</dd>
+      <dt>Use it by</dt><dd>Reparenting your UMG widget Blueprint to it</dd>
+      <dt>Works as</dt><dd>A screen-space HUD or a world-space VR panel</dd>
+      <dt>Category</dt><dd>SimFlow</dd>
     </dl>
 
-    <p class="usefor"><b>Use it for:</b> things that genuinely happen together. A countdown ticking while the trainee works, ambient narration over a procedure, two independent sub-tasks.</p>
+    <p class="usefor"><b>Use it for:</b> a tutorial panel that finds its own flow, updates itself, and forwards its buttons correctly in multiplayer.</p>
 
-    <p>It fires every output at once, so several sections of the graph run at the same time. Pair it with a <a href="join.html">Join</a> when the branches need to come back together.</p>
+    <p>Reparent your widget to this and you get the flow lookup, the event bindings and the button handlers already wired. You supply the layout. The alternative is calling <a href="flow-access.html">Get Primary Flow</a> yourself and binding every dispatcher by hand.</p>
 
-    <h2 id="fields">The one field</h2>
+    <h2 id="setup">Setup</h2>
+
+    <ol>
+      <li>Open your widget Blueprint.</li>
+      <li><strong>File &#8594; Reparent Blueprint &#8594; SimFlow Status Widget</strong>.</li>
+      <li>Leave <strong>Auto Bind</strong> on.</li>
+      <li>Set <strong>Flow Save Id</strong> if you have more than one flow, or leave it <code>None</code> to follow the primary one.</li>
+    </ol>
 
     <div class="tw">
       <table>
-        <caption>USimFlowNode_Parallel, Details panel</caption>
+        <caption>USimFlowStatusWidget, Details panel</caption>
         <thead><tr><th scope="col">Field</th><th scope="col">Type</th><th scope="col">Default</th><th scope="col">Meaning</th></tr></thead>
         <tbody>
-          <tr><td class="t-name">Num Outputs</td><td class="t-type">Int, 2 to 16</td><td class="t-def">2</td><td>How many output pins. Clamped if you go outside the range.</td></tr>
+          <tr><td class="t-name">Flow Save Id</td><td class="t-type">Name</td><td class="t-def">None</td><td>Which flow to watch. <code>None</code> follows the primary flow.</td></tr>
+          <tr><td class="t-name">Auto Bind</td><td class="t-type">Bool</td><td class="t-def">true</td><td>Keep looking every frame until a flow turns up.</td></tr>
         </tbody>
       </table>
     </div>
 
-    <p>Changing it rebuilds the pins, which are named <code>Out_0</code> through <code>Out_N</code>. Reducing the count drops the removed pins and their links; links on the surviving pins are kept.</p>
+    <p><strong>Auto Bind</strong> is what makes the widget survive being created before the flow starts. It re-checks on tick until it finds one, then stops.</p>
 
-    <h2 id="unwired">Unwired pins are skipped, not fired</h2>
+    <h2 id="binding">Binding</h2>
 
-    <p>The node snapshots which pins actually have links and fires only those. An unused output costs nothing, and wiring only some of them is fine.</p>
+    <div class="tw">
+      <table>
+        <caption>USimFlowStatusWidget, binding</caption>
+        <thead><tr><th scope="col">Node</th><th scope="col">Notes</th></tr></thead>
+        <tbody>
+          <tr><td class="t-name">Bind To Flow</td><td>Point the widget at a specific component. Unbinds the old flow first.</td></tr>
+          <tr><td class="t-name">Unbind From Flow</td><td>Stop watching.</td></tr>
+          <tr><td class="t-name">Get Bound Flow</td><td>The component, or null.</td></tr>
+        </tbody>
+      </table>
+    </div>
 
-    <p>The flip side is that if you wire none of them, the node finishes without triggering anything and that line of execution quietly ends.</p>
+    <p>Call <strong>Bind To Flow</strong> when you want to choose the flow yourself, such as an instructor panel switching between scenarios. Turn <strong>Auto Bind</strong> off if you do, or the widget drifts back to the primary flow.</p>
 
-    <p>Branches that never converge each run to their own end. If one of them reaches a <a href="finish.html">Finish</a> with <code>Stop Other Branches</code> on, the rest are killed wherever they happen to be.</p>
+    <h2 id="queries">Reading state</h2>
+
+    <div class="tw">
+      <table>
+        <caption>USimFlowStatusWidget, pure queries</caption>
+        <thead><tr><th scope="col">Node</th><th scope="col">Returns</th></tr></thead>
+        <tbody>
+          <tr><td class="t-name">Get Task Name</td><td>The current task's display name.</td></tr>
+          <tr><td class="t-name">Get Instruction</td><td>The current task's instruction text.</td></tr>
+          <tr><td class="t-name">Get Progress</td><td>0 to 1.</td></tr>
+          <tr><td class="t-name">Get Score</td><td>The <code>Score</code> blackboard key.</td></tr>
+          <tr><td class="t-name">Get Time Remaining Text</td><td>Already formatted as <code>MM:SS</code>.</td></tr>
+          <tr><td class="t-name">Is Flow Paused</td><td>bool</td></tr>
+          <tr><td class="t-name">Can Retry</td><td>Whether the current task allows it.</td></tr>
+          <tr><td class="t-name">Can Skip</td><td>Whether the current task allows it.</td></tr>
+        </tbody>
+      </table>
+    </div>
+
+    <p>All safe when nothing is bound: they return empty text, zero or false. Wire them to property bindings on your text blocks and progress bars. They resolve against the flow asset rather than replicated text, so they read correctly on clients.</p>
+
+    <p><strong>Can Retry</strong> and <strong>Can Skip</strong> are what your buttons' <strong>Is Enabled</strong> bindings want. A greyed-out skip button on a task that does not allow skipping beats a button that does nothing.</p>
+
+    <h2 id="buttons">Buttons</h2>
+
+    <div class="tw">
+      <table>
+        <caption>USimFlowStatusWidget, wire these to On Clicked</caption>
+        <thead><tr><th scope="col">Node</th><th scope="col">Notes</th></tr></thead>
+        <tbody>
+          <tr><td class="t-name">Request Pause Toggle</td><td></td></tr>
+          <tr><td class="t-name">Request Retry</td><td></td></tr>
+          <tr><td class="t-name">Request Skip</td><td></td></tr>
+          <tr><td class="t-name">Request Restart</td><td></td></tr>
+          <tr><td class="t-name">Submit Quiz Answer</td><td>Answers the quiz on screen, by option index.</td></tr>
+          <tr><td class="t-name">Get Current Quiz</td><td>The quiz task, or null. Read Question and Options off it.</td></tr>
+        </tbody>
+      </table>
+    </div>
+
+    <p>Each routes through the flow's component, so they forward to the server on a client without you doing anything.</p>
+
+    <h2 id="design-events">Design events</h2>
+
+    <div class="tw">
+      <table>
+        <caption>USimFlowStatusWidget, override these in your graph</caption>
+        <thead><tr><th scope="col">Event</th><th scope="col">Fires when</th><th scope="col">Carries</th></tr></thead>
+        <tbody>
+          <tr><td class="t-name">On Flow Bound</td><td>The widget finds its flow</td><td>The component</td></tr>
+          <tr><td class="t-name">On Flow Started</td><td>The run begins</td><td></td></tr>
+          <tr><td class="t-name">On Flow Paused</td><td></td><td></td></tr>
+          <tr><td class="t-name">On Flow Resumed</td><td></td><td></td></tr>
+          <tr><td class="t-name">On Flow Finished</td><td>The run ends</td><td>The final run state</td></tr>
+          <tr><td class="t-name">On Task Started</td><td>A task begins</td><td>The task</td></tr>
+          <tr><td class="t-name">On Task Finished</td><td>A task ends</td><td>The task and its result</td></tr>
+          <tr><td class="t-name">On Quiz Presented</td><td>A quiz appears</td><td>The quiz task</td></tr>
+          <tr><td class="t-name">On Flow State Replicated</td><td>Server state arrives on a client</td><td></td></tr>
+        </tbody>
+      </table>
+    </div>
 
     <div class="note">
       <svg class="ico" width="16" height="16" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5" aria-hidden="true"><circle cx="8" cy="8" r="6.3"/><path d="M8 7.2v4M8 4.9v.7"/></svg>
       <div>
-        <span class="ct">Parallel is not threaded</span>
-        <p>Branches are interleaved on the game thread, tick by tick. "Parallel" here means several parts of the graph are active at once, not that anything runs concurrently. Do not rely on ordering within a single tick.</p>
+        <span class="ct">Do first-time setup in On Flow Bound, not Event Construct</span>
+        <p>At construct time there may be no flow yet, which is the whole reason Auto Bind exists. On Flow Bound fires the moment there is one, whether that is immediately or forty frames later.</p>
       </div>
     </div>
 
-    <h2 id="example">A timer running alongside the work</h2>
+    <p><strong>On Flow State Replicated</strong> fires only on clients, every time the server's state arrives. Refresh anything you cached there rather than recomputing on tick. Bindings that call the query nodes update on their own.</p>
 
-    <p>The trainee performs a procedure while a sixty-second countdown runs. Whoever finishes first ends the section.</p>
+    <h2 id="example">A VR wrist panel</h2>
 
-    <ol class="steps">
-      <li><span class="sh">Add the Parallel node</span><p>Right-click, then <strong>Flow Control &#8594; Parallel</strong>. Leave <strong>Num Outputs</strong> at <code>2</code>.</p></li>
-      <li><span class="sh">Wire the work</span><p><strong>Out 0</strong> into the procedure, a <a href="task.html">Task node</a> running <a href="../tasks/ordered-sequence.html">Ordered Sequence</a>.</p></li>
-      <li><span class="sh">Wire the timer</span><p><strong>Out 1</strong> into a <a href="delay.html">Delay node</a> set to <code>60</code>.</p></li>
-      <li><span class="sh">Race them</span><p>Add a <a href="join.html">Join</a> with <strong>Mode</strong> set to <strong>Wait For Any (Race)</strong>. Wire the end of the procedure into <code>In 0</code> and the Delay's <code>Out</code> into <code>In 1</code>, then wire the Join's <code>Out</code> onward.</p>
-        <p class="tip"><b>The Join swallows the loser.</b> Without it, the downstream section would run twice, once per branch.</p></li>
+    <ol>
+      <li>Reparent the widget to <strong>SimFlow Status Widget</strong>.</li>
+      <li>Bind a text block to <strong>Get Instruction</strong>, another to <strong>Get Task Name</strong>.</li>
+      <li>Bind a progress bar to <strong>Get Progress</strong>.</li>
+      <li>Bind a countdown text block to <strong>Get Time Remaining Text</strong>.</li>
+      <li>Add retry and skip buttons wired to <strong>Request Retry</strong> and <strong>Request Skip</strong>, with their <strong>Is Enabled</strong> bound to <strong>Can Retry</strong> and <strong>Can Skip</strong>.</li>
+      <li>Override <strong>On Quiz Presented</strong> to swap to your quiz panel, building the buttons from <strong>Get Current Quiz</strong>.</li>
+      <li>Put the widget on a Widget Component on the player's wrist.</li>
     </ol>
 
-    <figure>
-      <pre class="graph"><code>              ┌────────────┐  Out 0 ──▶ Ordered Sequence ──┐   ┌──────────┐
-   ───────────┤  Parallel  │                               ├──▶│   Join   ├──▶
-              │            │  Out 1 ──▶ Delay 60s ─────────┘   │ Wait Any │
-              └────────────┘                                   └──────────┘</code></pre>
-      <figcaption>Whichever branch arrives first wins. The Join absorbs the other one when it turns up.</figcaption>
-    </figure>
+    <p>Nothing in there names a flow, so the same panel works in every level.</p>
 
     <h2 id="misbehaves">When it misbehaves</h2>
 
@@ -205,20 +279,22 @@
       <table>
         <thead><tr><th scope="col">Symptom</th><th scope="col">Cause</th></tr></thead>
         <tbody>
-          <tr><td>Only one branch runs</td><td>The other pin is not wired. Unwired pins are skipped rather than fired.</td></tr>
-          <tr><td>The section after the branches ran twice</td><td>Both branches reached it independently. Put a <a href="join.html">Join</a> in <strong>Wait For All</strong> mode between them.</td></tr>
-          <tr><td>A branch was cut off mid-task</td><td>Something downstream hit a <a href="finish.html">Finish</a> with <code>Stop Other Branches</code> on.</td></tr>
-          <tr><td>Nothing happened at all</td><td>No output pin is wired, so the node finished without firing anything.</td></tr>
+          <tr><td>Everything is blank</td><td>No flow is bound. Check <code>Auto Bind</code> is on, or that <code>Flow Save Id</code> matches a component in the level.</td></tr>
+          <tr><td>It binds to the wrong flow</td><td><code>Flow Save Id</code> is <code>None</code> and several flows are running, so it took the primary one.</td></tr>
+          <tr><td>Bindings stop updating after a restart</td><td>The widget rebinds on its own with Auto Bind on. With it off, call Bind To Flow again.</td></tr>
+          <tr><td>Buttons do nothing on a client</td><td>The PlayerController has no <a href="player-component.html">SimFlow Player Component</a>.</td></tr>
+          <tr><td>The countdown reads <code>00:00</code> on every task</td><td>Those tasks have no <code>Time Limit</code>.</td></tr>
+          <tr><td>On Flow Started never fires</td><td>The widget was created after the flow started, so it missed the event. Use On Flow Bound for setup.</td></tr>
         </tbody>
       </table>
     </div>
 
     <h2 id="related">Related</h2>
-    <p><a href="join.html">Join node</a> &middot; <a href="../tasks/parallel-group.html">Parallel Group task</a> &middot; <a href="finish.html">Finish node</a></p>
+    <p><a href="values.html">Value Nodes</a> &middot; <a href="player-component.html">Player Component</a> &middot; <a href="../06-ui-and-vr.html">Driving UI &amp; VR Feedback</a></p>
 
     <nav class="pager" aria-label="Page navigation">
-      <a href="random-branch.html"><span class="d">Previous</span><span class="t">Random Branch</span></a>
-      <a class="next" href="join.html"><span class="d">Next</span><span class="t">Join</span></a>
+      <a href="player-component.html"><span class="d">Previous</span><span class="t">Player Component</span></a>
+      <a class="next" href="world-queries.html"><span class="d">Next</span><span class="t">Zones &amp; Identity</span></a>
     </nav>
 
     <div class="foot">

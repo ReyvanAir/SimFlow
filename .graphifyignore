@@ -13,3 +13,8 @@
 
 # NOTE: /docs, README.md and CHANGELOG.md are deliberately NOT excluded.
 # They carry the design rationale the graph needs to answer "why" questions.
+
+# Guide build inputs. Every fragment here is the body of a page already in
+# docs/guide/, so extracting both would double-count the whole reference
+# section and split its communities.
+/docs/guide/_build

@@ -3,8 +3,8 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>Custom Tasks and Conditions | SimFlow User Guide</title>
-<meta name="description" content="SimFlow developer guide: The task lifecycle, and writing tasks and conditions in C++ or Blueprint.">
+<title>Flow Access Nodes | SimFlow User Guide</title>
+<meta name="description" content="Flow Access Nodes (USimFlowStatics) in SimFlow: Getting hold of a running flow from anywhere: Get Primary Flow, Find Flow By Id, Get Flow From Actor. Node tables, a worked example and the failure modes.">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500;600&family=IBM+Plex+Sans:wght@400;500;600&display=swap">
@@ -88,10 +88,10 @@
         <li><a href="../tasks/ordered-sequence.html"><span class="num">&#183;</span><span>Ordered Sequence</span></a></li>
       </ul>
     </details>
-    <details class="navgroup">
+    <details class="navgroup" open>
       <summary>Blueprint Nodes</summary>
       <ul>
-        <li><a href="../blueprint/flow-access.html"><span class="num">&#183;</span><span>Flow Access</span></a></li>
+        <li><a href="../blueprint/flow-access.html" aria-current="page"><span class="num">&#183;</span><span>Flow Access</span></a></li>
         <li><a href="../blueprint/control-and-save.html"><span class="num">&#183;</span><span>Control &amp; Save</span></a></li>
         <li><a href="../blueprint/values.html"><span class="num">&#183;</span><span>Values</span></a></li>
         <li><a href="../blueprint/blackboard-nodes.html"><span class="num">&#183;</span><span>Blackboard Nodes</span></a></li>
@@ -103,13 +103,13 @@
         <li><a href="../blueprint/graph-introspection.html"><span class="num">&#183;</span><span>Graph Introspection</span></a></li>
       </ul>
     </details>
-    <details class="navgroup" open>
+    <details class="navgroup">
       <summary>Developer Guide</summary>
       <ul>
         <li><a href="../dev/architecture.html"><span class="num">&#183;</span><span>Architecture & Modules</span></a></li>
         <li><a href="../dev/execution-model.html"><span class="num">&#183;</span><span>Execution Model</span></a></li>
         <li><a href="../dev/custom-nodes.html"><span class="num">&#183;</span><span>Writing a Custom Node</span></a></li>
-        <li><a href="../dev/custom-tasks.html" aria-current="page"><span class="num">&#183;</span><span>Custom Tasks & Conditions</span></a></li>
+        <li><a href="../dev/custom-tasks.html"><span class="num">&#183;</span><span>Custom Tasks & Conditions</span></a></li>
         <li><a href="../dev/blackboard-internals.html"><span class="num">&#183;</span><span>Blackboard & Values</span></a></li>
         <li><a href="../dev/persistence.html"><span class="num">&#183;</span><span>Save and Load Internals</span></a></li>
         <li><a href="../dev/replication.html"><span class="num">&#183;</span><span>Replication</span></a></li>
@@ -130,136 +130,106 @@
     <nav class="crumbs" aria-label="Breadcrumb">
       <ol>
         <li><a href="../index.html">User Guide</a></li>
-        <li><svg width="11" height="11" viewBox="0 0 12 12" fill="none" stroke="currentColor" stroke-width="1.6" aria-hidden="true"><path d="m4.5 2.5 3.5 3.5-3.5 3.5"/></svg><span>Developer Guide</span></li>
-        <li><svg width="11" height="11" viewBox="0 0 12 12" fill="none" stroke="currentColor" stroke-width="1.6" aria-hidden="true"><path d="m4.5 2.5 3.5 3.5-3.5 3.5"/></svg><span aria-current="page">Custom Tasks & Conditions</span></li>
+        <li><svg width="11" height="11" viewBox="0 0 12 12" fill="none" stroke="currentColor" stroke-width="1.6" aria-hidden="true"><path d="m4.5 2.5 3.5 3.5-3.5 3.5"/></svg><a href="../05-runtime-blueprint.html">Blueprint Nodes</a></li>
+        <li><svg width="11" height="11" viewBox="0 0 12 12" fill="none" stroke="currentColor" stroke-width="1.6" aria-hidden="true"><path d="m4.5 2.5 3.5 3.5-3.5 3.5"/></svg><span aria-current="page">Flow Access</span></li>
       </ol>
     </nav>
 
-    <p class="eyebrow">Developer Guide</p>
-    <h1>Custom Tasks and Conditions</h1>
+    <p class="eyebrow">Blueprint Nodes</p>
+    <h1>Flow Access Nodes</h1>
 
     <dl class="idcard">
-      <dt>Base classes</dt><dd><code>USimFlowTask</code>, <code>USimFlowCondition</code></dd>
-      <dt>Class flags</dt><dd><code>Abstract</code>, <code>Blueprintable</code>, <code>EditInlineNew</code>, <code>DefaultToInstanced</code>, <code>CollapseCategories</code></dd>
-      <dt>Language</dt><dd>C++ or Blueprint. Both work.</dd>
+      <dt>Library</dt><dd><code>USimFlowStatics</code></dd>
+      <dt>Add via</dt><dd>Right-click in any Blueprint graph &#8594; type the node name</dd>
+      <dt>Target pin</dt><dd>None. These are static.</dd>
+      <dt>Category</dt><dd>SimFlow</dd>
     </dl>
 
-    <p class="usefor"><b>This is the extension point you will reach for most.</b> Those class flags are what make a task appear as an inline, configurable object in the Details panel rather than as a separate asset to create and wire up.</p>
+    <p class="usefor"><b>Use them for:</b> getting hold of a running flow from a prop, a widget or a controller, without wiring an actor reference through the level.</p>
 
-    <h2 id="lifecycle">The task lifecycle</h2>
-
-    <p><code>USimFlowNode_Task</code> owns a <code>USimFlowTask</code> as an <code>Instanced</code> sub-object and drives it. C++ overrides are <code>NativeTaskStart</code>, <code>NativeTaskTick</code>, <code>NativeTaskPause</code>, <code>NativeTaskResume</code> and <code>NativeTaskEnd</code>. Blueprint gets <code>ReceiveTaskStart</code> and friends. Both fire, native first.</p>
-
-    <pre><code>ExecuteInput      → InitializeTask → StartTask → NativeTaskStart, ReceiveTaskStart
-TickNode          → TickTask → NativeTaskTick, ReceiveTaskTick
-                  → abort condition checked
-                  → time limit checked
-FinishTask(Result)→ score applied → NativeTaskEnd, ReceiveTaskEnd
-                  → OnTaskFinished broadcast
-                  → OwningNode-&gt;HandleTaskFinished(Result)</code></pre>
-
-    <p><code>HandleTaskFinished</code> applies auto-retry if the node is configured for it, then maps the result to a pin. With <code>bFallbackToCompleted</code>, an unwired <code>Failed</code>, <code>Skipped</code> or <code>TimedOut</code> pin falls through to <code>Completed</code>.</p>
-
-    <div class="note">
-      <svg class="ico" width="16" height="16" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5" aria-hidden="true"><circle cx="8" cy="8" r="6.3"/><path d="M8 7.2v4M8 4.9v.7"/></svg>
-      <div>
-        <span class="ct">FinishTask is safe to call twice</span>
-        <p>It is guarded by <code>bFinishRequested</code>, so a double-fire from an event binding does no harm. You do not need to defend against it in your own code.</p>
-      </div>
-    </div>
-
-    <p>Read-only runtime fields available on the task while it runs: <code>bIsRunning</code>, <code>bIsPaused</code>, <code>ElapsedTime</code>, <code>RetryCount</code>, <code>FlowInstance</code>, <code>OwningNode</code>.</p>
-
-    <h2 id="task-example">A custom task</h2>
-
-    <pre><code>UCLASS(DisplayName = "Hold Trigger")
-class MYGAME_API USimFlowTask_HoldTrigger : public USimFlowTask
-{
-    GENERATED_BODY()
-public:
-    UPROPERTY(EditAnywhere, Category = "Hold")
-    float RequiredSeconds = 2.f;
-
-    virtual void NativeTaskStart() override { Held = 0.f; }
-
-    virtual void NativeTaskTick(float DeltaTime) override
-    {
-        Held = IsTriggerHeld() ? Held + DeltaTime : 0.f;
-        if (Held &gt;= RequiredSeconds) FinishTask(ESimFlowResult::Succeeded);
-    }
-
-    virtual void NativeTaskEnd(ESimFlowResult Result) override { /* unbind */ }
-
-private:
-    float Held = 0.f;
-};</code></pre>
-
-    <p>The class appears in the Task dropdown on its own, with <code>RequiredSeconds</code> inline underneath. Retry, skip, timeout, pause and scoring all come from the <a href="../nodes/task.html">Task node</a> without you implementing any of it.</p>
-
-    <h3 id="blueprint-task">The same thing in Blueprint</h3>
-
-    <ol class="steps">
-      <li><span class="sh">Create the class</span><p>Blueprint Class from <strong>SimFlow Task</strong>.</p></li>
-      <li><span class="sh">Set up in On Task Start</span><p>Override <strong>On Task Start</strong>. Bind whatever you need to listen to.</p></li>
-      <li><span class="sh">Finish with a result</span><p>Call <strong>Finish Task</strong> with <code>Succeeded</code> or <code>Failed</code> when the work is done.</p></li>
-      <li><span class="sh">Clean up in On Task End</span><p>Unbind everything you bound. This fires however the task ended, including a timeout or an abort.</p>
-        <p class="tip"><b>Use <code>Set Saved Value</code> and <code>Get Saved Value</code></b> for state that has to survive a save and reload. They write into <code>FSimFlowNodeSaveState::CustomData</code> for you.</p></li>
-    </ol>
-
-    <h3 id="base-helpers">What the base class gives you</h3>
+    <p>Before you can do anything to a flow you need the <a href="../05-runtime-blueprint.html">SimFlow Component</a> running it. These three nodes are how you get one.</p>
 
     <div class="tw">
       <table>
-        <caption>USimFlowTask helpers, all Blueprint-callable</caption>
-        <thead><tr><th scope="col">Function</th><th scope="col">Returns or does</th></tr></thead>
+        <caption>USimFlowStatics, flow lookup</caption>
+        <thead><tr><th scope="col">Node</th><th scope="col">Returns</th><th scope="col">Use when</th></tr></thead>
         <tbody>
-          <tr><td class="t-name">Get Flow Owner</td><td>The actor owning the flow component.</td></tr>
-          <tr><td class="t-name">Get Player Pawn</td><td>The player pawn, which is the VR pawn in a VR project.</td></tr>
-          <tr><td class="t-name">Get Blackboard</td><td>The running instance's blackboard.</td></tr>
-          <tr><td class="t-name">Record Mistake</td><td>(Kind, Involved, Description, Severity). Lands in the instance's mistake list for the debrief.</td></tr>
-          <tr><td class="t-name">Apply Mismatch Policy</td><td>The shared right-event-wrong-object handling, so your task grades like the built-ins do.</td></tr>
-          <tr><td class="t-name">Set Saved Value / Get Saved Value</td><td>Persisted per-task state.</td></tr>
+          <tr><td class="t-name">Get Primary Flow</td><td>The main running flow, or null</td><td>One scenario is running. The common case.</td></tr>
+          <tr><td class="t-name">Find Flow By Id</td><td>The flow with that <code>Flow Save Id</code>, or null</td><td>Several flows are running</td></tr>
+          <tr><td class="t-name">Get Flow From Actor</td><td>That actor's component, or null</td><td>You already have the actor</td></tr>
         </tbody>
       </table>
     </div>
 
-    <h2 id="conditions">Conditions</h2>
+    <p>All three are pure nodes, so they have no execution pins and re-run wherever you drag the output.</p>
 
-    <p>Conditions override <code>NativeEvaluate(USimFlowInstance*) const</code>. <code>Evaluate</code> is non-const, applies <code>bInvert</code>, and lets a Blueprint <code>ReceiveEvaluate</code> override the native result.</p>
+    <h2 id="primary">Get Primary Flow</h2>
 
-    <pre><code>UCLASS(DisplayName = "Player Is Crouching")
-class MYGAME_API USimFlowCondition_Crouching : public USimFlowCondition
-{
-    GENERATED_BODY()
-public:
-    virtual bool NativeEvaluate(USimFlowInstance* Instance) const override
-    {
-        const APawn* P = /* resolve from Instance */;
-        return P &amp;&amp; P-&gt;bIsCrouched;
-    }
+    <p>It returns the first flow that is running or paused. When none are, it falls back to the first flow registered with the <a href="subsystem.html">subsystem</a>, which is usually one that has not started yet.</p>
 
-    virtual FText GetConditionDescription_Implementation() const override
-    {
-        return NSLOCTEXT("MyGame", "Crouch", "Player is crouching");
-    }
-};</code></pre>
+    <p>That fallback is deliberate. It means you can call the node on BeginPlay and get a valid component back to call <code>Start Flow</code> on. It also means a non-null return does not prove anything is running, so check <code>Is Flow Running</code> when that matters.</p>
+
+    <figure>
+      <pre class="graph"><code>Get Primary Flow ──▶ Is Valid ──▶ Get Current Instruction ──▶ Set Text</code></pre>
+      <figcaption>The shortest useful chain: find the flow, read what the trainee is meant to be doing.</figcaption>
+    </figure>
+
+    <p>"First" means first registered, which is BeginPlay order. With one flow in the level that is unambiguous. With several it is not, so use <strong>Find Flow By Id</strong> instead.</p>
+
+    <h2 id="by-id">Find Flow By Id</h2>
+
+    <p>It matches against the component's <strong>Flow Save Id</strong>. An empty or <code>None</code> id never matches anything, so a flow you want to address this way needs that field set.</p>
+
+    <p>The same lookup backs <code>Send Flow Event</code> and the client control routing, which is why setting <code>Flow Save Id</code> is worth doing the moment you have more than one flow.</p>
+
+    <h2 id="from-actor">Get Flow From Actor</h2>
+
+    <p>A thin wrapper around Find Component By Class. Useful in an overlap or interaction handler where you already have the other actor and want to know whether it hosts a flow.</p>
+
+    <h2 id="events">Raising events</h2>
+
+    <p><code>Broadcast Flow Event</code> and <code>Send Flow Event</code> live in this same library. <a href="../05-runtime-blueprint.html">Chapter 05</a> covers them in full.</p>
 
     <div class="warn">
       <svg class="ico" width="16" height="16" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5" aria-hidden="true"><path d="M8 2.4 15 14H1Z"/><path d="M8 6.4v3.2M8 11.6v.6"/></svg>
       <div>
-        <span class="ct">Override GetConditionDescription</span>
-        <p>It is the label shown on graph nodes and in the debug HUD. Skip it and a designer reading the graph sees a class name where the rule should be, which makes a Branch much harder to review.</p>
+        <span class="ct">On a client, Broadcast Flow Event does not touch local mirrors</span>
+        <p>It sends a single RPC through the local <a href="player-component.html">SimFlow Player Component</a> and lets the server raise the tag on every flow. With no player component on the PlayerController it logs a warning naming the tag and does nothing else.</p>
       </div>
     </div>
 
-    <p>Conditions are evaluated from the first check rather than only on a change, so a condition already true when a <a href="../tasks/wait-for-condition.html">Wait For Condition</a> starts succeeds almost immediately. Keep <code>NativeEvaluate</code> cheap: it may run every frame, and the <code>Check Interval</code> that throttles it is a designer-facing field you do not control.</p>
+    <h2 id="example">A wrist panel that finds its own flow</h2>
+
+    <p>For a VR status panel that should not need configuring per level:</p>
+
+    <ol>
+      <li>In the widget's <strong>Event Construct</strong>, call <strong>Get Primary Flow</strong>.</li>
+      <li>Branch on <strong>Is Valid</strong>.</li>
+      <li>Store the result and bind your text blocks to <code>Get Current Task Name</code> and <code>Get Current Instruction</code> on it.</li>
+    </ol>
+
+    <p>Or skip all of that and reparent the widget to <a href="status-widget.html">SimFlow Status Widget</a>, which does the same thing every frame until it finds a flow.</p>
+
+    <h2 id="misbehaves">When it misbehaves</h2>
+
+    <div class="tw">
+      <table>
+        <thead><tr><th scope="col">Symptom</th><th scope="col">Cause</th></tr></thead>
+        <tbody>
+          <tr><td>Get Primary Flow returns null on BeginPlay</td><td>The flow's actor has not begun play yet, so it has not registered. Move the call to the first tick.</td></tr>
+          <tr><td>Find Flow By Id always returns null</td><td>The component's <code>Flow Save Id</code> is still <code>None</code>, which is the default.</td></tr>
+          <tr><td>The wrong flow comes back</td><td>Two flows are running and you got whichever registered first. Give them save ids.</td></tr>
+          <tr><td>Works in the editor, null in a packaged client</td><td>The flow lives on a server-only actor. Clients only see a flow whose owning actor replicates and whose component has <code>Replicate Flow</code> on.</td></tr>
+        </tbody>
+      </table>
+    </div>
 
     <h2 id="related">Related</h2>
-    <p><a href="custom-nodes.html">Writing a custom node</a> &middot; <a href="../nodes/task.html">Task node</a> &middot; <a href="persistence.html">Save and load internals</a></p>
+    <p><a href="control-and-save.html">Control &amp; Save</a> &middot; <a href="subsystem.html">Subsystem</a> &middot; <a href="../05-runtime-blueprint.html">Runtime &amp; Blueprint Wiring</a></p>
 
     <nav class="pager" aria-label="Page navigation">
-      <a href="custom-nodes.html"><span class="d">Previous</span><span class="t">Writing a Custom Node</span></a>
-      <a class="next" href="blackboard-internals.html"><span class="d">Next</span><span class="t">Blackboard & Values</span></a>
+      <a href="../05-runtime-blueprint.html"><span class="d">Previous</span><span class="t">Runtime &amp; Blueprint Wiring</span></a>
+      <a class="next" href="control-and-save.html"><span class="d">Next</span><span class="t">Control &amp; Save</span></a>
     </nav>
 
     <div class="foot">

@@ -1,0 +1,323 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Graph Introspection Nodes | SimFlow User Guide</title>
+<meta name="description" content="Graph Introspection Nodes (USimFlowAsset) in SimFlow: Reading a flow asset, validating it, and building one at runtime. Node tables, a worked example and the failure modes.">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500;600&family=IBM+Plex+Sans:wght@400;500;600&display=swap">
+<link rel="stylesheet" href="../assets/guide.css">
+<script src="../assets/search-index.js" defer></script>
+<script src="../assets/guide.js" defer></script>
+</head>
+<body>
+<a class="skip-link" href="#content">Skip to content</a>
+
+<header class="topbar">
+  <button id="navToggle" class="icon-btn" aria-expanded="false" aria-controls="sidebar" aria-label="Open chapter navigation">
+    <svg width="16" height="16" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.6" aria-hidden="true"><path d="M2 4.5h12M2 8h12M2 11.5h12"/></svg>
+  </button>
+
+  <a class="brand" href="../index.html">
+    <svg width="20" height="20" viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.5" aria-hidden="true"><rect x="1.4" y="2.6" width="6.4" height="4.6" rx="1"/><rect x="12.2" y="7.4" width="6.4" height="4.6" rx="1"/><rect x="1.4" y="12.8" width="6.4" height="4.6" rx="1"/><path d="M7.8 4.9h2.2a1.4 1.4 0 0 1 1.4 1.4v1.1M7.8 15.1h2.2a1.4 1.4 0 0 0 1.4-1.4v-1.4"/></svg>
+    SimFlow <span class="ver">1.1.5</span>
+  </a>
+
+  <div class="spacer"></div>
+
+  <div class="search" role="search">
+    <svg class="mag" width="14" height="14" viewBox="0 0 14 14" fill="none" stroke="currentColor" stroke-width="1.6" aria-hidden="true"><circle cx="6" cy="6" r="4.2"/><path d="M9.2 9.2 12.5 12.5"/></svg>
+    <input id="q" type="search" placeholder="Search the guide" autocomplete="off" aria-label="Search the guide" aria-controls="results">
+    <kbd>/</kbd>
+    <div class="results" id="results" hidden role="listbox" aria-label="Search results"></div>
+  </div>
+
+  <button id="themeToggle" class="icon-btn" aria-pressed="false" aria-label="Switch to light theme">
+    <svg class="i-moon" width="15" height="15" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5" aria-hidden="true"><path d="M13.4 9.8A5.9 5.9 0 0 1 6.2 2.6a5.9 5.9 0 1 0 7.2 7.2Z"/></svg>
+    <svg class="i-sun" width="15" height="15" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5" aria-hidden="true" hidden><circle cx="8" cy="8" r="3.1"/><path d="M8 1v1.8M8 13.2V15M15 8h-1.8M2.8 8H1m11-4.9-1.3 1.3M5.3 10.7 4 12m0-8 1.3 1.3m5.4 5.4L12 12"/></svg>
+  </button>
+</header>
+<div class="scrim" id="scrim" hidden></div>
+
+<div class="shell">
+
+<aside class="sidebar" id="sidebar">
+  <nav aria-label="Guide navigation">
+    <h2>User Guide</h2>
+    <ol>
+      <li><a href="../index.html"><span class="num">00</span><span>Overview</span></a></li>
+      <li><a href="../01-getting-started.html"><span class="num">01</span><span>Getting Started &amp; Installation</span></a></li>
+      <li><a href="../02-architecture.html"><span class="num">02</span><span>Core Mental Model</span></a></li>
+      <li><a href="../03-authoring.html"><span class="num">03</span><span>Authoring in the Node Graph</span></a></li>
+      <li><a href="../04-rules-and-policies.html"><span class="num">04</span><span>Rules &amp; Failure Policies</span></a></li>
+      <li><a href="../05-runtime-blueprint.html"><span class="num">05</span><span>Runtime &amp; Blueprint Wiring</span></a></li>
+      <li><a href="../06-ui-and-vr.html"><span class="num">06</span><span>Driving UI &amp; VR Feedback</span></a></li>
+      <li><a href="../07-troubleshooting.html"><span class="num">07</span><span>Troubleshooting</span></a></li>
+    </ol>
+    <details class="navgroup">
+      <summary>Node Reference</summary>
+      <ul>
+        <li><a href="../nodes/start.html"><span class="num">&#183;</span><span>Start</span></a></li>
+        <li><a href="../nodes/delay.html"><span class="num">&#183;</span><span>Delay</span></a></li>
+        <li><a href="../nodes/branch.html"><span class="num">&#183;</span><span>Branch</span></a></li>
+        <li><a href="../nodes/random-branch.html"><span class="num">&#183;</span><span>Random Branch</span></a></li>
+        <li><a href="../nodes/parallel.html"><span class="num">&#183;</span><span>Parallel</span></a></li>
+        <li><a href="../nodes/join.html"><span class="num">&#183;</span><span>Join</span></a></li>
+        <li><a href="../nodes/loop.html"><span class="num">&#183;</span><span>Loop</span></a></li>
+        <li><a href="../nodes/finish.html"><span class="num">&#183;</span><span>Finish</span></a></li>
+        <li><a href="../nodes/task.html"><span class="num">&#183;</span><span>Task</span></a></li>
+        <li><a href="../nodes/sub-flow.html"><span class="num">&#183;</span><span>Sub Flow</span></a></li>
+        <li><a href="../nodes/checkpoint.html"><span class="num">&#183;</span><span>Checkpoint</span></a></li>
+        <li><a href="../nodes/set-blackboard.html"><span class="num">&#183;</span><span>Set Blackboard Value</span></a></li>
+      </ul>
+    </details>
+    <details class="navgroup">
+      <summary>Task Reference</summary>
+      <ul>
+        <li><a href="../tasks/delay.html"><span class="num">&#183;</span><span>Delay</span></a></li>
+        <li><a href="../tasks/log-message.html"><span class="num">&#183;</span><span>Log Message</span></a></li>
+        <li><a href="../tasks/set-blackboard.html"><span class="num">&#183;</span><span>Set Blackboard Value</span></a></li>
+        <li><a href="../tasks/wait-for-event.html"><span class="num">&#183;</span><span>Wait For Event</span></a></li>
+        <li><a href="../tasks/wait-for-condition.html"><span class="num">&#183;</span><span>Wait For Condition</span></a></li>
+        <li><a href="../tasks/go-to-location.html"><span class="num">&#183;</span><span>Go To Location</span></a></li>
+        <li><a href="../tasks/quiz.html"><span class="num">&#183;</span><span>Quiz</span></a></li>
+        <li><a href="../tasks/parallel-group.html"><span class="num">&#183;</span><span>Parallel Group</span></a></li>
+        <li><a href="../tasks/place-object-in-zone.html"><span class="num">&#183;</span><span>Place Object In Zone</span></a></li>
+        <li><a href="../tasks/ordered-sequence.html"><span class="num">&#183;</span><span>Ordered Sequence</span></a></li>
+      </ul>
+    </details>
+    <details class="navgroup" open>
+      <summary>Blueprint Nodes</summary>
+      <ul>
+        <li><a href="../blueprint/flow-access.html"><span class="num">&#183;</span><span>Flow Access</span></a></li>
+        <li><a href="../blueprint/control-and-save.html"><span class="num">&#183;</span><span>Control &amp; Save</span></a></li>
+        <li><a href="../blueprint/values.html"><span class="num">&#183;</span><span>Values</span></a></li>
+        <li><a href="../blueprint/blackboard-nodes.html"><span class="num">&#183;</span><span>Blackboard Nodes</span></a></li>
+        <li><a href="../blueprint/instance.html"><span class="num">&#183;</span><span>Flow Instance</span></a></li>
+        <li><a href="../blueprint/subsystem.html"><span class="num">&#183;</span><span>Subsystem</span></a></li>
+        <li><a href="../blueprint/player-component.html"><span class="num">&#183;</span><span>Player Component</span></a></li>
+        <li><a href="../blueprint/status-widget.html"><span class="num">&#183;</span><span>Status Widget</span></a></li>
+        <li><a href="../blueprint/world-queries.html"><span class="num">&#183;</span><span>Zones &amp; Identity</span></a></li>
+        <li><a href="../blueprint/graph-introspection.html" aria-current="page"><span class="num">&#183;</span><span>Graph Introspection</span></a></li>
+      </ul>
+    </details>
+    <details class="navgroup">
+      <summary>Developer Guide</summary>
+      <ul>
+        <li><a href="../dev/architecture.html"><span class="num">&#183;</span><span>Architecture & Modules</span></a></li>
+        <li><a href="../dev/execution-model.html"><span class="num">&#183;</span><span>Execution Model</span></a></li>
+        <li><a href="../dev/custom-nodes.html"><span class="num">&#183;</span><span>Writing a Custom Node</span></a></li>
+        <li><a href="../dev/custom-tasks.html"><span class="num">&#183;</span><span>Custom Tasks & Conditions</span></a></li>
+        <li><a href="../dev/blackboard-internals.html"><span class="num">&#183;</span><span>Blackboard & Values</span></a></li>
+        <li><a href="../dev/persistence.html"><span class="num">&#183;</span><span>Save and Load Internals</span></a></li>
+        <li><a href="../dev/replication.html"><span class="num">&#183;</span><span>Replication</span></a></li>
+        <li><a href="../dev/editor-module.html"><span class="num">&#183;</span><span>The Editor Module</span></a></li>
+        <li><a href="../dev/api-reference.html"><span class="num">&#183;</span><span>API Reference</span></a></li>
+        <li><a href="../dev/diagnostics.html"><span class="num">&#183;</span><span>Diagnostics & Limits</span></a></li>
+      </ul>
+    </details>
+    <h2>Reference</h2>
+    <ul>
+      <li><a href="../../Cheatsheet.md"><span class="num">&#8599;</span><span>Cheat sheet</span></a></li>
+      <li><a href="../../glossary.md"><span class="num">&#8599;</span><span>Glossary</span></a></li>
+    </ul>
+  </nav>
+</aside>
+
+  <main id="content">
+    <nav class="crumbs" aria-label="Breadcrumb">
+      <ol>
+        <li><a href="../index.html">User Guide</a></li>
+        <li><svg width="11" height="11" viewBox="0 0 12 12" fill="none" stroke="currentColor" stroke-width="1.6" aria-hidden="true"><path d="m4.5 2.5 3.5 3.5-3.5 3.5"/></svg><a href="../05-runtime-blueprint.html">Blueprint Nodes</a></li>
+        <li><svg width="11" height="11" viewBox="0 0 12 12" fill="none" stroke="currentColor" stroke-width="1.6" aria-hidden="true"><path d="m4.5 2.5 3.5 3.5-3.5 3.5"/></svg><span aria-current="page">Graph Introspection</span></li>
+      </ol>
+    </nav>
+
+    <p class="eyebrow">Blueprint Nodes</p>
+    <h1>Graph Introspection Nodes</h1>
+
+    <dl class="idcard">
+      <dt>Classes</dt><dd><code>USimFlowAsset</code>, <code>USimFlowNode</code> and its subclasses</dd>
+      <dt>Get a reference</dt><dd><code>Get Flow Asset</code> on the component, or <code>Get Template</code> / <code>Get Active Nodes</code> on an <a href="instance.html">instance</a></dd>
+      <dt>Target pin</dt><dd>The asset or the node</dd>
+      <dt>Category</dt><dd>SimFlow, SimFlow &#124; Authoring, SimFlow &#124; Node</dd>
+    </dl>
+
+    <p class="usefor"><b>Use them for:</b> editor utilities, custom debug overlays, and flows generated at runtime.</p>
+
+    <p>The narrowest corner of the API. Most projects never need it.</p>
+
+    <p>Nothing here places a node in a graph. These read and write the <a href="../nodes/start.html">graph nodes</a> an asset already contains, or build new ones programmatically.</p>
+
+    <h2 id="asset">Reading an asset</h2>
+
+    <div class="tw">
+      <table>
+        <caption>USimFlowAsset, queries</caption>
+        <thead><tr><th scope="col">Node</th><th scope="col">Returns</th></tr></thead>
+        <tbody>
+          <tr><td class="t-name">Get Display Name Text</td><td><code>Flow Display Name</code>, falling back to the asset name.</td></tr>
+          <tr><td class="t-name">Get Node Count</td><td>How many nodes the asset holds.</td></tr>
+          <tr><td class="t-name">Get Entry Names</td><td>Every <a href="../nodes/start.html">Start</a> node's entry name.</td></tr>
+          <tr><td class="t-name">Find Node By Guid</td><td>One authored node, or null.</td></tr>
+        </tbody>
+      </table>
+    </div>
+
+    <p><strong>Get Entry Names</strong> is the useful one. Populate a dropdown with it and you have a scenario picker that cannot offer an entry which does not exist, which beats a text field where a typo silently starts nothing.</p>
+
+    <figure>
+      <pre class="graph"><code>Get Flow Asset ──▶ Get Entry Names ──▶ [ build combo box ]
+                                              │
+                   Start Flow From Entry ◀────┘</code></pre>
+      <figcaption>Entries renamed in the asset show up in the menu without touching the widget.</figcaption>
+    </figure>
+
+    <p><strong>Get Node Count</strong> counts every node, not just tasks. For a progress denominator use <code>Get Progress</code> on the <a href="instance.html">instance</a> instead.</p>
+
+    <h2 id="validate">Validating</h2>
+
+    <figure>
+      <pre class="graph"><code>Validate Flow (out Errors, out Warnings)</code></pre>
+      <figcaption>Both outputs are string arrays.</figcaption>
+    </figure>
+
+    <p>It reports what a designer should know about: no entry node, links pointing at nodes that no longer exist, task nodes with no task assigned, nodes nothing can reach.</p>
+
+    <p>Empty errors means the flow will run. Warnings can still be real problems that happen not to be fatal.</p>
+
+    <div class="note">
+      <svg class="ico" width="16" height="16" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5" aria-hidden="true"><circle cx="8" cy="8" r="6.3"/><path d="M8 7.2v4M8 4.9v.7"/></svg>
+      <div>
+        <span class="ct">Worth running over the whole project before a build</span>
+        <p>The same checks run in the graph editor, but only for the asset that is open. An editor utility widget looping every flow asset and calling Validate Flow catches the one nobody opened this month.</p>
+      </div>
+    </div>
+
+    <h2 id="node-introspection">Node introspection</h2>
+
+    <div class="tw">
+      <table>
+        <caption>USimFlowNode, on any node</caption>
+        <thead><tr><th scope="col">Node</th><th scope="col">Returns</th></tr></thead>
+        <tbody>
+          <tr><td class="t-name">Get Flow Instance</td><td>The <a href="instance.html">instance</a> running this node.</td></tr>
+          <tr><td class="t-name">Get Blackboard</td><td>Shortcut to that instance's <a href="blackboard-nodes.html">blackboard</a>.</td></tr>
+          <tr><td class="t-name">Is Node Active</td><td>Whether it is currently executing.</td></tr>
+          <tr><td class="t-name">Get Node Active Time</td><td>Seconds since it activated.</td></tr>
+        </tbody>
+      </table>
+    </div>
+
+    <div class="tw">
+      <table>
+        <caption>On specific node types</caption>
+        <thead><tr><th scope="col">Node</th><th scope="col">On</th><th scope="col">Returns</th></tr></thead>
+        <tbody>
+          <tr><td class="t-name">Get Task</td><td><a href="../nodes/task.html">Task node</a></td><td>The task object.</td></tr>
+          <tr><td class="t-name">Get Remaining Time</td><td><a href="../nodes/task.html">Task node</a></td><td>Seconds left on the time limit.</td></tr>
+          <tr><td class="t-name">Get Child Instance</td><td><a href="../nodes/sub-flow.html">Sub Flow node</a></td><td>The child flow's instance.</td></tr>
+        </tbody>
+      </table>
+    </div>
+
+    <p><strong>Get Node Active Time</strong> resets each time the node activates, so a re-entered <a href="../nodes/loop.html">Loop</a> starts counting again.</p>
+
+    <p><strong>Get Child Instance</strong> is how you reach into a running sub-flow: its blackboard, its active tasks, its mistakes. A Sub Flow child has its own instance, and this is the only handle on it.</p>
+
+    <figure>
+      <pre class="graph"><code>Get Active Nodes ──▶ For Each ──▶ Get Node Active Time ──▶ draw beside the node</code></pre>
+      <figcaption>Pair node introspection with Get Active Nodes on the instance to build a live graph overlay.</figcaption>
+    </figure>
+
+    <h2 id="trigger">Trigger Output</h2>
+
+    <figure>
+      <pre class="graph"><code>Trigger Output (Pin Name, Stay Active)</code></pre>
+      <figcaption>The primitive every node uses to continue the flow.</figcaption>
+    </figure>
+
+    <p>It pushes execution out of a named output pin, exposed so a Blueprint node subclass can drive itself. <code>Stay Active</code> left off deactivates the node afterwards, which is what almost everything wants. Leave it on for a node that fires an output and keeps running, the way <a href="../nodes/parallel.html">Parallel</a> does.</p>
+
+    <div class="warn">
+      <svg class="ico" width="16" height="16" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5" aria-hidden="true"><path d="M8 2.4 15 14H1Z"/><path d="M8 6.4v3.2M8 11.6v.6"/></svg>
+      <div>
+        <span class="ct">Only call this on a node you wrote</span>
+        <p>Triggering an output on a built-in node from outside puts the flow in a state that node does not expect. Nothing stops you, and nothing warns you.</p>
+      </div>
+    </div>
+
+    <h2 id="authoring">Building a flow at runtime</h2>
+
+    <div class="tw">
+      <table>
+        <caption>USimFlowAsset, authoring</caption>
+        <thead><tr><th scope="col">Node</th><th scope="col">Returns</th></tr></thead>
+        <tbody>
+          <tr><td class="t-name">Add Node</td><td>The new node, typed to the class you passed.</td></tr>
+          <tr><td class="t-name">Remove Node</td><td></td></tr>
+          <tr><td class="t-name">Connect Nodes</td><td>bool. Wires From.FromPin into To.ToPin.</td></tr>
+          <tr><td class="t-name">Disconnect Nodes</td><td>bool</td></tr>
+        </tbody>
+      </table>
+    </div>
+
+    <p>For generating scenarios from data: a procedure defined in a spreadsheet, a randomised assessment, a flow assembled from a difficulty setting.</p>
+
+    <div class="trap">
+      <svg class="ico" width="16" height="16" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5" aria-hidden="true"><circle cx="8" cy="8" r="6.3"/><path d="M5.6 5.6l4.8 4.8M10.4 5.6l-4.8 4.8"/></svg>
+      <div>
+        <span class="ct">Build against a fresh asset, not one on disk</span>
+        <p>These change the asset itself. Editing the one your project ships modifies it for every flow using it, and in the editor that change can be saved over your authored graph.</p>
+      </div>
+    </div>
+
+    <p>Pin names have to match what the node actually declares. <strong>Connect Nodes</strong> returns false for a pin that does not exist, and that false is the only signal you get. Call <strong>Validate Flow</strong> when you have finished assembling; it is far easier to read than a flow that starts and quietly does nothing.</p>
+
+    <h2 id="example">A scenario picker from entry names</h2>
+
+    <ol>
+      <li><strong>Get Flow Asset</strong> from the component.</li>
+      <li><strong>Get Entry Names</strong>.</li>
+      <li>Build one button per name, labelled with it.</li>
+      <li>On click, <strong>Start Flow From Entry</strong> with that name.</li>
+    </ol>
+
+    <h2 id="misbehaves">When it misbehaves</h2>
+
+    <div class="tw">
+      <table>
+        <thead><tr><th scope="col">Symptom</th><th scope="col">Cause</th></tr></thead>
+        <tbody>
+          <tr><td>Find Node By Guid returns null for a node that exists</td><td>You are searching the asset with a runtime node's Guid, or the reverse. <code>Find Runtime Node</code> on the instance is the live side.</td></tr>
+          <tr><td>Get Task returns null on a Task node</td><td>No task is assigned. Validate Flow reports this.</td></tr>
+          <tr><td>Connect Nodes returns false and nothing is logged</td><td>A pin name does not match. Check the node's declared pins.</td></tr>
+          <tr><td>Runtime changes to an asset do not affect the running flow</td><td>Nodes are duplicated into the instance when the flow starts. Restart to pick them up.</td></tr>
+          <tr><td>A runtime-built flow starts and immediately stops</td><td>No entry node, or the entry's <code>Out</code> is unwired. Validate Flow catches both.</td></tr>
+          <tr><td>Get Node Active Time keeps resetting</td><td>The node is being re-entered, which is normal inside a <a href="../nodes/loop.html">Loop</a>.</td></tr>
+        </tbody>
+      </table>
+    </div>
+
+    <h2 id="related">Related</h2>
+    <p><a href="../dev/editor-module.html">The Editor Module</a> &middot; <a href="../dev/execution-model.html">Execution Model</a> &middot; <a href="instance.html">Flow Instance</a></p>
+
+    <nav class="pager" aria-label="Page navigation">
+      <a href="world-queries.html"><span class="d">Previous</span><span class="t">Zones &amp; Identity</span></a>
+      <a class="next" href="../dev/architecture.html"><span class="d">Next</span><span class="t">Architecture &amp; Modules</span></a>
+    </nav>
+
+    <div class="foot">
+      <p>SimFlow 1.1.5 &middot; User Guide &middot; Unreal Engine 5.6 and 5.8</p>
+    </div>
+  </main>
+
+  <aside class="rail" id="rail" aria-label="On this page">
+    <h2>On this page</h2>
+  </aside>
+
+</div>
+</body>
+</html>

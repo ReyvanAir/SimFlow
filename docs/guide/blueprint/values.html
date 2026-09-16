@@ -3,8 +3,8 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>Custom Tasks and Conditions | SimFlow User Guide</title>
-<meta name="description" content="SimFlow developer guide: The task lifecycle, and writing tasks and conditions in C++ or Blueprint.">
+<title>Value Nodes | SimFlow User Guide</title>
+<meta name="description" content="Value Nodes (FSimFlowValue) in SimFlow: Building and reading a SimFlow Value, plus the three text formatters for UI. Node tables, a worked example and the failure modes.">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500;600&family=IBM+Plex+Sans:wght@400;500;600&display=swap">
@@ -88,12 +88,12 @@
         <li><a href="../tasks/ordered-sequence.html"><span class="num">&#183;</span><span>Ordered Sequence</span></a></li>
       </ul>
     </details>
-    <details class="navgroup">
+    <details class="navgroup" open>
       <summary>Blueprint Nodes</summary>
       <ul>
         <li><a href="../blueprint/flow-access.html"><span class="num">&#183;</span><span>Flow Access</span></a></li>
         <li><a href="../blueprint/control-and-save.html"><span class="num">&#183;</span><span>Control &amp; Save</span></a></li>
-        <li><a href="../blueprint/values.html"><span class="num">&#183;</span><span>Values</span></a></li>
+        <li><a href="../blueprint/values.html" aria-current="page"><span class="num">&#183;</span><span>Values</span></a></li>
         <li><a href="../blueprint/blackboard-nodes.html"><span class="num">&#183;</span><span>Blackboard Nodes</span></a></li>
         <li><a href="../blueprint/instance.html"><span class="num">&#183;</span><span>Flow Instance</span></a></li>
         <li><a href="../blueprint/subsystem.html"><span class="num">&#183;</span><span>Subsystem</span></a></li>
@@ -103,13 +103,13 @@
         <li><a href="../blueprint/graph-introspection.html"><span class="num">&#183;</span><span>Graph Introspection</span></a></li>
       </ul>
     </details>
-    <details class="navgroup" open>
+    <details class="navgroup">
       <summary>Developer Guide</summary>
       <ul>
         <li><a href="../dev/architecture.html"><span class="num">&#183;</span><span>Architecture & Modules</span></a></li>
         <li><a href="../dev/execution-model.html"><span class="num">&#183;</span><span>Execution Model</span></a></li>
         <li><a href="../dev/custom-nodes.html"><span class="num">&#183;</span><span>Writing a Custom Node</span></a></li>
-        <li><a href="../dev/custom-tasks.html" aria-current="page"><span class="num">&#183;</span><span>Custom Tasks & Conditions</span></a></li>
+        <li><a href="../dev/custom-tasks.html"><span class="num">&#183;</span><span>Custom Tasks & Conditions</span></a></li>
         <li><a href="../dev/blackboard-internals.html"><span class="num">&#183;</span><span>Blackboard & Values</span></a></li>
         <li><a href="../dev/persistence.html"><span class="num">&#183;</span><span>Save and Load Internals</span></a></li>
         <li><a href="../dev/replication.html"><span class="num">&#183;</span><span>Replication</span></a></li>
@@ -130,136 +130,132 @@
     <nav class="crumbs" aria-label="Breadcrumb">
       <ol>
         <li><a href="../index.html">User Guide</a></li>
-        <li><svg width="11" height="11" viewBox="0 0 12 12" fill="none" stroke="currentColor" stroke-width="1.6" aria-hidden="true"><path d="m4.5 2.5 3.5 3.5-3.5 3.5"/></svg><span>Developer Guide</span></li>
-        <li><svg width="11" height="11" viewBox="0 0 12 12" fill="none" stroke="currentColor" stroke-width="1.6" aria-hidden="true"><path d="m4.5 2.5 3.5 3.5-3.5 3.5"/></svg><span aria-current="page">Custom Tasks & Conditions</span></li>
+        <li><svg width="11" height="11" viewBox="0 0 12 12" fill="none" stroke="currentColor" stroke-width="1.6" aria-hidden="true"><path d="m4.5 2.5 3.5 3.5-3.5 3.5"/></svg><a href="../05-runtime-blueprint.html">Blueprint Nodes</a></li>
+        <li><svg width="11" height="11" viewBox="0 0 12 12" fill="none" stroke="currentColor" stroke-width="1.6" aria-hidden="true"><path d="m4.5 2.5 3.5 3.5-3.5 3.5"/></svg><span aria-current="page">Values</span></li>
       </ol>
     </nav>
 
-    <p class="eyebrow">Developer Guide</p>
-    <h1>Custom Tasks and Conditions</h1>
+    <p class="eyebrow">Blueprint Nodes</p>
+    <h1>Value Nodes</h1>
 
     <dl class="idcard">
-      <dt>Base classes</dt><dd><code>USimFlowTask</code>, <code>USimFlowCondition</code></dd>
-      <dt>Class flags</dt><dd><code>Abstract</code>, <code>Blueprintable</code>, <code>EditInlineNew</code>, <code>DefaultToInstanced</code>, <code>CollapseCategories</code></dd>
-      <dt>Language</dt><dd>C++ or Blueprint. Both work.</dd>
+      <dt>Library</dt><dd><code>USimFlowStatics</code></dd>
+      <dt>Struct</dt><dd><code>FSimFlowValue</code></dd>
+      <dt>Target pin</dt><dd>None. All static, all pure.</dd>
+      <dt>Category</dt><dd>SimFlow &#124; Value</dd>
     </dl>
 
-    <p class="usefor"><b>This is the extension point you will reach for most.</b> Those class flags are what make a task appear as an inline, configurable object in the Details panel rather than as a separate asset to create and wire up.</p>
+    <p class="usefor"><b>Use them for:</b> writing a blackboard key from Blueprint, and formatting run state for a tutorial panel.</p>
 
-    <h2 id="lifecycle">The task lifecycle</h2>
+    <p>A <code>SimFlow Value</code> is the tagged union every blackboard key holds. Anywhere a node asks for one you can either break out the struct by hand and set <code>Type</code> plus the matching field, or use a maker. The makers are shorter and cannot produce a mismatched struct.</p>
 
-    <p><code>USimFlowNode_Task</code> owns a <code>USimFlowTask</code> as an <code>Instanced</code> sub-object and drives it. C++ overrides are <code>NativeTaskStart</code>, <code>NativeTaskTick</code>, <code>NativeTaskPause</code>, <code>NativeTaskResume</code> and <code>NativeTaskEnd</code>. Blueprint gets <code>ReceiveTaskStart</code> and friends. Both fire, native first.</p>
-
-    <pre><code>ExecuteInput      → InitializeTask → StartTask → NativeTaskStart, ReceiveTaskStart
-TickNode          → TickTask → NativeTaskTick, ReceiveTaskTick
-                  → abort condition checked
-                  → time limit checked
-FinishTask(Result)→ score applied → NativeTaskEnd, ReceiveTaskEnd
-                  → OnTaskFinished broadcast
-                  → OwningNode-&gt;HandleTaskFinished(Result)</code></pre>
-
-    <p><code>HandleTaskFinished</code> applies auto-retry if the node is configured for it, then maps the result to a pin. With <code>bFallbackToCompleted</code>, an unwired <code>Failed</code>, <code>Skipped</code> or <code>TimedOut</code> pin falls through to <code>Completed</code>.</p>
-
-    <div class="note">
-      <svg class="ico" width="16" height="16" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5" aria-hidden="true"><circle cx="8" cy="8" r="6.3"/><path d="M8 7.2v4M8 4.9v.7"/></svg>
-      <div>
-        <span class="ct">FinishTask is safe to call twice</span>
-        <p>It is guarded by <code>bFinishRequested</code>, so a double-fire from an event binding does no harm. You do not need to defend against it in your own code.</p>
-      </div>
-    </div>
-
-    <p>Read-only runtime fields available on the task while it runs: <code>bIsRunning</code>, <code>bIsPaused</code>, <code>ElapsedTime</code>, <code>RetryCount</code>, <code>FlowInstance</code>, <code>OwningNode</code>.</p>
-
-    <h2 id="task-example">A custom task</h2>
-
-    <pre><code>UCLASS(DisplayName = "Hold Trigger")
-class MYGAME_API USimFlowTask_HoldTrigger : public USimFlowTask
-{
-    GENERATED_BODY()
-public:
-    UPROPERTY(EditAnywhere, Category = "Hold")
-    float RequiredSeconds = 2.f;
-
-    virtual void NativeTaskStart() override { Held = 0.f; }
-
-    virtual void NativeTaskTick(float DeltaTime) override
-    {
-        Held = IsTriggerHeld() ? Held + DeltaTime : 0.f;
-        if (Held &gt;= RequiredSeconds) FinishTask(ESimFlowResult::Succeeded);
-    }
-
-    virtual void NativeTaskEnd(ESimFlowResult Result) override { /* unbind */ }
-
-private:
-    float Held = 0.f;
-};</code></pre>
-
-    <p>The class appears in the Task dropdown on its own, with <code>RequiredSeconds</code> inline underneath. Retry, skip, timeout, pause and scoring all come from the <a href="../nodes/task.html">Task node</a> without you implementing any of it.</p>
-
-    <h3 id="blueprint-task">The same thing in Blueprint</h3>
-
-    <ol class="steps">
-      <li><span class="sh">Create the class</span><p>Blueprint Class from <strong>SimFlow Task</strong>.</p></li>
-      <li><span class="sh">Set up in On Task Start</span><p>Override <strong>On Task Start</strong>. Bind whatever you need to listen to.</p></li>
-      <li><span class="sh">Finish with a result</span><p>Call <strong>Finish Task</strong> with <code>Succeeded</code> or <code>Failed</code> when the work is done.</p></li>
-      <li><span class="sh">Clean up in On Task End</span><p>Unbind everything you bound. This fires however the task ended, including a timeout or an abort.</p>
-        <p class="tip"><b>Use <code>Set Saved Value</code> and <code>Get Saved Value</code></b> for state that has to survive a save and reload. They write into <code>FSimFlowNodeSaveState::CustomData</code> for you.</p></li>
-    </ol>
-
-    <h3 id="base-helpers">What the base class gives you</h3>
+    <h2 id="makers">Making a value</h2>
 
     <div class="tw">
       <table>
-        <caption>USimFlowTask helpers, all Blueprint-callable</caption>
-        <thead><tr><th scope="col">Function</th><th scope="col">Returns or does</th></tr></thead>
+        <caption>Make SimFlow Value, seven overloads</caption>
+        <thead><tr><th scope="col">Node</th><th scope="col">Takes</th></tr></thead>
         <tbody>
-          <tr><td class="t-name">Get Flow Owner</td><td>The actor owning the flow component.</td></tr>
-          <tr><td class="t-name">Get Player Pawn</td><td>The player pawn, which is the VR pawn in a VR project.</td></tr>
-          <tr><td class="t-name">Get Blackboard</td><td>The running instance's blackboard.</td></tr>
-          <tr><td class="t-name">Record Mistake</td><td>(Kind, Involved, Description, Severity). Lands in the instance's mistake list for the debrief.</td></tr>
-          <tr><td class="t-name">Apply Mismatch Policy</td><td>The shared right-event-wrong-object handling, so your task grades like the built-ins do.</td></tr>
-          <tr><td class="t-name">Set Saved Value / Get Saved Value</td><td>Persisted per-task state.</td></tr>
+          <tr><td class="t-name">Make SimFlow Value (Bool)</td><td class="t-type">bool</td></tr>
+          <tr><td class="t-name">Make SimFlow Value (Int)</td><td class="t-type">int32</td></tr>
+          <tr><td class="t-name">Make SimFlow Value (Float)</td><td class="t-type">float</td></tr>
+          <tr><td class="t-name">Make SimFlow Value (String)</td><td class="t-type">FString</td></tr>
+          <tr><td class="t-name">Make SimFlow Value (Name)</td><td class="t-type">FName</td></tr>
+          <tr><td class="t-name">Make SimFlow Value (Vector)</td><td class="t-type">FVector</td></tr>
+          <tr><td class="t-name">Make SimFlow Value (Object)</td><td class="t-type">UObject reference</td></tr>
         </tbody>
       </table>
     </div>
 
-    <h2 id="conditions">Conditions</h2>
+    <figure>
+      <pre class="graph"><code>Make SimFlow Value (Int) [3]  ──▶  Set Value ( Attempts )</code></pre>
+      <figcaption>The maker sets Type for you, which is the part that is easy to get wrong by hand.</figcaption>
+    </figure>
 
-    <p>Conditions override <code>NativeEvaluate(USimFlowInstance*) const</code>. <code>Evaluate</code> is non-const, applies <code>bInvert</code>, and lets a Blueprint <code>ReceiveEvaluate</code> override the native result.</p>
-
-    <pre><code>UCLASS(DisplayName = "Player Is Crouching")
-class MYGAME_API USimFlowCondition_Crouching : public USimFlowCondition
-{
-    GENERATED_BODY()
-public:
-    virtual bool NativeEvaluate(USimFlowInstance* Instance) const override
-    {
-        const APawn* P = /* resolve from Instance */;
-        return P &amp;&amp; P-&gt;bIsCrouched;
-    }
-
-    virtual FText GetConditionDescription_Implementation() const override
-    {
-        return NSLOCTEXT("MyGame", "Crouch", "Player is crouching");
-    }
-};</code></pre>
-
-    <div class="warn">
-      <svg class="ico" width="16" height="16" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5" aria-hidden="true"><path d="M8 2.4 15 14H1Z"/><path d="M8 6.4v3.2M8 11.6v.6"/></svg>
+    <div class="trap">
+      <svg class="ico" width="16" height="16" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5" aria-hidden="true"><circle cx="8" cy="8" r="6.3"/><path d="M5.6 5.6l4.8 4.8M10.4 5.6l-4.8 4.8"/></svg>
       <div>
-        <span class="ct">Override GetConditionDescription</span>
-        <p>It is the label shown on graph nodes and in the debug HUD. Skip it and a designer reading the graph sees a class name where the rule should be, which makes a Branch much harder to review.</p>
+        <span class="ct">A hand-built struct with the wrong Type reads as unset</span>
+        <p>Set <code>Int Value</code> to 5 but leave <code>Type</code> at <code>None</code> and the value is unset as far as every reader is concerned. Nothing warns you, and the condition built on it is quietly always false.</p>
       </div>
     </div>
 
-    <p>Conditions are evaluated from the first check rather than only on a change, so a condition already true when a <a href="../tasks/wait-for-condition.html">Wait For Condition</a> starts succeeds almost immediately. Keep <code>NativeEvaluate</code> cheap: it may run every frame, and the <code>Check Interval</code> that throttles it is a designer-facing field you do not control.</p>
+    <p>Object values are runtime only. They are cleared when a flow is saved, so store an identifying String alongside anything that has to survive a save.</p>
+
+    <h2 id="readers">Reading a value back</h2>
+
+    <div class="tw">
+      <table>
+        <caption>Flow Value To, four conversions</caption>
+        <thead><tr><th scope="col">Node</th><th scope="col">Returns</th><th scope="col">Conversion</th></tr></thead>
+        <tbody>
+          <tr><td class="t-name">Flow Value To Bool</td><td class="t-type">bool</td><td>Any non-zero number is true.</td></tr>
+          <tr><td class="t-name">Flow Value To Int</td><td class="t-type">int32</td><td>Rounds, so <code>2.6</code> becomes <code>3</code>.</td></tr>
+          <tr><td class="t-name">Flow Value To Float</td><td class="t-type">float</td><td>Strings are parsed with <code>Atof</code>.</td></tr>
+          <tr><td class="t-name">Flow Value To String</td><td class="t-type">FString</td><td>Any type renders to text.</td></tr>
+        </tbody>
+      </table>
+    </div>
+
+    <p>These never fail. They coerce, and an unset value reads as zero or empty. <strong>Flow Value To Int</strong> rounding rather than truncating is the one that catches people out.</p>
+
+    <p>There is no <code>Flow Value To Vector</code> or <code>Flow Value To Object</code>. Break the struct and read <code>Vector Value</code> or <code>Object Value</code> directly, checking <code>Type</code> first.</p>
+
+    <p>Most of the time you need none of these. The <a href="blackboard-nodes.html">typed blackboard getters</a> return a plain bool, int or float already, and they take a default for when the key is missing.</p>
+
+    <h2 id="formatters">Formatting for UI</h2>
+
+    <div class="tw">
+      <table>
+        <caption>USimFlowStatics, text helpers</caption>
+        <thead><tr><th scope="col">Node</th><th scope="col">Takes</th><th scope="col">Returns</th></tr></thead>
+        <tbody>
+          <tr><td class="t-name">Result To Text</td><td class="t-type">ESimFlowResult</td><td>"Succeeded", "Failed", "Skipped", "Timed Out", "Aborted"</td></tr>
+          <tr><td class="t-name">Run State To Text</td><td class="t-type">ESimFlowRunState</td><td>"Not Started", "Running", "Paused", "Completed", "Failed", "Aborted"</td></tr>
+          <tr><td class="t-name">Format Seconds</td><td class="t-type">float</td><td><code>MM:SS</code>, zero-padded</td></tr>
+        </tbody>
+      </table>
+    </div>
+
+    <p>The first two read the enum's display name, so they pick up localisation and the spaced forms: <code>TimedOut</code> comes back as "Timed Out".</p>
+
+    <p><strong>Format Seconds</strong> rounds up and clamps at zero, which is what a countdown wants. Two tenths of a second left still reads <code>00:01</code>, and a negative value reads <code>00:00</code> rather than counting backwards. Minutes are not capped, so 90 minutes reads <code>90:00</code>.</p>
+
+    <figure>
+      <pre class="graph"><code>Get Current Task Remaining Time ──▶ Format Seconds ──▶ Set Text</code></pre>
+      <figcaption>Remaining time is -1 on a task with no time limit, so branch on that first.</figcaption>
+    </figure>
+
+    <h2 id="example">A debrief line</h2>
+
+    <p>Showing how the trainee finished, and how the last task went:</p>
+
+    <figure>
+      <pre class="graph"><code>Get Run State        ──▶ Run State To Text ──▶ Format Text "Result: {0}"
+Get Last Task Result ──▶ Result To Text</code></pre>
+      <figcaption>Both enums render themselves, so the widget carries no switch statement.</figcaption>
+    </figure>
+
+    <h2 id="misbehaves">When it misbehaves</h2>
+
+    <div class="tw">
+      <table>
+        <thead><tr><th scope="col">Symptom</th><th scope="col">Cause</th></tr></thead>
+        <tbody>
+          <tr><td>A value written with a hand-built struct reads as unset</td><td><code>Type</code> was left at <code>None</code>. Use a maker node.</td></tr>
+          <tr><td>An Int came back one higher than expected</td><td><code>Flow Value To Int</code> rounds. Use the float form and truncate yourself.</td></tr>
+          <tr><td>A countdown sits at <code>00:00</code> the whole task</td><td>The task has no <code>Time Limit</code>, so remaining time is -1 and the formatter clamps it.</td></tr>
+          <tr><td>An object in the blackboard is null after a load</td><td>Expected. Object values are not serialised.</td></tr>
+        </tbody>
+      </table>
+    </div>
 
     <h2 id="related">Related</h2>
-    <p><a href="custom-nodes.html">Writing a custom node</a> &middot; <a href="../nodes/task.html">Task node</a> &middot; <a href="persistence.html">Save and load internals</a></p>
+    <p><a href="blackboard-nodes.html">Blackboard Nodes</a> &middot; <a href="status-widget.html">Status Widget</a> &middot; <a href="../dev/blackboard-internals.html">Blackboard &amp; Values internals</a></p>
 
     <nav class="pager" aria-label="Page navigation">
-      <a href="custom-nodes.html"><span class="d">Previous</span><span class="t">Writing a Custom Node</span></a>
-      <a class="next" href="blackboard-internals.html"><span class="d">Next</span><span class="t">Blackboard & Values</span></a>
+      <a href="control-and-save.html"><span class="d">Previous</span><span class="t">Control &amp; Save</span></a>
+      <a class="next" href="blackboard-nodes.html"><span class="d">Next</span><span class="t">Blackboard Nodes</span></a>
     </nav>
 
     <div class="foot">
