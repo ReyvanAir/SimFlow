@@ -1,22 +1,23 @@
 # SimFlow — modular task & flow framework for Unreal Engine 5.8
 
-**v1.1.4** — simpler placement setup: one `Settle Mode` on a zone in place of
-five settling and filtering fields, and four lead fields on *Place Object In
-Zone*. See [`CHANGELOG.md`](CHANGELOG.md).
+**v1.1.4** simplifies placement setup. One `Settle Mode` field on a zone replaces
+five settling and filtering fields, and *Place Object In Zone* now leads with four.
+See [`CHANGELOG.md`](CHANGELOG.md).
 
-Looking for the previous release? It is tagged [`v1.1.3`](https://github.com/ReyvanAir/SimFlow/tree/v1.1.3),
+The previous release is tagged [`v1.1.3`](https://github.com/ReyvanAir/SimFlow/tree/v1.1.3),
 with a `release/1.1.3` branch alongside it.
 
 A data-driven system for building VR simulations, tutorials and any gameplay that
 is really a *sequence of things the player has to do*. Author flows in a node
 graph, run them from a component, and drive your VR UI from the events they fire.
 
-Built for UE **5.8** (the same source still builds on 5.4–5.6 — see *Engine compatibility* below).
+Built for UE 5.8. The same source still builds on 5.4–5.6; see *Engine
+compatibility* below.
 
 **Documentation:** [reyvanair.github.io/SimFlow](https://reyvanair.github.io/SimFlow/)
 
 Seven chapters for authoring scenarios, a page for every node and every task, and a
-ten-page developer guide for working on the C++. Browsable offline from
+ten-page developer guide for working on the C++. You can browse it offline from
 [`docs/guide/`](docs/guide/index.html).
 
 The Markdown cheat sheet is in [`docs/Cheatsheet.md`](docs/Cheatsheet.md).
@@ -36,12 +37,12 @@ The Markdown cheat sheet is in [`docs/Cheatsheet.md`](docs/Cheatsheet.md).
 | Branching | `Branch`, `Random Branch`, `Loop`, and per-result output pins on every Task node |
 | Save & load | `FSimFlowSaveState` + `USimFlowSaveGame`, exact-state or from-last-checkpoint resume, `Checkpoint` node with auto-save |
 | Modularity | `Sub Flow` node runs another flow asset; tasks and conditions are Blueprint-subclassable |
-| Multiplayer | Optional server-authoritative replication with client mirroring — see *Multiplayer* below |
-| Knowing *which* object | `SimFlow Identity` component + `Actor Query` — "that button" or "any foam extinguisher" |
+| Multiplayer | Optional server-authoritative replication with client mirroring; see *Multiplayer* below |
+| Knowing *which* object | `SimFlow Identity` component + `Actor Query`: "that button" or "any foam extinguisher" |
 | Detecting the **wrong** answer | `Mismatch Policy` on Wait For Event, `Wrong Item Policy` on Place Object, `Out Of Order Policy` on Ordered Sequence |
 | Placement checking | `SimFlow Zone` + `Place Object In Zone` task, with hand-release and settle detection |
-| Ordered procedures | `Ordered Sequence` task — press these five in this order, out-of-order input is a first-class outcome |
-| Debrief / grading | `FSimFlowMistake` list on the instance: what, when, how wrong — persisted in the save |
+| Ordered procedures | `Ordered Sequence` task: press these five in this order, and out-of-order input is a first-class outcome |
+| Debrief / grading | `FSimFlowMistake` list on the instance — what, when and how wrong, persisted in the save |
 
 ---
 
@@ -57,7 +58,7 @@ The Markdown cheat sheet is in [`docs/Cheatsheet.md`](docs/Cheatsheet.md).
 
 ---
 
-## Five-minute quick start
+## Quick start
 
 1. **Content Browser → right-click → SimFlow → SimFlow Graph.** You get an asset
    with a `Start` node already in it.
@@ -85,9 +86,9 @@ The authored graph. It is a template: nothing in it is mutated at runtime.
 A running copy. The component creates one and it duplicates every node, so two
 actors can run the same flow independently, and a `Sub Flow` node can nest another.
 
-Execution is **queue driven**, not recursive — a chain of a thousand instant nodes
-will not blow the stack, and a runaway loop is caught and reported rather than
-hanging the editor.
+Execution is queue driven, not recursive. A chain of a thousand instant nodes will
+not blow the stack, and a runaway loop gets caught and reported instead of hanging
+the editor.
 
 ### Nodes
 
@@ -133,14 +134,14 @@ Built-ins: `Blackboard Compare`, `Score Threshold`, `Last Task Result Is`,
 
 ### Recognising objects
 
-Flows need to name things in the level — *that* button, *a* foam extinguisher —
-and the plugin keeps that separate from what your Blueprints do.
+Flows need to name things in the level: *that* button, *a* foam extinguisher. The
+plugin keeps that naming separate from what your Blueprints do.
 
-**The rule: Blueprint reports neutral facts, the flow asset decides if they were
-correct.** A button broadcasts that it was pressed and sends itself as the
+The rule is that Blueprint reports neutral facts and the flow asset decides whether
+they were correct. A button broadcasts that it was pressed and sends itself as the
 payload; it knows nothing about the current exercise. The flow holds the answer.
-Change which button is right by editing one field in the flow asset — no
-Blueprint touched, and the same room works for a dozen different scenarios.
+Change which button is right by editing one field in the flow asset. No Blueprint
+gets touched, and the same room works for a dozen different scenarios.
 
 Add a **SimFlow Identity** component to the item Blueprint (not to each level
 instance) and set its `Identity Tags`:
@@ -155,14 +156,14 @@ Tasks then refer to objects through an **Actor Query**, which resolves in order:
 
 | Field | Use it for |
 |---|---|
-| `Specific Actor` | "that button" — one placed level actor |
+| `Specific Actor` | "that button": one placed level actor |
 | `Blackboard Key` | a target chosen at runtime (randomised assignments) |
-| `Required Tags` | "any foam extinguisher" — the only form that covers spawned copies |
+| `Required Tags` | "any foam extinguisher": the only form that covers spawned copies |
 | `Required Class` / `Required Actor Tag` | narrowing, and actors you cannot add a component to |
 
-Because tags nest, one field gives you three levels of strictness —
-`Item.Extinguisher` accepts either extinguisher, `Item.Extinguisher.Foam` only
-one — and it grades *how wrong* a mistake was:
+Because tags nest, one field gives you three levels of strictness.
+`Item.Extinguisher` accepts either extinguisher, `Item.Extinguisher.Foam` only one.
+The same field grades *how wrong* a mistake was:
 
 | Player used | vs. `Item.Extinguisher.Foam` | Feedback you can give |
 |---|---|---|
@@ -176,27 +177,29 @@ share to count as a near miss.
 ### Zones and placement
 
 Drop a **SimFlow Zone** in the level, size the box, and give its identity
-component a tag like `Zone.PartsBin`. The zone reports what is inside *without
-judging it* — the task does the judging.
+component a tag like `Zone.PartsBin`. The zone reports what is inside without
+judging it; the task does the judging.
 
 A trainee holding an item over the bin has not put it down, so the zone
 distinguishes overlapping from placed. How patient it is about that is one field,
-`Settle Mode`: *Instant* for sockets and snap points, *Standard* (a 0.35 s pause,
-and physics objects below speed 20) for anything put down by hand, *Custom* to
-dial in `Settle Time`, `Settle Speed Threshold` and `Require Detached` yourself.
-Pick the item back up and the timer restarts.
+`Settle Mode`. Use *Instant* for sockets and snap points, *Standard* (a 0.35 s
+pause, and physics objects below speed 20) for anything put down by hand, or
+*Custom* to dial in `Settle Time`, `Settle Speed Threshold` and `Require Detached`
+yourself. Pick the item back up and the timer restarts.
 
-Tell it when an item is held — `SimFlow Identity → Set Held (true)` where your grab
-succeeds, `false` on release. The zone can otherwise only guess from attachment,
-which is wrong for any framework that grips with a physics constraint rather than
-reparenting the actor (VRExpansion's default grip included), and a trainee could
-hold an item steady over the zone and pass without letting go.
+Tell it when an item is held: call `SimFlow Identity → Set Held (true)` where your
+grab succeeds, and `false` on release. Otherwise the zone can only guess from
+attachment, and that guess is wrong for any framework that grips with a physics
+constraint instead of reparenting the actor, VRExpansion's default grip included.
+A trainee could then hold an item steady over the zone and pass without ever
+letting go.
 
-The **Place Object In Zone** task ties it together, and needs four fields: the
-`Zone`, the `Accepted Items`, a `Required Count`, and a `Wrong Item Policy` of
-*Ignore*, *Count Mistake* (keep waiting, let them correct themselves) or
-*Fail Task*. Bind `On Wrong Item Placed` for the buzzer or hint — it passes the
-match quality, so a near miss and a random prop can say different things.
+The **Place Object In Zone** task puts those pieces together. It needs four
+fields: the `Zone`, the `Accepted Items`, a `Required Count`, and a
+`Wrong Item Policy` of *Ignore*, *Count Mistake* (keep waiting, let them correct
+themselves) or *Fail Task*. Bind `On Wrong Item Placed` for the buzzer or hint. It
+passes the match quality, so a near miss and a random prop can say different
+things.
 
 Anything `Accepted Items` does not match is already wrong, so the optional
 `Rejected Items` is for one job only: subtracting from a family you otherwise
@@ -205,21 +208,20 @@ still holds when someone adds a new extinguisher variant later.
 
 ### Ordered procedures
 
-**Ordered Sequence** handles "press these five in this order" — startup
-checklists, lockout/tagout, pre-flight. Every candidate broadcasts the same event
-tag with itself as the payload; the task holds the order. `Out Of Order Policy`
-is *Ignore*, *Count Mistake* (stay on the step), *Restart Sequence* (back to step
-one) or *Fail Task*. Doing step 4 when step 2 was expected is recorded as a near
-miss; touching an unrelated prop is ignored unless you set
-`Unlisted Input Is Mistake`.
+**Ordered Sequence** handles "press these five in this order": startup checklists,
+lockout/tagout, pre-flight. Every candidate broadcasts the same event tag with
+itself as the payload; the task holds the order. `Out Of Order Policy` is *Ignore*,
+*Count Mistake* (stay on the step), *Restart Sequence* (back to step one) or
+*Fail Task*. Doing step 4 when step 2 was expected is recorded as a near miss;
+touching an unrelated prop is ignored unless you set `Unlisted Input Is Mistake`.
 
 ### Mistakes and debrief
 
-Trainees are graded on what they got wrong, so mistakes are a real record rather
-than a counter. Each `FSimFlowMistake` carries the kind tag, a ready-to-show
-description, the severity, the object involved and the time into the run. They
-live on the instance, survive save/load, and fire `On Mistake Recorded` for an
-instructor dashboard.
+Trainees get graded on what they got wrong, so a mistake is a record, not a
+counter. Each `FSimFlowMistake` carries the kind tag, a ready-to-show description,
+the severity, the object involved and the time into the run. Mistakes live on the
+instance, survive save/load, and fire `On Mistake Recorded` for an instructor
+dashboard.
 
 ```
 Get Mistakes            → the whole list, for a debrief screen
@@ -238,7 +240,7 @@ built-ins use: `Score`, `Mistakes`, `LastResult`, `LastAnswerIndex`,
 
 ### Events
 Gameplay tags are how the world talks to the flow. From a grab component, a
-button, an anim notify — anywhere — call **Broadcast Flow Event** with a tag.
+button, an anim notify, anywhere at all, call **Broadcast Flow Event** with a tag.
 A `Wait For Event` task listening for that tag (or a parent of it) completes.
 
 Native tags shipped with the plugin live in `SimFlowGameplayTags.h`
@@ -246,29 +248,29 @@ Native tags shipped with the plugin live in `SimFlowGameplayTags.h`
 `SimFlow.Mistake.WrongItem`, …). Add your own there or in the Gameplay Tags
 project settings.
 
-**Send the object with the tag.** `Broadcast Flow Event` takes a payload — pass
-the actor (or the component; it is unwrapped to its owner). A Wait For Event task
-with an `Expected Payload` query then accepts only the intended sender, which is
-what lets every button in a room share one tag. Leave the query empty and any
+Send the object along with the tag. `Broadcast Flow Event` takes a payload, so
+pass the actor (or the component; it is unwrapped to its owner). A Wait For Event
+task with an `Expected Payload` query then accepts only the intended sender, which
+is what lets every button in a room share one tag. Leave the query empty and any
 sender satisfies the task, exactly as before 1.1.2.
 
 ---
 
 ## Common patterns
 
-**Timeout on a task** — set `TimeLimit` on the Task node and wire the `TimedOut`
+**Timeout on a task.** Set `TimeLimit` on the Task node and wire the `TimedOut`
 pin wherever the remediation lives.
 
-**Timeout on a whole section** — `Parallel` into the section and a `Delay`, then a
+**Timeout on a whole section.** `Parallel` into the section and a `Delay`, then a
 `Join` set to *Wait For Any*. Whichever finishes first wins.
 
-**Quiz with remediation** — Quiz task, `Failed` pin into a hint task, hint task's
+**Quiz with remediation.** Quiz task, `Failed` pin into a hint task, hint task's
 `Completed` back into the Quiz node's `In`. Set `MaxRetries` on the quiz to bound it.
 
-**Pass/fail on score** — `Branch` with a `Score Threshold` condition; `Default`
+**Pass/fail on score.** `Branch` with a `Score Threshold` condition; the `Default`
 pin goes to a Finish node in Fail mode.
 
-**Reusable modules** — build "put on the PPE" once as its own flow asset, then drop
+**Reusable modules.** Build "put on the PPE" once as its own flow asset, then drop
 a `Sub Flow` node into every scenario that needs it.
 
 ---
@@ -286,18 +288,18 @@ FlowComponent->LoadFlowFromSlot("Slot1", 0, ESimFlowLoadMode::FromLastCheckpoint
 
 Two load modes:
 
-* **Exact State** — every node that was active comes back active, with its elapsed
+* **Exact State.** Every node that was active comes back active, with its elapsed
   time and retry count. Tasks restart their `On Task Start` so any world setup is
   reapplied.
-* **From Last Checkpoint** — the blackboard is restored and execution resumes from
+* **From Last Checkpoint.** The blackboard is restored and execution resumes from
   the last `Checkpoint` node the player passed. More forgiving, and usually the
   better choice for a VR session that was interrupted.
 
 Several flows can live in one slot (keyed by the component's `Flow Save Id`).
 `USimFlowSubsystem::SaveAllFlowsToSlot` writes all of them at once.
 
-Object references in the blackboard are *not* saved — restore them in
-`On Load Task State` or by looking the actor up again by tag.
+Object references in the blackboard are *not* saved. Restore them in
+`On Load Task State`, or look the actor up again by tag.
 
 ---
 
@@ -308,7 +310,7 @@ server-authoritative.
 
 ### How it works
 
-Only the server runs nodes and tasks — clients never execute anything, so they
+Only the server runs nodes and tasks. Clients never execute anything, so they
 cannot diverge. What replicates is a compact `FSimFlowNetState`: the run state,
 which node Guids are active, progress, and each active task's start time and retry
 count.
@@ -318,17 +320,17 @@ flow asset loaded, so it resolves a Guid back to the authored node and reads the
 display name, instruction, quiz question and options locally. Bandwidth stays flat
 no matter how large the graph grows.
 
-Presentation events — task started, task finished, checkpoint reached, quiz
-presented — go out as multicasts carrying only a node Guid. The blackboard
+Presentation events (task started, task finished, checkpoint reached, quiz
+presented) go out as multicasts carrying only a node Guid. The blackboard
 replicates as an entry array so client UI can show score and your own keys.
 
 ### Setup
 
-1. Put the component on a **replicated** actor. The **Game State** for one shared
+1. Put the component on a replicated actor. The **Game State** for one shared
    scenario everybody sees; the **Player State** for a separate flow per trainee.
 2. Tick **Replicate Flow** on the component.
 3. Add a **SimFlow Player Component** to your PlayerController Blueprint. That is
-   what lets clients talk back to the server — without it, clients can watch but
+   what lets clients talk back to the server. Without it, clients can watch but
    not act, and you get a warning in the log saying so.
 
 ### Client controls
@@ -338,10 +340,10 @@ The usual calls work unchanged on clients: `RetryCurrentTask`, `SkipCurrentTask`
 forwards to the server for you, so the same Blueprint works in single player and
 multiplayer.
 
-Nothing a client sends is trusted. Every request arrives at
-`IsRequestAuthorised` on the player component before anything happens — override
-it to build instructor-only controls, or to stop a trainee skipping someone else's
-task. `bRestrictToOwnedFlows` gives you a reasonable default.
+Nothing a client sends is trusted. Every request arrives at `IsRequestAuthorised`
+on the player component before anything happens. Override it to build
+instructor-only controls, or to stop a trainee skipping someone else's task.
+`bRestrictToOwnedFlows` gives you a reasonable default.
 
 For an instructor panel, `USimFlowStatics::RequestFlowControl` takes the right
 route automatically from either side.
@@ -350,7 +352,7 @@ route automatically from either side.
 
 * **Save and load are server-only.** Calling them on a client logs a warning and
   does nothing.
-* **Object references in the blackboard do not replicate** — same limitation as
+* **Object references in the blackboard do not replicate**, the same limitation as
   saving. Resolve actors locally by tag instead.
 * **The blackboard resends its whole array** whenever any key changes. Fine for
   tens of keys at tutorial pacing; move to a `FastArraySerializer` if you ever push
@@ -377,11 +379,11 @@ task, and call `Submit Answer` with the index the player picked.
 
 ## Debugging
 
-* `SimFlow.Debug 1` in the console — on-screen overlay with the active nodes,
-  countdowns, retry counts and the whole blackboard.
+* `SimFlow.Debug 1` in the console gives you an on-screen overlay with the active
+  nodes, countdowns, retry counts and the whole blackboard.
 * `bShowDebugHUD` on a single component for a per-flow overlay.
 * `GetDebugText()` returns the same text as a string, so you can put it on a
-  world-space panel — which is what you actually want inside a headset.
+  world-space panel, which is what you actually want inside a headset.
 * The **Validation** tab in the graph editor lists missing tasks, dead ends,
   unreachable nodes and dangling links. It refreshes on every graph edit.
 
@@ -389,17 +391,17 @@ task, and call `Submit Answer` with the index the player picked.
 
 ## Extending
 
-**A new task type** — create a Blueprint from `SimFlowTask`. Implement
+**A new task type.** Create a Blueprint from `SimFlowTask`. Implement
 *On Task Start*, do your thing, call *Finish Task* with Succeeded / Failed.
 
-**A new condition** — create a Blueprint from `SimFlowCondition`, implement
+**A new condition.** Create a Blueprint from `SimFlowCondition`, implement
 *Evaluate*.
 
-**A new node type** — C++ only. Subclass `USimFlowNode`, override `BuildPins()`
+**A new node type.** C++ only. Subclass `USimFlowNode`, override `BuildPins()`
 and `ExecuteInput()`, and it appears in the graph's right-click menu automatically
 under whatever `GetNodeCategory()` returns.
 
-**Building flows in code** — `USimFlowAsset::AddNode` / `ConnectNodes` are public
+**Building flows in code.** `USimFlowAsset::AddNode` / `ConnectNodes` are public
 and Blueprint-callable. `SimFlowSampleBuilder.cpp` is a complete worked example.
 
 ---
@@ -424,7 +426,7 @@ versions. `SimFlowEditorCompat.h` selects it with a single switch:
 5.8 still declares the `FVector2D` overload and does not mark it deprecated, so
 mode 0 is correct there as well. A wrong setting fails loudly at compile time with
 *"method with override specifier 'override' did not override any base class
-methods"* — if that happens, switch to mode 3, or check the `PerformAction`
+methods"*. If that happens, switch to mode 3, or check the `PerformAction`
 overload taking a single `UEdGraphPin* FromPin` in
 `Engine/Source/Runtime/Engine/Classes/EdGraph/EdGraphSchema.h` and match its third
 parameter. You can also set it from `SimFlowEditor.Build.cs` without editing the
@@ -471,4 +473,4 @@ SimFlow/
 
 ## License
 
-MIT — see [`LICENSE`](LICENSE).
+MIT. See [`LICENSE`](LICENSE).
