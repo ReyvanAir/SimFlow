@@ -2,6 +2,36 @@
 
 All notable changes to SimFlow. Versions follow the plugin's `VersionName`.
 
+## Unreleased
+
+### Added
+
+- **A scenario record per flow, separate from the run save.** `USimFlowSaveGame` is
+  a resume snapshot: it holds what one attempt looked like at one moment, and
+  `Delete Flow Save` clears it. `USimFlowScenarioSave` is the history that outlives
+  every attempt — play count, how the last one ended, when that was, and the best
+  score the scenario has produced — keyed by the same `Flow Save Id`, in its own
+  slot (`SimFlowScenarios`). A score takes the best only when strictly higher; a tie
+  changes nothing.
+- **Nine Blueprint nodes on `SimFlow Statics`**: Record Play, Submit High Score, Get
+  Scenario Record, Has Scenario Record, Get High Score, Get All Scenario Records,
+  Would Beat High Score, Reset Scenario Record, Reset High Score and Reset All
+  Scenario Records. Get All Scenario Records hands a selector the whole table
+  without loading a flow or touching the level.
+- **The component records itself.** `Record Play`, `Get Scenario Record`,
+  `Get High Score`, `Get Play Count`, `Has Scenario Record`, `Is Beating High Score`
+  and `Reset Scenario Record` all work off the component's own `Flow Save Id`. With
+  `Record Play On Finish` on — the default — a finishing run records before
+  `On Flow Finished` broadcasts, so a debrief widget reads the new numbers. Every
+  finish counts as a play, including Failed and Aborted;
+  `High Score Requires Completion` governs only whether the score may take the best.
+- **`Stop All Flows` on the statics library.** Pause All Flows and Resume All Flows
+  were both there; stopping meant reaching through the subsystem.
+
+Recording and resetting are authority-only, like save and load. On a client mirror
+they log and do nothing. If the record slot turns out to hold some other save
+object, SimFlow warns and refuses rather than overwriting it.
+
 ## 1.1.5
 
 Two repairs that have nothing to do with each other. A tag in a Zone query could

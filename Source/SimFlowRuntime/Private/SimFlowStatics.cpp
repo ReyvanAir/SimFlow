@@ -5,6 +5,8 @@
 #include "SimFlowSubsystem.h"
 #include "SimFlowPlayerComponent.h"
 #include "SimFlowRuntimeModule.h"
+#include "SimFlowScenarioRecord.h"
+#include "Kismet/GameplayStatics.h"
 #include "Engine/Engine.h"
 #include "Engine/World.h"
 #include "GameFramework/Actor.h"
@@ -122,6 +124,14 @@ bool USimFlowStatics::SaveAllFlows(const UObject* WorldContextObject, const FStr
 	return Subsystem ? Subsystem->SaveAllFlowsToSlot(SlotName, UserIndex) : false;
 }
 
+void USimFlowStatics::StopAllFlows(const UObject* WorldContextObject)
+{
+	if (USimFlowSubsystem* Subsystem = USimFlowSubsystem::Get(WorldContextObject))
+	{
+		Subsystem->StopAllFlows();
+	}
+}
+
 int32 USimFlowStatics::LoadAllFlows(const UObject* WorldContextObject, const FString& SlotName, int32 UserIndex, ESimFlowLoadMode LoadMode)
 {
 	USimFlowSubsystem* Subsystem = USimFlowSubsystem::Get(WorldContextObject);
@@ -131,6 +141,198 @@ int32 USimFlowStatics::LoadAllFlows(const UObject* WorldContextObject, const FSt
 bool USimFlowStatics::DeleteFlowSave(const FString& SlotName, int32 UserIndex)
 {
 	return USimFlowSubsystem::DeleteSaveSlot(SlotName, UserIndex);
+}
+
+// --------------------------------------------------------------- Scenario record
+
+namespace
+{
+	FString ResolveScenarioSlot(const FString& SlotName)
+	{
+		return SlotName.IsEmpty() ? FString(SimFlowScenarioDefaults::SlotName) : SlotName;
+	}
+
+	/**
+	 * Reads the record table out of a slot. Null when the slot holds something else:
+	 * better to refuse than to overwrite a save that is not ours.
+	 */
+	USimFlowScenarioSave* OpenScenarioSave(const FString& Slot, int32 UserIndex, bool bCreateWhenMissing)
+	{
+		if (UGameplayStatics::DoesSaveGameExist(Slot, UserIndex))
+		{
+			USimFlowScenarioSave* Existing = Cast<USimFlowScenarioSave>(UGameplayStatics::LoadGameFromSlot(Slot, UserIndex));
+			if (!Existing)
+			{
+				UE_LOG(LogSimFlow, Warning,
+					TEXT("Slot '%s' exists but does not hold SimFlow scenario records. Refusing to overwrite it."), *Slot);
+			}
+			return Existing;
+		}
+
+		if (!bCreateWhenMissing)
+		{
+			return nullptr;
+		}
+		return Cast<USimFlowScenarioSave>(UGameplayStatics::CreateSaveGameObject(USimFlowScenarioSave::StaticClass()));
+	}
+
+	bool WriteScenarioSave(USimFlowScenarioSave* Save, const FString& Slot, int32 UserIndex)
+	{
+		if (UGameplayStatics::SaveGameToSlot(Save, Slot, UserIndex))
+		{
+			return true;
+		}
+		UE_LOG(LogSimFlow, Warning, TEXT("Could not write scenario records to slot '%s'."), *Slot);
+		return false;
+	}
+
+	/** Shared by RecordPlay and SubmitHighScore. bCountPlay separates the two. */
+	bool UpdateRecord(FName FlowSaveId, float Score, ESimFlowRunState Outcome,
+		bool bCountPlay, bool bScoreCounts, const FString& SlotName, int32 UserIndex)
+	{
+		if (FlowSaveId.IsNone())
+		{
+			UE_LOG(LogSimFlow, Warning, TEXT("Scenario records need a flow save id. Set FlowSaveId on the component, or pass one."));
+			return false;
+		}
+
+		const FString Slot = ResolveScenarioSlot(SlotName);
+		USimFlowScenarioSave* Save = OpenScenarioSave(Slot, UserIndex, true);
+		if (!Save)
+		{
+			return false;
+		}
+
+		FSimFlowScenarioRecord& Record = Save->Records.FindOrAdd(FlowSaveId);
+
+		// First score ever takes it; after that it has to beat the best, ties do not.
+		const bool bNewBest = bScoreCounts
+			&& (Record.BestScoreAt == FDateTime(0) || Score > Record.BestScore);
+		if (bNewBest)
+		{
+			Record.BestScore = Score;
+			Record.BestScoreAt = FDateTime::UtcNow();
+		}
+
+		if (bCountPlay)
+		{
+			Record.PlayCount++;
+			Record.LastOutcome = Outcome;
+			Record.LastPlayedAt = FDateTime::UtcNow();
+		}
+		else if (!bNewBest)
+		{
+			return false;   // score-only submission that beat nothing: no write
+		}
+
+		if (!WriteScenarioSave(Save, Slot, UserIndex))
+		{
+			return false;
+		}
+
+		UE_LOG(LogSimFlow, Log, TEXT("Scenario '%s': play %d, %s, best %g."),
+			*FlowSaveId.ToString(), Record.PlayCount, bNewBest ? TEXT("new best") : TEXT("no change"), Record.BestScore);
+		return bNewBest;
+	}
+}
+
+bool USimFlowStatics::RecordPlay(FName FlowSaveId, float Score, ESimFlowRunState Outcome, const FString& SlotName, int32 UserIndex, bool bScoreCounts)
+{
+	return UpdateRecord(FlowSaveId, Score, Outcome, true, bScoreCounts, SlotName, UserIndex);
+}
+
+bool USimFlowStatics::SubmitHighScore(FName FlowSaveId, float Score, const FString& SlotName, int32 UserIndex)
+{
+	return UpdateRecord(FlowSaveId, Score, ESimFlowRunState::NotStarted, false, true, SlotName, UserIndex);
+}
+
+FSimFlowScenarioRecord USimFlowStatics::GetScenarioRecord(FName FlowSaveId, const FString& SlotName, int32 UserIndex)
+{
+	if (const USimFlowScenarioSave* Save = OpenScenarioSave(ResolveScenarioSlot(SlotName), UserIndex, false))
+	{
+		if (const FSimFlowScenarioRecord* Record = Save->Records.Find(FlowSaveId))
+		{
+			return *Record;
+		}
+	}
+	return FSimFlowScenarioRecord();
+}
+
+bool USimFlowStatics::HasScenarioRecord(FName FlowSaveId, const FString& SlotName, int32 UserIndex)
+{
+	const USimFlowScenarioSave* Save = OpenScenarioSave(ResolveScenarioSlot(SlotName), UserIndex, false);
+	return Save && Save->Records.Contains(FlowSaveId);
+}
+
+float USimFlowStatics::GetHighScore(FName FlowSaveId, const FString& SlotName, int32 UserIndex)
+{
+	return GetScenarioRecord(FlowSaveId, SlotName, UserIndex).BestScore;
+}
+
+TMap<FName, FSimFlowScenarioRecord> USimFlowStatics::GetAllScenarioRecords(const FString& SlotName, int32 UserIndex)
+{
+	if (const USimFlowScenarioSave* Save = OpenScenarioSave(ResolveScenarioSlot(SlotName), UserIndex, false))
+	{
+		return Save->Records;
+	}
+	return TMap<FName, FSimFlowScenarioRecord>();
+}
+
+bool USimFlowStatics::WouldBeatHighScore(FName FlowSaveId, float Score, const FString& SlotName, int32 UserIndex)
+{
+	const USimFlowScenarioSave* Save = OpenScenarioSave(ResolveScenarioSlot(SlotName), UserIndex, false);
+	if (!Save)
+	{
+		return true;
+	}
+
+	const FSimFlowScenarioRecord* Record = Save->Records.Find(FlowSaveId);
+	return !Record || Score > Record->BestScore;
+}
+
+bool USimFlowStatics::ResetScenarioRecord(FName FlowSaveId, const FString& SlotName, int32 UserIndex)
+{
+	const FString Slot = ResolveScenarioSlot(SlotName);
+	USimFlowScenarioSave* Save = OpenScenarioSave(Slot, UserIndex, false);
+	if (!Save || Save->Records.Remove(FlowSaveId) == 0)
+	{
+		return false;
+	}
+	return WriteScenarioSave(Save, Slot, UserIndex);
+}
+
+bool USimFlowStatics::ResetHighScore(FName FlowSaveId, const FString& SlotName, int32 UserIndex)
+{
+	const FString Slot = ResolveScenarioSlot(SlotName);
+	USimFlowScenarioSave* Save = OpenScenarioSave(Slot, UserIndex, false);
+	if (!Save)
+	{
+		return false;
+	}
+
+	FSimFlowScenarioRecord* Record = Save->Records.Find(FlowSaveId);
+	if (!Record || Record->BestScoreAt == FDateTime(0))
+	{
+		return false;
+	}
+
+	Record->BestScore = 0.f;
+	Record->BestScoreAt = FDateTime(0);
+	return WriteScenarioSave(Save, Slot, UserIndex);
+}
+
+bool USimFlowStatics::ResetAllScenarioRecords(const FString& SlotName, int32 UserIndex)
+{
+	const FString Slot = ResolveScenarioSlot(SlotName);
+	USimFlowScenarioSave* Save = OpenScenarioSave(Slot, UserIndex, false);
+	if (!Save)
+	{
+		// Nothing of ours to clear. OpenScenarioSave has already warned if the slot is foreign.
+		return !UGameplayStatics::DoesSaveGameExist(Slot, UserIndex);
+	}
+
+	Save->Records.Empty();
+	return WriteScenarioSave(Save, Slot, UserIndex);
 }
 
 FSimFlowValue USimFlowStatics::MakeFlowBool(bool Value)					{ return FSimFlowValue::MakeBool(Value); }

@@ -8,6 +8,7 @@
 #include "SimFlowTypes.h"
 #include "SimFlowNetTypes.h"
 #include "SimFlowInstance.h"
+#include "SimFlowScenarioRecord.h"
 #include "SimFlowComponent.generated.h"
 
 class USimFlowAsset;
@@ -94,6 +95,27 @@ public:
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "SimFlow|Save")
 	ESimFlowLoadMode DefaultLoadMode = ESimFlowLoadMode::ExactState;
 
+	// ------------------------------------------------------- Scenario record
+
+	/**
+	 * Per-scenario history - play count, last outcome, last played, best score -
+	 * in its own slot, so Quick Save, Delete Flow Save and a fresh attempt all
+	 * leave it standing. Keyed by FlowSaveId.
+	 */
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "SimFlow|Record")
+	FString ScenarioSlotName = TEXT("SimFlowScenarios");
+
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "SimFlow|Record")
+	int32 ScenarioUserIndex = 0;
+
+	/** Count the play and store the outcome automatically when the flow finishes. */
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "SimFlow|Record")
+	bool bRecordPlayOnFinish = true;
+
+	/** Only a Completed run may set a best score. The play is counted either way. */
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "SimFlow|Record")
+	bool bHighScoreRequiresCompletion = true;
+
 	/** Draw this flow's status on screen. Also toggled globally by SimFlow.Debug. */
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "SimFlow|Debug")
 	bool bShowDebugHUD = false;
@@ -113,6 +135,10 @@ public:
 	UPROPERTY(BlueprintAssignable, Category = "SimFlow") FSimFlowTaskSignature		OnTaskRetried;
 	UPROPERTY(BlueprintAssignable, Category = "SimFlow") FSimFlowCheckpointSignature	OnCheckpointReached;
 	UPROPERTY(BlueprintAssignable, Category = "SimFlow") FSimFlowQuizSignature		OnQuizPresented;
+
+	/** A recorded score beat the stored best. PreviousBest is 0 when there was none. */
+	UPROPERTY(BlueprintAssignable, Category = "SimFlow|Record")
+	FSimFlowHighScoreSignature OnNewHighScore;
 
 	/** Fired on clients whenever the replicated state changes. Server fires it too. */
 	UPROPERTY(BlueprintAssignable, Category = "SimFlow|Network")
@@ -188,6 +214,38 @@ public:
 
 	UFUNCTION(BlueprintPure, Category = "SimFlow|Save")
 	bool HasSaveInSlot(const FString& SlotName, int32 UserIndex = 0) const;
+
+	// ------------------------------------------------------- Scenario record
+	//
+	// Recording and resetting are authority only, like save and load; on a client
+	// mirror they log and do nothing. The getters read on any machine, but each one
+	// opens the save file - read once and cache rather than binding to a tick.
+
+	/** Counts this attempt, stores how it ended, and takes the score if it is a best. */
+	UFUNCTION(BlueprintCallable, Category = "SimFlow|Record")
+	bool RecordPlay();
+
+	/** Everything stored for this flow: best score, play count, last outcome and when. */
+	UFUNCTION(BlueprintPure, Category = "SimFlow|Record")
+	FSimFlowScenarioRecord GetScenarioRecord() const;
+
+	UFUNCTION(BlueprintPure, Category = "SimFlow|Record")
+	float GetHighScore() const;
+
+	UFUNCTION(BlueprintPure, Category = "SimFlow|Record")
+	int32 GetPlayCount() const;
+
+	/** Tells a stored 0 from never played. */
+	UFUNCTION(BlueprintPure, Category = "SimFlow|Record")
+	bool HasScenarioRecord() const;
+
+	/** Would the current run score take the best? Writes nothing. */
+	UFUNCTION(BlueprintPure, Category = "SimFlow|Record")
+	bool IsBeatingHighScore() const;
+
+	/** Clears this flow's whole history. True when there was one to clear. */
+	UFUNCTION(BlueprintCallable, Category = "SimFlow|Record")
+	bool ResetScenarioRecord();
 
 	// ------------------------------------------------------------- Queries
 	//
