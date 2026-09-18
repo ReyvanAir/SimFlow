@@ -1,0 +1,332 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>SimFlow Component | SimFlow User Guide</title>
+<meta name="description" content="SimFlow Component (USimFlowComponent) in SimFlow: The component that runs a flow: where to host it, how to start it, what it reports, and its save and network fields. What it does, when to add it, its Details panel fields and the traps.">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500;600&family=IBM+Plex+Sans:wght@400;500;600&display=swap">
+<link rel="stylesheet" href="../assets/guide.css">
+<script src="../assets/search-index.js" defer></script>
+<script src="../assets/guide.js" defer></script>
+</head>
+<body>
+<a class="skip-link" href="#content">Skip to content</a>
+
+<header class="topbar">
+  <button id="navToggle" class="icon-btn" aria-expanded="false" aria-controls="sidebar" aria-label="Open chapter navigation">
+    <svg width="16" height="16" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.6" aria-hidden="true"><path d="M2 4.5h12M2 8h12M2 11.5h12"/></svg>
+  </button>
+
+  <a class="brand" href="../index.html">
+    <svg width="20" height="20" viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.5" aria-hidden="true"><rect x="1.4" y="2.6" width="6.4" height="4.6" rx="1"/><rect x="12.2" y="7.4" width="6.4" height="4.6" rx="1"/><rect x="1.4" y="12.8" width="6.4" height="4.6" rx="1"/><path d="M7.8 4.9h2.2a1.4 1.4 0 0 1 1.4 1.4v1.1M7.8 15.1h2.2a1.4 1.4 0 0 0 1.4-1.4v-1.4"/></svg>
+    SimFlow <span class="ver">1.1.5</span>
+  </a>
+
+  <div class="spacer"></div>
+
+  <div class="search" role="search">
+    <svg class="mag" width="14" height="14" viewBox="0 0 14 14" fill="none" stroke="currentColor" stroke-width="1.6" aria-hidden="true"><circle cx="6" cy="6" r="4.2"/><path d="M9.2 9.2 12.5 12.5"/></svg>
+    <input id="q" type="search" placeholder="Search the guide" autocomplete="off" aria-label="Search the guide" aria-controls="results">
+    <kbd>/</kbd>
+    <div class="results" id="results" hidden role="listbox" aria-label="Search results"></div>
+  </div>
+
+  <button id="themeToggle" class="icon-btn" aria-pressed="false" aria-label="Switch to light theme">
+    <svg class="i-moon" width="15" height="15" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5" aria-hidden="true"><path d="M13.4 9.8A5.9 5.9 0 0 1 6.2 2.6a5.9 5.9 0 1 0 7.2 7.2Z"/></svg>
+    <svg class="i-sun" width="15" height="15" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5" aria-hidden="true" hidden><circle cx="8" cy="8" r="3.1"/><path d="M8 1v1.8M8 13.2V15M15 8h-1.8M2.8 8H1m11-4.9-1.3 1.3M5.3 10.7 4 12m0-8 1.3 1.3m5.4 5.4L12 12"/></svg>
+  </button>
+</header>
+<div class="scrim" id="scrim" hidden></div>
+
+<div class="shell">
+
+<aside class="sidebar" id="sidebar">
+  <nav aria-label="Guide navigation">
+    <h2>User Guide</h2>
+    <ol>
+      <li><a href="../index.html"><span class="num">00</span><span>Overview</span></a></li>
+      <li><a href="../01-getting-started.html"><span class="num">01</span><span>Getting Started &amp; Installation</span></a></li>
+      <li><a href="../02-architecture.html"><span class="num">02</span><span>Core Mental Model</span></a></li>
+      <li><a href="../03-authoring.html"><span class="num">03</span><span>Authoring in the Node Graph</span></a></li>
+      <li><a href="../04-rules-and-policies.html"><span class="num">04</span><span>Rules &amp; Failure Policies</span></a></li>
+      <li><a href="../05-runtime-blueprint.html"><span class="num">05</span><span>Runtime &amp; Blueprint Wiring</span></a></li>
+      <li><a href="../06-ui-and-vr.html"><span class="num">06</span><span>Driving UI &amp; VR Feedback</span></a></li>
+      <li><a href="../07-troubleshooting.html"><span class="num">07</span><span>Troubleshooting</span></a></li>
+    </ol>
+    <details class="navgroup">
+      <summary>Node Reference</summary>
+      <ul>
+        <li><a href="../nodes/start.html"><span class="num">&#183;</span><span>Start</span></a></li>
+        <li><a href="../nodes/delay.html"><span class="num">&#183;</span><span>Delay</span></a></li>
+        <li><a href="../nodes/branch.html"><span class="num">&#183;</span><span>Branch</span></a></li>
+        <li><a href="../nodes/random-branch.html"><span class="num">&#183;</span><span>Random Branch</span></a></li>
+        <li><a href="../nodes/parallel.html"><span class="num">&#183;</span><span>Parallel</span></a></li>
+        <li><a href="../nodes/join.html"><span class="num">&#183;</span><span>Join</span></a></li>
+        <li><a href="../nodes/loop.html"><span class="num">&#183;</span><span>Loop</span></a></li>
+        <li><a href="../nodes/finish.html"><span class="num">&#183;</span><span>Finish</span></a></li>
+        <li><a href="../nodes/task.html"><span class="num">&#183;</span><span>Task</span></a></li>
+        <li><a href="../nodes/sub-flow.html"><span class="num">&#183;</span><span>Sub Flow</span></a></li>
+        <li><a href="../nodes/checkpoint.html"><span class="num">&#183;</span><span>Checkpoint</span></a></li>
+        <li><a href="../nodes/set-blackboard.html"><span class="num">&#183;</span><span>Set Blackboard Value</span></a></li>
+      </ul>
+    </details>
+    <details class="navgroup">
+      <summary>Task Reference</summary>
+      <ul>
+        <li><a href="../tasks/delay.html"><span class="num">&#183;</span><span>Delay</span></a></li>
+        <li><a href="../tasks/log-message.html"><span class="num">&#183;</span><span>Log Message</span></a></li>
+        <li><a href="../tasks/set-blackboard.html"><span class="num">&#183;</span><span>Set Blackboard Value</span></a></li>
+        <li><a href="../tasks/wait-for-event.html"><span class="num">&#183;</span><span>Wait For Event</span></a></li>
+        <li><a href="../tasks/wait-for-condition.html"><span class="num">&#183;</span><span>Wait For Condition</span></a></li>
+        <li><a href="../tasks/go-to-location.html"><span class="num">&#183;</span><span>Go To Location</span></a></li>
+        <li><a href="../tasks/quiz.html"><span class="num">&#183;</span><span>Quiz</span></a></li>
+        <li><a href="../tasks/parallel-group.html"><span class="num">&#183;</span><span>Parallel Group</span></a></li>
+        <li><a href="../tasks/place-object-in-zone.html"><span class="num">&#183;</span><span>Place Object In Zone</span></a></li>
+        <li><a href="../tasks/ordered-sequence.html"><span class="num">&#183;</span><span>Ordered Sequence</span></a></li>
+      </ul>
+    </details>
+    <details class="navgroup" open>
+      <summary>Components</summary>
+      <ul>
+        <li><a href="../components/flow-component.html" aria-current="page"><span class="num">&#183;</span><span>SimFlow Component</span></a></li>
+        <li><a href="../components/identity.html"><span class="num">&#183;</span><span>SimFlow Identity</span></a></li>
+        <li><a href="../components/player-component.html"><span class="num">&#183;</span><span>SimFlow Player Component</span></a></li>
+      </ul>
+    </details>
+    <details class="navgroup">
+      <summary>Blueprint Nodes</summary>
+      <ul>
+        <li><a href="../blueprint/flow-access.html"><span class="num">&#183;</span><span>Flow Access</span></a></li>
+        <li><a href="../blueprint/control-and-save.html"><span class="num">&#183;</span><span>Control &amp; Save</span></a></li>
+        <li><a href="../blueprint/values.html"><span class="num">&#183;</span><span>Values</span></a></li>
+        <li><a href="../blueprint/blackboard-nodes.html"><span class="num">&#183;</span><span>Blackboard Nodes</span></a></li>
+        <li><a href="../blueprint/instance.html"><span class="num">&#183;</span><span>Flow Instance</span></a></li>
+        <li><a href="../blueprint/subsystem.html"><span class="num">&#183;</span><span>Subsystem</span></a></li>
+        <li><a href="../blueprint/player-component.html"><span class="num">&#183;</span><span>Player Component</span></a></li>
+        <li><a href="../blueprint/status-widget.html"><span class="num">&#183;</span><span>Status Widget</span></a></li>
+        <li><a href="../blueprint/any-widget.html"><span class="num">&#183;</span><span>Any Widget</span></a></li>
+        <li><a href="../blueprint/world-queries.html"><span class="num">&#183;</span><span>Zones &amp; Identity</span></a></li>
+        <li><a href="../blueprint/scenario-records.html"><span class="num">&#183;</span><span>Scenario Records</span></a></li>
+        <li><a href="../blueprint/graph-introspection.html"><span class="num">&#183;</span><span>Graph Introspection</span></a></li>
+      </ul>
+    </details>
+    <details class="navgroup">
+      <summary>Developer Guide</summary>
+      <ul>
+        <li><a href="../dev/architecture.html"><span class="num">&#183;</span><span>Architecture & Modules</span></a></li>
+        <li><a href="../dev/execution-model.html"><span class="num">&#183;</span><span>Execution Model</span></a></li>
+        <li><a href="../dev/custom-nodes.html"><span class="num">&#183;</span><span>Writing a Custom Node</span></a></li>
+        <li><a href="../dev/custom-tasks.html"><span class="num">&#183;</span><span>Custom Tasks & Conditions</span></a></li>
+        <li><a href="../dev/blackboard-internals.html"><span class="num">&#183;</span><span>Blackboard & Values</span></a></li>
+        <li><a href="../dev/persistence.html"><span class="num">&#183;</span><span>Save and Load Internals</span></a></li>
+        <li><a href="../dev/replication.html"><span class="num">&#183;</span><span>Replication</span></a></li>
+        <li><a href="../dev/editor-module.html"><span class="num">&#183;</span><span>The Editor Module</span></a></li>
+        <li><a href="../dev/api-reference.html"><span class="num">&#183;</span><span>API Reference</span></a></li>
+        <li><a href="../dev/diagnostics.html"><span class="num">&#183;</span><span>Diagnostics & Limits</span></a></li>
+      </ul>
+    </details>
+    <h2>Reference</h2>
+    <ul>
+      <li><a href="../../Cheatsheet.md"><span class="num">&#8599;</span><span>Cheat sheet</span></a></li>
+      <li><a href="../../glossary.md"><span class="num">&#8599;</span><span>Glossary</span></a></li>
+    </ul>
+  </nav>
+</aside>
+
+  <main id="content">
+    <nav class="crumbs" aria-label="Breadcrumb">
+      <ol>
+        <li><a href="../index.html">User Guide</a></li>
+        <li><svg width="11" height="11" viewBox="0 0 12 12" fill="none" stroke="currentColor" stroke-width="1.6" aria-hidden="true"><path d="m4.5 2.5 3.5 3.5-3.5 3.5"/></svg><a href="../05-runtime-blueprint.html">Components</a></li>
+        <li><svg width="11" height="11" viewBox="0 0 12 12" fill="none" stroke="currentColor" stroke-width="1.6" aria-hidden="true"><path d="m4.5 2.5 3.5 3.5-3.5 3.5"/></svg><span aria-current="page">SimFlow Component</span></li>
+      </ol>
+    </nav>
+
+    <p class="eyebrow">Components</p>
+    <h1>SimFlow Component</h1>
+
+    <dl class="idcard">
+      <dt>Class</dt><dd><code>USimFlowComponent</code></dd>
+      <dt>Add via</dt><dd>Add Component &#8594; <strong>SimFlow Component</strong></dd>
+      <dt>Goes on</dt><dd>A level actor, the Game Mode, the Game State, the PlayerState or the pawn</dd>
+      <dt>One per</dt><dd>Running flow. Two flows at once means two components.</dd>
+    </dl>
+
+    <p class="usefor"><b>Use it for:</b> running a flow asset. Nothing executes until a component owns it, and everything you start, pause, save or read goes through this one class.</p>
+
+    <p>A flow asset is a recipe. The component is the kitchen: it builds a <a href="../blueprint/instance.html">flow instance</a> from the asset, ticks it, fires dispatchers as tasks come and go, and holds the save and score plumbing. Your UI reads the component, your props send events at it, and your Blueprint asks it to start, retry or skip.</p>
+
+    <p>Add it, set <strong>Flow Asset</strong>, pick a <strong>Start Mode</strong>, and you have a running procedure. Everything else on this page is a knob you may never touch.</p>
+
+    <h2 id="where">Where to put it</h2>
+
+    <p>The owning actor decides the flow's lifetime and, in multiplayer, who is allowed to run it. Four homes cover almost every project.</p>
+
+    <div class="tw">
+      <table>
+        <caption>Hosting the component</caption>
+        <thead><tr><th scope="col">Owner</th><th scope="col">Lifetime</th><th scope="col">Use when</th></tr></thead>
+        <tbody>
+          <tr><td class="t-name">Level actor</td><td>The level</td><td>The scenario belongs to one map. The usual choice, and the easiest to find in the outliner.</td></tr>
+          <tr><td class="t-name">Game Mode</td><td>The level, server only</td><td>You want one flow per session and never want a client to hold it.</td></tr>
+          <tr><td class="t-name">Game State</td><td>The level, replicated</td><td>Everyone is doing the same scenario together and every client needs to see it.</td></tr>
+          <tr><td class="t-name">PlayerState</td><td>The player</td><td>Each trainee runs their own copy at their own pace.</td></tr>
+        </tbody>
+      </table>
+    </div>
+
+    <p>Putting it on the VR pawn works and is convenient while prototyping, but a pawn gets destroyed and respawned more often than people expect, and the flow goes with it. Move it to a level actor before the scenario matters.</p>
+
+    <div class="note">
+      <svg class="ico" width="16" height="16" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5" aria-hidden="true"><circle cx="8" cy="8" r="6.3"/><path d="M8 7.2v4M8 4.9v.7"/></svg>
+      <div>
+        <span class="ct">Several components are fine</span>
+        <p>A machine can run any number of flows at once. Give each one a distinct <strong>Flow Save Id</strong> and <a href="../blueprint/flow-access.html">Find Flow By Id</a> will tell them apart. Only one of them is the primary flow, which is the one the no-argument accessors return.</p>
+      </div>
+    </div>
+
+    <h2 id="start">Starting</h2>
+
+    <div class="tw">
+      <table>
+        <caption>USimFlowComponent, Details panel &#183; SimFlow and SimFlow | Start</caption>
+        <thead><tr><th scope="col">Field</th><th scope="col">Type</th><th scope="col">Default</th><th scope="col">Meaning</th></tr></thead>
+        <tbody>
+          <tr><td class="t-name">Flow Asset</td><td class="t-type">SimFlow Asset</td><td class="t-def">None</td><td>The flow to run. Swap it while stopped to change scenario.</td></tr>
+          <tr><td class="t-name">Entry Name</td><td class="t-type">Name</td><td class="t-def">Default</td><td>Which <a href="../nodes/start.html">Start node</a> to begin from. Only matters when the asset holds several scenarios.</td></tr>
+          <tr><td class="t-name">Start Mode</td><td class="t-type">Enum</td><td class="t-def">Manual</td><td>Manual, On Begin Play, On First Tick, or After Delay.</td></tr>
+          <tr><td class="t-name">Auto Start Delay</td><td class="t-type">Float (s)</td><td class="t-def">1.0</td><td>Only shown for After Delay.</td></tr>
+        </tbody>
+      </table>
+    </div>
+
+    <p><strong>On Begin Play</strong> starts while other actors may still be initialising. If the first task looks for a zone or a prop and sometimes fails on the first run of the level, that is the reason. <strong>On First Tick</strong> costs you one frame and removes the race, which is why most projects end up there.</p>
+
+    <p>Leave it on <strong>Manual</strong> when a menu, a briefing or an instructor decides the moment. Then call <strong>Start Flow</strong>, or <strong>Start Flow From Entry</strong> with the name of the Start node you want.</p>
+
+    <h2 id="control">Driving the run</h2>
+
+    <div class="tw">
+      <table>
+        <caption>USimFlowComponent, SimFlow | Control</caption>
+        <thead><tr><th scope="col">Node</th><th scope="col">Does</th></tr></thead>
+        <tbody>
+          <tr><td class="t-name">Start Flow</td><td>Begins from Entry Name. False when there is no asset, or one is already running.</td></tr>
+          <tr><td class="t-name">Start Flow From Entry</td><td>Begins from a named Start node.</td></tr>
+          <tr><td class="t-name">Stop Flow</td><td>Ends the run where it stands. No Finish result.</td></tr>
+          <tr><td class="t-name">Restart Flow</td><td>Stops and starts again from the top.</td></tr>
+          <tr><td class="t-name">Pause Flow / Resume Flow / Toggle Pause</td><td>Freezes timers and blocks task completion.</td></tr>
+          <tr><td class="t-name">Retry Current Task</td><td>Re-runs the active task. Fires On Task Retried.</td></tr>
+          <tr><td class="t-name">Skip Current Task</td><td>Completes it as skipped and moves on.</td></tr>
+          <tr><td class="t-name">Fail Current Task</td><td>Ends it as failed, which routes down the failure pin.</td></tr>
+          <tr><td class="t-name">Send Event</td><td>Raises a gameplay tag on this flow, with an optional payload object.</td></tr>
+          <tr><td class="t-name">Submit Quiz Answer</td><td>Answers the quiz currently on screen, by option index.</td></tr>
+        </tbody>
+      </table>
+    </div>
+
+    <p>All of these are safe to call from a client. With replication on they forward to the server through the <a href="player-component.html">SimFlow Player Component</a> rather than doing the work locally.</p>
+
+    <p><strong>Send Event</strong> is the one props should use. A valve Blueprint that raises <code>Event.Valve.Closed</code> knows nothing about the procedure, which is what keeps scenario logic out of prop code.</p>
+
+    <div class="trap">
+      <svg class="ico" width="16" height="16" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5" aria-hidden="true"><circle cx="8" cy="8" r="6.3"/><path d="M5.6 5.6l4.8 4.8M10.4 5.6l-4.8 4.8"/></svg>
+      <div>
+        <span class="ct">Skip and Fail need gating in multiplayer</span>
+        <p>Both are ordinary Blueprint-callable functions, so any client can call them on a replicated flow. Hiding the button is not a control. Gate them in <a href="player-component.html#gate">Is Request Authorised</a> on the server.</p>
+      </div>
+    </div>
+
+    <h2 id="events">What it tells you</h2>
+
+    <p>Eleven dispatchers. Bind them on Begin Play in whatever object owns your feedback, and stop polling for state changes.</p>
+
+    <div class="tw">
+      <table>
+        <caption>USimFlowComponent, dispatchers</caption>
+        <thead><tr><th scope="col">Dispatcher</th><th scope="col">Fires when</th></tr></thead>
+        <tbody>
+          <tr><td class="t-name">On Flow Started</td><td>A run begins, including after a load.</td></tr>
+          <tr><td class="t-name">On Flow Paused / On Flow Resumed</td><td>Pause state changes, from any source.</td></tr>
+          <tr><td class="t-name">On Flow Finished</td><td>The run ends. Carries the final state: completed, failed or aborted.</td></tr>
+          <tr><td class="t-name">On Task Started</td><td>A task becomes active. The hook for updating the instruction panel.</td></tr>
+          <tr><td class="t-name">On Task Finished</td><td>A task ends, with its result.</td></tr>
+          <tr><td class="t-name">On Task Retried</td><td>The same task starts again after a mistake.</td></tr>
+          <tr><td class="t-name">On Checkpoint Reached</td><td>A <a href="../nodes/checkpoint.html">Checkpoint node</a> is passed.</td></tr>
+          <tr><td class="t-name">On Quiz Presented</td><td>A quiz needs answering. Show the panel here.</td></tr>
+          <tr><td class="t-name">On New High Score</td><td>A recorded score beat the stored best. Previous best is 0 when there was none.</td></tr>
+          <tr><td class="t-name">On Net State Changed</td><td>The replicated summary changed. Clients use this as their general-purpose refresh.</td></tr>
+        </tbody>
+      </table>
+    </div>
+
+    <p>For reading state rather than reacting to it: <strong>Get Current Task Name</strong>, <strong>Get Current Instruction</strong>, <strong>Get Progress</strong>, <strong>Get Score</strong>, <strong>Get Current Task Remaining Time</strong> and <strong>Get Run State</strong> all work on clients too, resolving names and instructions from the flow asset every machine already has. <a href="../blueprint/any-widget.html">Driving Any Widget</a> has the wiring for a panel that cannot inherit from the SimFlow status widget.</p>
+
+    <h2 id="save">Saving and scenario history</h2>
+
+    <div class="tw">
+      <table>
+        <caption>USimFlowComponent, SimFlow | Save and SimFlow | Record</caption>
+        <thead><tr><th scope="col">Field</th><th scope="col">Default</th><th scope="col">Meaning</th></tr></thead>
+        <tbody>
+          <tr><td class="t-name">Flow Save Id</td><td class="t-def">None</td><td>Names this flow in the save file and over the network. Falls back to the owning actor's name, which changes when someone renames the actor.</td></tr>
+          <tr><td class="t-name">Default Save Slot Name</td><td class="t-def">SimFlowSave</td><td>Slot used by Quick Save and Quick Load.</td></tr>
+          <tr><td class="t-name">Auto Resume From Save On Begin Play</td><td class="t-def">false</td><td>Resume from an existing save instead of starting fresh.</td></tr>
+          <tr><td class="t-name">Default Load Mode</td><td class="t-def">Exact State</td><td>Exact State, or From Last Checkpoint.</td></tr>
+          <tr><td class="t-name">Scenario Slot Name</td><td class="t-def">SimFlowScenarios</td><td>History lives in its own slot, so deleting a save leaves play count and best score standing.</td></tr>
+          <tr><td class="t-name">Record Play On Finish</td><td class="t-def">true</td><td>Count the attempt and store the outcome automatically.</td></tr>
+          <tr><td class="t-name">High Score Requires Completion</td><td class="t-def">true</td><td>Only a completed run may take the best score. The attempt is counted either way.</td></tr>
+        </tbody>
+      </table>
+    </div>
+
+    <p>Set <strong>Flow Save Id</strong> on anything you intend to save, address by id, or control from a client. Leaving it None works until someone renames the actor and the save stops matching.</p>
+
+    <p><strong>Get Scenario Record</strong>, <strong>Get High Score</strong> and <strong>Get Play Count</strong> read on any machine, but each call opens the save file. Read once on Begin Play and cache it rather than binding it to a tick or to a widget that refreshes every frame. <a href="../blueprint/scenario-records.html">Scenario Records</a> has the full set.</p>
+
+    <p>Save, load and record are authority only. On a client mirror they log and do nothing.</p>
+
+    <h2 id="net">Replication</h2>
+
+    <div class="tw">
+      <table>
+        <caption>USimFlowComponent, SimFlow | Network</caption>
+        <thead><tr><th scope="col">Field</th><th scope="col">Default</th><th scope="col">Meaning</th></tr></thead>
+        <tbody>
+          <tr><td class="t-name">Replicate Flow</td><td class="t-def">false</td><td>Server runs the flow; clients mirror a compact state summary. Read-only at runtime.</td></tr>
+          <tr><td class="t-name">Net Refresh Interval</td><td class="t-def">1.0 s</td><td>How often elapsed time is refreshed. Structural changes replicate immediately.</td></tr>
+          <tr><td class="t-name">Replicate Blackboard</td><td class="t-def">true</td><td>Send blackboard entries so client UI can read score and answers.</td></tr>
+        </tbody>
+      </table>
+    </div>
+
+    <p>With <strong>Replicate Flow</strong> off, which is the default, the component behaves exactly as it does in single player. Turn it on and the owning actor has to replicate too, which is why the Game State and the PlayerState are the two homes that work without further thought.</p>
+
+    <p>Check <strong>Has Flow Authority</strong> before doing anything that must happen once, and <strong>Is Client Mirror</strong> when a branch is presentation only. <a href="../dev/replication.html">Replication</a> in the developer guide covers what actually travels.</p>
+
+    <h2 id="debug">Debug</h2>
+
+    <p><strong>Show Debug HUD</strong> draws this flow's status on screen. The console variable <code>SimFlow.Debug 1</code> does the same for every flow at once and is the faster habit. <strong>Get Debug Text</strong> returns the same content as a multi-line string, which is what to drop into a world-space widget when you are wearing a headset and cannot see the screen HUD.</p>
+
+    <p><strong>Follow Game Pause</strong>, on by default, pauses the flow when the game pauses. Turn it off for a flow that has to keep timing through a menu.</p>
+
+    <nav class="pager" aria-label="Page navigation">
+      <a href="../tasks/ordered-sequence.html"><span class="d">Previous</span><span class="t">Ordered Sequence Task</span></a>
+      <a class="next" href="identity.html"><span class="d">Next</span><span class="t">SimFlow Identity</span></a>
+    </nav>
+
+    <div class="foot">
+      <p>SimFlow 1.1.5 &middot; User Guide &middot; Unreal Engine 5.6 and 5.8</p>
+    </div>
+  </main>
+
+  <aside class="rail" id="rail" aria-label="On this page">
+    <h2>On this page</h2>
+  </aside>
+
+</div>
+</body>
+</html>

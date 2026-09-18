@@ -31,6 +31,8 @@ Most projects only need two of these pages. Start with
 | [Subsystem](subsystem.md) | The game-instance registry of every flow, and the debug HUD toggle |
 | [Player Component](player-component.md) | The client-to-server channel, and how to gate it |
 | [Status Widget](status-widget.md) | The UMG base class: bindings, button handlers, design events |
+| [Scenario records](scenario-records.md) | Play count, last outcome, last played and best score, kept out of the run save |
+| [Driving any widget](any-widget.md) | Showing flow state in a widget owned by another plugin's base class |
 | [Zones and identity](world-queries.md) | Asking the world what's where and what things are |
 | [Graph introspection](graph-introspection.md) | Reading and building flow assets from Blueprint |
 

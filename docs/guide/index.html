@@ -94,6 +94,14 @@
       </ul>
     </details>
     <details class="navgroup">
+      <summary>Components</summary>
+      <ul>
+        <li><a href="components/flow-component.html"><span class="num">&#183;</span><span>SimFlow Component</span></a></li>
+        <li><a href="components/identity.html"><span class="num">&#183;</span><span>SimFlow Identity</span></a></li>
+        <li><a href="components/player-component.html"><span class="num">&#183;</span><span>SimFlow Player Component</span></a></li>
+      </ul>
+    </details>
+    <details class="navgroup">
       <summary>Blueprint Nodes</summary>
       <ul>
         <li><a href="blueprint/flow-access.html"><span class="num">&#183;</span><span>Flow Access</span></a></li>
@@ -104,7 +112,9 @@
         <li><a href="blueprint/subsystem.html"><span class="num">&#183;</span><span>Subsystem</span></a></li>
         <li><a href="blueprint/player-component.html"><span class="num">&#183;</span><span>Player Component</span></a></li>
         <li><a href="blueprint/status-widget.html"><span class="num">&#183;</span><span>Status Widget</span></a></li>
+        <li><a href="blueprint/any-widget.html"><span class="num">&#183;</span><span>Any Widget</span></a></li>
         <li><a href="blueprint/world-queries.html"><span class="num">&#183;</span><span>Zones &amp; Identity</span></a></li>
+        <li><a href="blueprint/scenario-records.html"><span class="num">&#183;</span><span>Scenario Records</span></a></li>
         <li><a href="blueprint/graph-introspection.html"><span class="num">&#183;</span><span>Graph Introspection</span></a></li>
       </ul>
     </details>
@@ -287,6 +297,33 @@
     if you do not need them yet. They are where object identity, match quality and the mistake
     policies all come together, and understanding one of them explains most of the others.</p>
 
+    <h2 id="components">The three components</h2>
+
+    <p>SimFlow adds three actor components, and a project usually needs one or two of them. One runs
+    the procedure, one tells the procedure what an object is, and one lets a client press a button in
+    multiplayer. Each page covers what it does, where it goes, when you need it, and its Details
+    panel field by field.</p>
+
+    <div class="tw">
+      <table>
+        <caption>Components &#183; 3 pages</caption>
+        <thead><tr><th scope="col">Component</th><th scope="col">Goes on</th><th scope="col">Add it when</th></tr></thead>
+        <tbody>
+          <tr><td class="t-name"><a href="components/flow-component.html">SimFlow Component</a></td><td>A level actor, Game Mode, Game State or PlayerState</td><td>Always. Nothing runs a flow without it.</td></tr>
+          <tr><td class="t-name"><a href="components/identity.html">SimFlow Identity</a></td><td>The item Blueprint</td><td>A task has to recognise an object by what it is, not by which actor it is.</td></tr>
+          <tr><td class="t-name"><a href="components/player-component.html">SimFlow Player Component</a></td><td>Your PlayerController</td><td>The flow replicates and clients press buttons.</td></tr>
+        </tbody>
+      </table>
+    </div>
+
+    <div class="note">
+      <svg class="ico" width="16" height="16" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5" aria-hidden="true"><circle cx="8" cy="8" r="6.3"/><path d="M8 7.2v4M8 4.9v.7"/></svg>
+      <div>
+        <span class="ct">Start with the first one</span>
+        <p><a href="components/flow-component.html">SimFlow Component</a> is the class you touch every day: start and pause, the eleven dispatchers your UI binds to, saving, and the replication switch. The other two are answers to specific problems.</p>
+      </div>
+    </div>
+
     <h2 id="blueprint">Blueprint node reference</h2>
 
     <p>A different set of nodes from the two tables above. Those go inside a flow asset, in the
@@ -297,7 +334,7 @@
 
     <div class="tw">
       <table>
-        <caption>Blueprint nodes &#183; 10 pages</caption>
+        <caption>Blueprint nodes &#183; 12 pages</caption>
         <thead><tr><th scope="col">Page</th><th scope="col">Covers</th></tr></thead>
         <tbody>
           <tr><td class="t-name"><a href="blueprint/flow-access.html">Flow Access</a></td><td>Getting hold of a running flow: <code>Get Primary Flow</code>, <code>Find Flow By Id</code>, <code>Get Flow From Actor</code>.</td></tr>
@@ -309,6 +346,8 @@
           <tr><td class="t-name"><a href="blueprint/player-component.html">Player Component</a></td><td>The client to server channel, and gating it with <code>Is Request Authorised</code>.</td></tr>
           <tr><td class="t-name"><a href="blueprint/status-widget.html">Status Widget</a></td><td>The UMG base class: bindings, button handlers and nine design events.</td></tr>
           <tr><td class="t-name"><a href="blueprint/world-queries.html">Zones &amp; Identity</a></td><td>Asking the world what is where and what things are, from your own Blueprint.</td></tr>
+          <tr><td class="t-name"><a href="blueprint/scenario-records.html">Scenario Records</a></td><td>Play count, last outcome, last played and best score per scenario, in their own slot.</td></tr>
+          <tr><td class="t-name"><a href="blueprint/any-widget.html">Any Widget</a></td><td>Showing task, timer, progress and score in a widget whose parent class belongs to another plugin.</td></tr>
           <tr><td class="t-name"><a href="blueprint/graph-introspection.html">Graph Introspection</a></td><td>Reading a flow asset, validating it, and building one at runtime.</td></tr>
         </tbody>
       </table>

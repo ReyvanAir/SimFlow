@@ -3,8 +3,8 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>Delay Task | SimFlow User Guide</title>
-<meta name="description" content="Delay Task (USimFlowTask_Delay) in SimFlow: Waits a fixed number of seconds, with an optional random extra. Fields, pins, worked example and failure modes.">
+<title>SimFlow Player Component | SimFlow User Guide</title>
+<meta name="description" content="SimFlow Player Component (USimFlowPlayerComponent) in SimFlow: The component that lets a client drive a server-owned flow, and the server-side gate on what it may ask for. What it does, when to add it, its Details panel fields and the traps.">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500;600&family=IBM+Plex+Sans:wght@400;500;600&display=swap">
@@ -73,10 +73,10 @@
         <li><a href="../nodes/set-blackboard.html"><span class="num">&#183;</span><span>Set Blackboard Value</span></a></li>
       </ul>
     </details>
-    <details class="navgroup" open>
+    <details class="navgroup">
       <summary>Task Reference</summary>
       <ul>
-        <li><a href="../tasks/delay.html" aria-current="page"><span class="num">&#183;</span><span>Delay</span></a></li>
+        <li><a href="../tasks/delay.html"><span class="num">&#183;</span><span>Delay</span></a></li>
         <li><a href="../tasks/log-message.html"><span class="num">&#183;</span><span>Log Message</span></a></li>
         <li><a href="../tasks/set-blackboard.html"><span class="num">&#183;</span><span>Set Blackboard Value</span></a></li>
         <li><a href="../tasks/wait-for-event.html"><span class="num">&#183;</span><span>Wait For Event</span></a></li>
@@ -88,12 +88,12 @@
         <li><a href="../tasks/ordered-sequence.html"><span class="num">&#183;</span><span>Ordered Sequence</span></a></li>
       </ul>
     </details>
-    <details class="navgroup">
+    <details class="navgroup" open>
       <summary>Components</summary>
       <ul>
         <li><a href="../components/flow-component.html"><span class="num">&#183;</span><span>SimFlow Component</span></a></li>
         <li><a href="../components/identity.html"><span class="num">&#183;</span><span>SimFlow Identity</span></a></li>
-        <li><a href="../components/player-component.html"><span class="num">&#183;</span><span>SimFlow Player Component</span></a></li>
+        <li><a href="../components/player-component.html" aria-current="page"><span class="num">&#183;</span><span>SimFlow Player Component</span></a></li>
       </ul>
     </details>
     <details class="navgroup">
@@ -140,103 +140,117 @@
     <nav class="crumbs" aria-label="Breadcrumb">
       <ol>
         <li><a href="../index.html">User Guide</a></li>
-        <li><svg width="11" height="11" viewBox="0 0 12 12" fill="none" stroke="currentColor" stroke-width="1.6" aria-hidden="true"><path d="m4.5 2.5 3.5 3.5-3.5 3.5"/></svg><a href="../03-authoring.html">Task Reference</a></li>
-        <li><svg width="11" height="11" viewBox="0 0 12 12" fill="none" stroke="currentColor" stroke-width="1.6" aria-hidden="true"><path d="m4.5 2.5 3.5 3.5-3.5 3.5"/></svg><span aria-current="page">Delay</span></li>
+        <li><svg width="11" height="11" viewBox="0 0 12 12" fill="none" stroke="currentColor" stroke-width="1.6" aria-hidden="true"><path d="m4.5 2.5 3.5 3.5-3.5 3.5"/></svg><a href="../05-runtime-blueprint.html">Components</a></li>
+        <li><svg width="11" height="11" viewBox="0 0 12 12" fill="none" stroke="currentColor" stroke-width="1.6" aria-hidden="true"><path d="m4.5 2.5 3.5 3.5-3.5 3.5"/></svg><span aria-current="page">SimFlow Player Component</span></li>
       </ol>
     </nav>
 
-    <p class="eyebrow">Task Reference</p>
-    <h1>Delay Task</h1>
+    <p class="eyebrow">Components</p>
+    <h1>SimFlow Player Component</h1>
 
     <dl class="idcard">
-      <dt>Class</dt><dd><code>USimFlowTask_Delay</code></dd>
-      <dt>Select via</dt><dd><a href="../nodes/task.html">Task node</a> &#8594; <strong>Task</strong> dropdown &#8594; <strong>Delay</strong></dd>
-      <dt>Finishes with</dt><dd><code>Succeeded</code>, once the wait elapses</dd>
-      <dt>Category</dt><dd>Timing</dd>
+      <dt>Class</dt><dd><code>USimFlowPlayerComponent</code></dd>
+      <dt>Add via</dt><dd>Add Component &#8594; <strong>SimFlow Player Component</strong></dd>
+      <dt>Goes on</dt><dd>Your PlayerController Blueprint, and nowhere else</dd>
+      <dt>Needed when</dt><dd>Clients have to drive a replicated flow</dd>
     </dl>
 
-    <p class="usefor"><b>Use it for:</b> a wait that needs something the <a href="../nodes/delay.html">Delay node</a> cannot give you: a random extra, a place inside a Parallel Group, or a Task node's abort condition around it.</p>
+    <p class="usefor"><b>Use it for:</b> letting a client answer a quiz, press retry, or raise an interaction event on a flow the server owns.</p>
 
-    <p>For a plain pause in the graph, the node form is the better choice.</p>
+    <p>A flow usually lives on the Game State or a level actor, and neither has an owning connection. Unreal will not let a client send an RPC to something it does not own, so without this component a client's button press reaches nothing.</p>
 
-    <h2 id="fields">How long it waits</h2>
+    <p>The PlayerController always has a connection. This component sits there and forwards requests to whichever flow the server says owns a given save id.</p>
 
-    <div class="tw">
-      <table>
-        <caption>USimFlowTask_Delay, own settings</caption>
-        <thead><tr><th scope="col">Field</th><th scope="col">Type</th><th scope="col">Default</th><th scope="col">Meaning</th></tr></thead>
-        <tbody>
-          <tr><td class="t-name">Duration</td><td class="t-type">Float, seconds, min 0</td><td class="t-def">1.0</td><td>Base wait time.</td></tr>
-          <tr><td class="t-name">Random Extra</td><td class="t-type">Float, seconds, min 0</td><td class="t-def">0.0</td><td>Randomly adds up to this many seconds on top of <code>Duration</code>.</td></tr>
-        </tbody>
-      </table>
-    </div>
-
-    <p>Plus the <a href="../03-authoring.html#step-metadata">fields every task has</a>.</p>
-
-    <p>The actual wait is <code>Duration + random(0, Random Extra)</code>, rolled once when the task starts. With both at 0 the task finishes almost immediately, effectively a pass-through. With <code>Duration</code> at 0 and <code>Random Extra</code> set, you get a purely random wait between zero and that value.</p>
-
-    <div class="warn">
-      <svg class="ico" width="16" height="16" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5" aria-hidden="true"><path d="M8 2.4 15 14H1Z"/><path d="M8 6.4v3.2M8 11.6v.6"/></svg>
-      <div>
-        <span class="ct">Tick While Paused is almost never what you want</span>
-        <p>Pausing the flow normally stops the timer and resumes it where it left off. Turn on the base <code>Tick While Paused</code> field and the delay keeps counting through the pause instead.</p>
-      </div>
-    </div>
-
-    <h2 id="node-or-task">Node or task?</h2>
+    <h2 id="when">When you need it</h2>
 
     <div class="decide">
       <div>
-        <h4>Use the <a href="../nodes/delay.html">Delay node</a></h4>
-        <ul>
-          <li>A plain pause, which is the usual case</li>
-          <li>You want the graph to read clearly</li>
-        </ul>
+        <h4>Add it</h4>
+        <p>The flow has <strong>Replicate Flow</strong> on, and clients press buttons: answering quizzes, retrying a task, an instructor skipping ahead, or props raising events on the client that have to reach the server.</p>
       </div>
       <div>
-        <h4>Use the Delay task</h4>
-        <ul>
-          <li>You want <code>Random Extra</code></li>
-          <li>You want it inside a <a href="parallel-group.html">Parallel Group</a></li>
-          <li>You want a <code>Task Id</code>, an instruction, or scoring attached</li>
-          <li>You want the <a href="../nodes/task.html">Task node</a>'s abort condition around it</li>
-        </ul>
+        <h4>Skip it</h4>
+        <p>Single player. Or a server-authoritative flow that clients only watch, where every control call already happens on the server.</p>
       </div>
     </div>
 
-    <h2 id="example">Varied ambient pacing</h2>
+    <p>Adding it when you do not need it costs nothing, and it is one component on one Blueprint, so most multiplayer projects add it once and forget about it.</p>
 
-    <p>An idle scenario where a radio call arrives every twenty to thirty seconds, so it does not feel scripted.</p>
+    <h2 id="setup">Setting it up</h2>
 
     <ol class="steps">
-      <li><span class="sh">Add the task</span><p>A <a href="../nodes/task.html">Task node</a> with <strong>Task</strong> set to <strong>Delay</strong>.</p></li>
-      <li><span class="sh">Set the window</span><p><strong>Duration</strong> to <code>20</code>, <strong>Random Extra</strong> to <code>10</code>, making the wait 20 to 30 seconds.</p></li>
-      <li><span class="sh">Wire the payoff</span><p><code>Completed</code> into the radio-call task.</p></li>
-      <li><span class="sh">Repeat it</span><p>Wrap the pair in a <a href="../nodes/loop.html">Loop node</a> with <code>Iterations</code> of <code>0</code> and a break condition, so the calls repeat until the scenario ends.</p>
-        <p class="tip"><b>Let a real event cut the wait short.</b> On the Task node, set <strong>Abort Condition</strong> to <strong>Event Was Raised</strong> with your interrupt tag and <strong>Abort Result</strong> to <code>Succeeded</code>.</p></li>
+      <li>
+        <span class="sh">Open your PlayerController Blueprint and add the component</span>
+        <p>Add Component &#8594; SimFlow Player Component. There is nothing to configure for the common case.</p>
+      </li>
+      <li>
+        <span class="sh">Give every replicated flow a Flow Save Id</span>
+        <p>That id is how a request finds its flow on the server. With the id left as None the request goes to the primary flow, which is fine with one flow and wrong with two.</p>
+      </li>
+      <li>
+        <span class="sh">Leave your UI calling the flow component</span>
+        <p>Your buttons keep calling <strong>Retry Current Task</strong> and <strong>Submit Quiz Answer</strong> on the <a href="flow-component.html">SimFlow Component</a>. It notices it is on a client and routes through this component for you.</p>
+      </li>
     </ol>
 
-    <h2 id="misbehaves">When it misbehaves</h2>
+    <p>You rarely call this component directly. <a href="../blueprint/control-and-save.html">Request Flow Control</a> and <code>Broadcast Flow Event</code> both find the local one themselves. When you do need the reference, <strong>Get Local</strong> returns it, or null when the PlayerController has none. The full node list is on <a href="../blueprint/player-component.html">Player Component Nodes</a>.</p>
+
+    <div class="note">
+      <svg class="ico" width="16" height="16" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5" aria-hidden="true"><circle cx="8" cy="8" r="6.3"/><path d="M8 7.2v4M8 4.9v.7"/></svg>
+      <div>
+        <span class="ct">The symptom of a missing component</span>
+        <p>Nothing crashes. The client's button does nothing, and the log carries a <code>LogSimFlow</code> warning naming the flow and saying the PlayerController has no SimFlow Player Component. That warning is the whole diagnosis.</p>
+      </div>
+    </div>
+
+    <h2 id="what-travels">What goes through it</h2>
 
     <div class="tw">
       <table>
-        <thead><tr><th scope="col">Symptom</th><th scope="col">Cause</th></tr></thead>
+        <caption>Client request &#8594; server action</caption>
+        <thead><tr><th scope="col">Request</th><th scope="col">Server does</th></tr></thead>
         <tbody>
-          <tr><td>The delay runs longer than configured</td><td><code>Random Extra</code> is set. It adds on top of <code>Duration</code> rather than blending into it. Or the flow was paused.</td></tr>
-          <tr><td>The delay does not pause with the game</td><td><code>Tick While Paused</code> is on, or the component's <code>Follow Game Pause</code> is off.</td></tr>
-          <tr><td>You wanted a timeout, not a pause</td><td>Use the <a href="../nodes/task.html">Task node</a>'s <code>Time Limit</code>, or race a delay against the work with a <a href="../nodes/join.html">Join</a> in <strong>Wait For Any</strong> mode.</td></tr>
-          <tr><td>The graph is filling with Task nodes that only wait</td><td>The <a href="../nodes/delay.html">Delay node</a> exists for exactly that.</td></tr>
+          <tr><td class="t-name">Request Control</td><td>Start, Stop, Restart, Pause, Resume, Toggle Pause, Retry, Skip or Fail on the named flow.</td></tr>
+          <tr><td class="t-name">Request Quiz Answer</td><td>Submits an answer, addressed by quiz node Guid and option index.</td></tr>
+          <tr><td class="t-name">Request Event</td><td>Raises an event tag. A flow id of None hits every flow.</td></tr>
         </tbody>
       </table>
     </div>
 
-    <h2 id="related">Related</h2>
-    <p><a href="../nodes/delay.html">Delay node</a> &middot; <a href="../nodes/task.html">Task node</a> &middot; <a href="parallel-group.html">Parallel Group</a></p>
+    <p>All three are safe to call on the server too, where they take the direct path instead of an RPC. Save and load are not in the list on purpose: they stay authority only and never travel from a client.</p>
+
+    <h2 id="gate">Gating what clients may ask for</h2>
+
+    <p><strong>Is Request Authorised</strong> is a BlueprintNativeEvent that runs on the server for every incoming request, before anything happens. Override it in a Blueprint subclass of the component to write your own rules.</p>
+
+    <figure>
+      <pre class="graph"><code>Is Request Authorised
+   ├── Request == Skip ── or ── Fail   ──▶  return Is Instructor
+   └── otherwise                       ──▶  return true</code></pre>
+      <figcaption>Every client request arrives here first, which makes this the only place worth enforcing anything.</figcaption>
+    </figure>
+
+    <p>The one field, <strong>Restrict To Owned Flows</strong>, is the built-in version of the same idea. Off by default. Turn it on and the default check accepts a request only for a flow whose owning actor is this player's own actor, that actor's owner, or an actor this player instigated, which is right for a flow per trainee on the PlayerState and wrong for an instructor driving everyone's scenario.</p>
+
+    <p>The flag only gates the <em>default</em> check. Override <strong>Is Request Authorised</strong> and it does nothing unless your override reads it.</p>
+
+    <div class="trap">
+      <svg class="ico" width="16" height="16" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5" aria-hidden="true"><circle cx="8" cy="8" r="6.3"/><path d="M5.6 5.6l4.8 4.8M10.4 5.6l-4.8 4.8"/></svg>
+      <div>
+        <span class="ct">A check in the UI stops an honest player and nobody else</span>
+        <p>Hiding the skip button does not stop a client from sending the request. Gate Skip, Fail, Stop and Restart here, on the server. A trainee who can skip a task can skip an assessment.</p>
+      </div>
+    </div>
+
+    <h2 id="instructor">The instructor pattern</h2>
+
+    <p>One PlayerController Blueprint for trainees, a subclass for the instructor, or a single subclass that reads a role off the PlayerState. Either way the decision lives in <strong>Is Request Authorised</strong> on the server, and the instructor UI is a UI that sends requests which happen to be accepted.</p>
+
+    <p>Keep <strong>Restrict To Owned Flows</strong> on for the trainee controller and off for the instructor one, then let the override handle the rest.</p>
 
     <nav class="pager" aria-label="Page navigation">
-      <a href="../03-authoring.html"><span class="d">Previous</span><span class="t">Authoring in the Node Graph</span></a>
-      <a class="next" href="log-message.html"><span class="d">Next</span><span class="t">Log Message</span></a>
+      <a href="identity.html"><span class="d">Previous</span><span class="t">SimFlow Identity</span></a>
+      <a class="next" href="../blueprint/flow-access.html"><span class="d">Next</span><span class="t">Flow Access Nodes</span></a>
     </nav>
 
     <div class="foot">

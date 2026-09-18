@@ -1,5 +1,9 @@
 # Status Widget
 
+> Reparenting is not the only route. When another plugin already owns your widget's
+> parent class, [driving any widget](any-widget.md) covers the same ground without
+> this base class.
+
 **Class:** `SimFlow Status Widget` (`USimFlowStatusWidget`), abstract
 **Use it by:** reparenting your UMG widget Blueprint to it
 **Works as:** a screen-space HUD or a world-space VR panel

@@ -3,8 +3,8 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>Delay Task | SimFlow User Guide</title>
-<meta name="description" content="Delay Task (USimFlowTask_Delay) in SimFlow: Waits a fixed number of seconds, with an optional random extra. Fields, pins, worked example and failure modes.">
+<title>SimFlow Identity | SimFlow User Guide</title>
+<meta name="description" content="SimFlow Identity (USimFlowIdentityComponent) in SimFlow: Tagging an object so a task can ask for what it is rather than which actor it is. What it does, when to add it, its Details panel fields and the traps.">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500;600&family=IBM+Plex+Sans:wght@400;500;600&display=swap">
@@ -73,10 +73,10 @@
         <li><a href="../nodes/set-blackboard.html"><span class="num">&#183;</span><span>Set Blackboard Value</span></a></li>
       </ul>
     </details>
-    <details class="navgroup" open>
+    <details class="navgroup">
       <summary>Task Reference</summary>
       <ul>
-        <li><a href="../tasks/delay.html" aria-current="page"><span class="num">&#183;</span><span>Delay</span></a></li>
+        <li><a href="../tasks/delay.html"><span class="num">&#183;</span><span>Delay</span></a></li>
         <li><a href="../tasks/log-message.html"><span class="num">&#183;</span><span>Log Message</span></a></li>
         <li><a href="../tasks/set-blackboard.html"><span class="num">&#183;</span><span>Set Blackboard Value</span></a></li>
         <li><a href="../tasks/wait-for-event.html"><span class="num">&#183;</span><span>Wait For Event</span></a></li>
@@ -88,11 +88,11 @@
         <li><a href="../tasks/ordered-sequence.html"><span class="num">&#183;</span><span>Ordered Sequence</span></a></li>
       </ul>
     </details>
-    <details class="navgroup">
+    <details class="navgroup" open>
       <summary>Components</summary>
       <ul>
         <li><a href="../components/flow-component.html"><span class="num">&#183;</span><span>SimFlow Component</span></a></li>
-        <li><a href="../components/identity.html"><span class="num">&#183;</span><span>SimFlow Identity</span></a></li>
+        <li><a href="../components/identity.html" aria-current="page"><span class="num">&#183;</span><span>SimFlow Identity</span></a></li>
         <li><a href="../components/player-component.html"><span class="num">&#183;</span><span>SimFlow Player Component</span></a></li>
       </ul>
     </details>
@@ -140,103 +140,114 @@
     <nav class="crumbs" aria-label="Breadcrumb">
       <ol>
         <li><a href="../index.html">User Guide</a></li>
-        <li><svg width="11" height="11" viewBox="0 0 12 12" fill="none" stroke="currentColor" stroke-width="1.6" aria-hidden="true"><path d="m4.5 2.5 3.5 3.5-3.5 3.5"/></svg><a href="../03-authoring.html">Task Reference</a></li>
-        <li><svg width="11" height="11" viewBox="0 0 12 12" fill="none" stroke="currentColor" stroke-width="1.6" aria-hidden="true"><path d="m4.5 2.5 3.5 3.5-3.5 3.5"/></svg><span aria-current="page">Delay</span></li>
+        <li><svg width="11" height="11" viewBox="0 0 12 12" fill="none" stroke="currentColor" stroke-width="1.6" aria-hidden="true"><path d="m4.5 2.5 3.5 3.5-3.5 3.5"/></svg><a href="../05-runtime-blueprint.html">Components</a></li>
+        <li><svg width="11" height="11" viewBox="0 0 12 12" fill="none" stroke="currentColor" stroke-width="1.6" aria-hidden="true"><path d="m4.5 2.5 3.5 3.5-3.5 3.5"/></svg><span aria-current="page">SimFlow Identity</span></li>
       </ol>
     </nav>
 
-    <p class="eyebrow">Task Reference</p>
-    <h1>Delay Task</h1>
+    <p class="eyebrow">Components</p>
+    <h1>SimFlow Identity</h1>
 
     <dl class="idcard">
-      <dt>Class</dt><dd><code>USimFlowTask_Delay</code></dd>
-      <dt>Select via</dt><dd><a href="../nodes/task.html">Task node</a> &#8594; <strong>Task</strong> dropdown &#8594; <strong>Delay</strong></dd>
-      <dt>Finishes with</dt><dd><code>Succeeded</code>, once the wait elapses</dd>
-      <dt>Category</dt><dd>Timing</dd>
+      <dt>Class</dt><dd><code>USimFlowIdentityComponent</code></dd>
+      <dt>Add via</dt><dd>Add Component &#8594; <strong>SimFlow Identity</strong></dd>
+      <dt>Goes on</dt><dd>The item Blueprint, not each placed instance</dd>
+      <dt>Category</dt><dd>Identity, SimFlow &#124; Identity</dd>
     </dl>
 
-    <p class="usefor"><b>Use it for:</b> a wait that needs something the <a href="../nodes/delay.html">Delay node</a> cannot give you: a random extra, a place inside a Parallel Group, or a Task node's abort condition around it.</p>
+    <p class="usefor"><b>Use it for:</b> telling a flow what an object <em>is</em>, so a task can ask for "any foam extinguisher" instead of pointing at one particular actor in one particular level.</p>
 
-    <p>For a plain pause in the graph, the node form is the better choice.</p>
+    <p>Without identity, every task has to name an actor. That works until the object is spawned at runtime, until there are six of them, or until someone copies the level and renames everything. With identity, the task asks for a tag and whatever carries that tag answers.</p>
 
-    <h2 id="fields">How long it waits</h2>
+    <p>The component holds three fields and one runtime flag. That is the whole thing.</p>
 
     <div class="tw">
       <table>
-        <caption>USimFlowTask_Delay, own settings</caption>
+        <caption>USimFlowIdentityComponent, Details panel</caption>
         <thead><tr><th scope="col">Field</th><th scope="col">Type</th><th scope="col">Default</th><th scope="col">Meaning</th></tr></thead>
         <tbody>
-          <tr><td class="t-name">Duration</td><td class="t-type">Float, seconds, min 0</td><td class="t-def">1.0</td><td>Base wait time.</td></tr>
-          <tr><td class="t-name">Random Extra</td><td class="t-type">Float, seconds, min 0</td><td class="t-def">0.0</td><td>Randomly adds up to this many seconds on top of <code>Duration</code>.</td></tr>
+          <tr><td class="t-name">Identity Tags</td><td class="t-type">Gameplay Tag Container</td><td class="t-def">empty</td><td>What this object is, for example <code>Item.Extinguisher.Foam</code>. Several tags are fine.</td></tr>
+          <tr><td class="t-name">Display Name</td><td class="t-type">Text</td><td class="t-def">empty</td><td>Shown in mistake text and tutorial prompts. Falls back to the actor's name.</td></tr>
+          <tr><td class="t-name">Identity Id</td><td class="t-type">Name</td><td class="t-def">None</td><td>Optional stable id for analytics, or for addressing this actor from script.</td></tr>
         </tbody>
       </table>
     </div>
 
-    <p>Plus the <a href="../03-authoring.html#step-metadata">fields every task has</a>.</p>
+    <h2 id="where">Put it on the Blueprint, once</h2>
 
-    <p>The actual wait is <code>Duration + random(0, Random Extra)</code>, rolled once when the task starts. With both at 0 the task finishes almost immediately, effectively a pass-through. With <code>Duration</code> at 0 and <code>Random Extra</code> set, you get a purely random wait between zero and that value.</p>
+    <p>Add it to the item Blueprint and every copy you place or spawn carries the same tags. Adding it per level instance gives you the same result on Monday and a scenario nobody can maintain by Friday.</p>
 
-    <div class="warn">
-      <svg class="ico" width="16" height="16" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5" aria-hidden="true"><path d="M8 2.4 15 14H1Z"/><path d="M8 6.4v3.2M8 11.6v.6"/></svg>
+    <p>The exception is an object whose meaning genuinely differs between placements: the same panel Blueprint used as "the main breaker" in one room and "the spare" in another. Override the tag on the instance there, and only there.</p>
+
+    <h2 id="tags">Naming tags so near misses work</h2>
+
+    <p>Tags nest, and the nesting is what lets a task tell a wrong-but-reasonable answer apart from a completely wrong one. Ask for <code>Item.Extinguisher</code> and any extinguisher passes. Ask for <code>Item.Extinguisher.Foam</code> and only foam passes, while the CO2 one comes back as a near miss rather than as garbage.</p>
+
+    <figure>
+      <pre class="graph"><code>Item.Extinguisher.Foam   ── asked for
+Item.Extinguisher.CO2    ── Related, shares 2 levels   "close, check the label"
+Item.Wrench              ── No Match, shares 1 level   ignored</code></pre>
+      <figcaption>Min Related Tag Depth on the Actor Query sets where the cut falls, and defaults to 2.</figcaption>
+    </figure>
+
+    <p>So the naming matters more than it looks. <code>Item.Extinguisher.Foam</code> and <code>Item.Extinguisher.CO2</code> grade as related; <code>FoamExtinguisher</code> and <code>CO2Extinguisher</code> grade as unrelated, and your feedback loses the distinction it needed to be useful.</p>
+
+    <p>Two tags on one object is normal. A foam extinguisher that is also the heavy one can carry <code>Item.Extinguisher.Foam</code> and <code>Property.Heavy</code>, and a query can ask for either.</p>
+
+    <h2 id="held">Set Held, and why it exists</h2>
+
+    <p>Call <strong>Set Held</strong> where your grab succeeds, and clear it on release.</p>
+
+    <figure>
+      <pre class="graph"><code>On Grabbed   ──▶ Set Held ( true )
+On Released  ──▶ Set Held ( false )</code></pre>
+      <figcaption>Two nodes in the item Blueprint. This is the one piece of wiring identity asks of you.</figcaption>
+    </figure>
+
+    <p>A zone cannot work this out on its own. Attachment is only one of the ways a VR framework can hold something: VRExpansion holds most grip types with a physics constraint and never reparents the actor, so an object sitting in the player's hand looks perfectly detached from outside. The zone falls back to checking attachment when nothing sets the flag, which is how an object gets counted as placed while the trainee is still holding it.</p>
+
+    <p>With the flag set, <a href="../tasks/place-object-in-zone.html">Place Object In Zone</a> stops treating a held object as at rest, and placement checks become exact regardless of which VR plugin you use.</p>
+
+    <div class="trap">
+      <svg class="ico" width="16" height="16" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5" aria-hidden="true"><circle cx="8" cy="8" r="6.3"/><path d="M5.6 5.6l4.8 4.8M10.4 5.6l-4.8 4.8"/></svg>
       <div>
-        <span class="ct">Tick While Paused is almost never what you want</span>
-        <p>Pausing the flow normally stops the timer and resumes it where it left off. Turn on the base <code>Tick While Paused</code> field and the delay keeps counting through the pause instead.</p>
+        <span class="ct">Held is not replicated</span>
+        <p>The flag is transient and local. Zones run on the server, so in multiplayer the grab has to set it there: call Set Held from a server RPC or from replicated grab logic, not from the client-side visual that happens to look right on the trainee's machine.</p>
       </div>
     </div>
 
-    <h2 id="node-or-task">Node or task?</h2>
+    <h2 id="names">Display Name is what the trainee reads</h2>
 
-    <div class="decide">
-      <div>
-        <h4>Use the <a href="../nodes/delay.html">Delay node</a></h4>
-        <ul>
-          <li>A plain pause, which is the usual case</li>
-          <li>You want the graph to read clearly</li>
-        </ul>
-      </div>
-      <div>
-        <h4>Use the Delay task</h4>
-        <ul>
-          <li>You want <code>Random Extra</code></li>
-          <li>You want it inside a <a href="parallel-group.html">Parallel Group</a></li>
-          <li>You want a <code>Task Id</code>, an instruction, or scoring attached</li>
-          <li>You want the <a href="../nodes/task.html">Task node</a>'s abort condition around it</li>
-        </ul>
-      </div>
-    </div>
+    <p>Leave it empty and prompts and mistake text fall back to the actor's name, which is how a headset ends up showing "BP_Ext_Foam_2". Filling it in costs one field and survives someone renaming the Blueprint.</p>
 
-    <h2 id="example">Varied ambient pacing</h2>
+    <p><a href="../blueprint/world-queries.html">Get Identity Display Name</a> reads it from your own Blueprint, for hint text and highlight labels.</p>
 
-    <p>An idle scenario where a radio call arrives every twenty to thirty seconds, so it does not feel scripted.</p>
+    <h2 id="without">Actors you cannot add it to</h2>
 
-    <ol class="steps">
-      <li><span class="sh">Add the task</span><p>A <a href="../nodes/task.html">Task node</a> with <strong>Task</strong> set to <strong>Delay</strong>.</p></li>
-      <li><span class="sh">Set the window</span><p><strong>Duration</strong> to <code>20</code>, <strong>Random Extra</strong> to <code>10</code>, making the wait 20 to 30 seconds.</p></li>
-      <li><span class="sh">Wire the payoff</span><p><code>Completed</code> into the radio-call task.</p></li>
-      <li><span class="sh">Repeat it</span><p>Wrap the pair in a <a href="../nodes/loop.html">Loop node</a> with <code>Iterations</code> of <code>0</code> and a break condition, so the calls repeat until the scenario ends.</p>
-        <p class="tip"><b>Let a real event cut the wait short.</b> On the Task node, set <strong>Abort Condition</strong> to <strong>Event Was Raised</strong> with your interrupt tag and <strong>Abort Result</strong> to <code>Succeeded</code>.</p></li>
-    </ol>
-
-    <h2 id="misbehaves">When it misbehaves</h2>
+    <p>Two fallbacks, both on the query rather than on the object.</p>
 
     <div class="tw">
       <table>
-        <thead><tr><th scope="col">Symptom</th><th scope="col">Cause</th></tr></thead>
+        <caption>Identifying an actor with no identity component</caption>
+        <thead><tr><th scope="col">Situation</th><th scope="col">What answers</th></tr></thead>
         <tbody>
-          <tr><td>The delay runs longer than configured</td><td><code>Random Extra</code> is set. It adds on top of <code>Duration</code> rather than blending into it. Or the flow was paused.</td></tr>
-          <tr><td>The delay does not pause with the game</td><td><code>Tick While Paused</code> is on, or the component's <code>Follow Game Pause</code> is off.</td></tr>
-          <tr><td>You wanted a timeout, not a pause</td><td>Use the <a href="../nodes/task.html">Task node</a>'s <code>Time Limit</code>, or race a delay against the work with a <a href="../nodes/join.html">Join</a> in <strong>Wait For Any</strong> mode.</td></tr>
-          <tr><td>The graph is filling with Task nodes that only wait</td><td>The <a href="../nodes/delay.html">Delay node</a> exists for exactly that.</td></tr>
+          <tr><td class="t-name">Actor from a GAS project</td><td>Identity tag reads fall back to <code>IGameplayTagAssetInterface</code>, so its existing tags work with no second component.</td></tr>
+          <tr><td class="t-name">Actor from a plugin you do not own</td><td>Use <strong>Required Actor Tag</strong> on the Actor Query, matching a plain <code>AActor::Tags</code> entry.</td></tr>
         </tbody>
       </table>
     </div>
 
-    <h2 id="related">Related</h2>
-    <p><a href="../nodes/delay.html">Delay node</a> &middot; <a href="../nodes/task.html">Task node</a> &middot; <a href="parallel-group.html">Parallel Group</a></p>
+    <p>Gameplay tags are the default for the reasons the fallbacks lack: they are validated at author time, they autocomplete in the Details panel, and they nest, which is what the near-miss grading depends on.</p>
+
+    <h2 id="when-not">When to skip it</h2>
+
+    <p>An object no task ever asks about does not need one. Scenery, decoration and anything the trainee cannot pick up can stay plain. Identity is for the objects a procedure has an opinion about.</p>
+
+    <p>It is also not a place for state. The component describes what a thing is, not what it is doing; task progress, counters and scores belong on the <a href="../blueprint/blackboard-nodes.html">blackboard</a>.</p>
 
     <nav class="pager" aria-label="Page navigation">
-      <a href="../03-authoring.html"><span class="d">Previous</span><span class="t">Authoring in the Node Graph</span></a>
-      <a class="next" href="log-message.html"><span class="d">Next</span><span class="t">Log Message</span></a>
+      <a href="flow-component.html"><span class="d">Previous</span><span class="t">SimFlow Component</span></a>
+      <a class="next" href="player-component.html"><span class="d">Next</span><span class="t">SimFlow Player Component</span></a>
     </nav>
 
     <div class="foot">

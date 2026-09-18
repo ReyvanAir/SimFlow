@@ -78,6 +78,8 @@ set from the graph nodes above. The full index is in the
 | [Subsystem](blueprint/subsystem.md) | Every flow in the game instance, and the debug HUD |
 | [Player Component](blueprint/player-component.md) | The client-to-server channel, and how to gate it |
 | [Status Widget](blueprint/status-widget.md) | The UMG base class for tutorial panels |
+| [Scenario records](blueprint/scenario-records.md) | Play count, last outcome, last played and best score, kept out of the run save |
+| [Driving any widget](blueprint/any-widget.md) | Showing flow state in a widget owned by another plugin's base class |
 | [Zones and identity](blueprint/world-queries.md) | Asking the world what's where and what things are |
 | [Graph introspection](blueprint/graph-introspection.md) | Reading and building flow assets from Blueprint |
 

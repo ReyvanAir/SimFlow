@@ -51,6 +51,15 @@ Under **Save**:
 | Auto Resume From Save On Begin Play | Bool | `false` | When a save exists on BeginPlay, resume from it instead of starting fresh. |
 | Default Load Mode | Enum | `Exact State` | `Exact State` or `From Last Checkpoint`. |
 
+Under **Record**:
+
+| Field | Type | Default | Meaning |
+|---|---|---|---|
+| Scenario Slot Name | String | `SimFlowScenarios` | Separate from the run save, so clearing one leaves the other alone. |
+| Scenario User Index | Int | `0` | Platform user index. |
+| Record Play On Finish | Bool | `true` | Count the play and store the outcome when the flow ends. |
+| High Score Requires Completion | Bool | `true` | Off, and a failed run can set a best score too. The play counts either way. |
+
 And under **Debug / Advanced**, **Show Debug HUD** (bool, `false`) draws this flow's
 status on screen and is also toggled globally by `SimFlow.Debug`, while
 **Follow Game Pause** (bool, `true`) pauses the flow when the game pauses, on the
@@ -106,6 +115,40 @@ Save and load are authority-only. On a client they log and return.
 Object references in the blackboard are stripped on save — see
 [values and types](blackboard.md#values-and-types).
 
+## Scenario records
+
+A run save is a resume snapshot and dies with the run. A scenario record is the
+history: how many times this flow has been played, how the last attempt ended and
+when, and the best score it has ever produced. Its own slot, so `Delete Flow Save`
+and a fresh attempt both leave it standing. Keyed by `Flow Save Id`.
+
+| Function | Notes |
+|---|---|
+| Record Play | Counts the attempt, stores the outcome, takes the score if it is a best |
+| Get Scenario Record | Best score, play count, last outcome, last played |
+| Get High Score / Get Play Count | Single fields off that record |
+| Has Scenario Record | Tells a stored `0` from never played |
+| Is Beating High Score | Would the current run score take the best? Writes nothing |
+| Reset Scenario Record | Clears the whole history for this flow |
+
+A score takes the best only when it is **strictly higher**. A tie changes nothing
+and `Record Play` returns false — which means "no new best", not "failed". The play
+is still counted.
+
+With `Record Play On Finish` on, a finishing run records itself, and it does so
+*before* **On Flow Finished** broadcasts — so a debrief widget listening there
+already reads the new numbers. Every finish counts as a play, including `Failed`
+and `Aborted`; `High Score Requires Completion` governs only whether the score may
+take the best.
+
+Recording and resetting are authority-only, like save and load. The getters read
+anywhere, but each one opens the save file, so read once and cache rather than
+binding a getter to a widget that ticks.
+
+A selector can read every scenario's record without loading a flow or touching the
+level: **Get All Scenario Records** on the [statics](blueprint/scenario-records.md)
+returns the whole table.
+
 ## Queries
 
 These work on clients too, reading replicated state and resolving names,
@@ -133,6 +176,8 @@ driven from. **On Checkpoint Reached** fires at a [checkpoint](nodes/checkpoint.
 **On Quiz Presented** is where you show your quiz widget, and
 **On Net State Changed** fires on clients whenever replicated state changes — the
 server fires it too.
+**On New High Score** carries the new and previous values when a recorded score
+beats the best; previous is `0` when there was none.
 
 ## A flow on the Game Mode
 

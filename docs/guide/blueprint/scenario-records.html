@@ -3,8 +3,8 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>Delay Task | SimFlow User Guide</title>
-<meta name="description" content="Delay Task (USimFlowTask_Delay) in SimFlow: Waits a fixed number of seconds, with an optional random extra. Fields, pins, worked example and failure modes.">
+<title>Scenario Record Nodes | SimFlow User Guide</title>
+<meta name="description" content="Scenario Record Nodes (USimFlowStatics) in SimFlow: Play count, last outcome, last played and best score per scenario, in their own slot. Node tables, a worked example and the failure modes.">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500;600&family=IBM+Plex+Sans:wght@400;500;600&display=swap">
@@ -73,10 +73,10 @@
         <li><a href="../nodes/set-blackboard.html"><span class="num">&#183;</span><span>Set Blackboard Value</span></a></li>
       </ul>
     </details>
-    <details class="navgroup" open>
+    <details class="navgroup">
       <summary>Task Reference</summary>
       <ul>
-        <li><a href="../tasks/delay.html" aria-current="page"><span class="num">&#183;</span><span>Delay</span></a></li>
+        <li><a href="../tasks/delay.html"><span class="num">&#183;</span><span>Delay</span></a></li>
         <li><a href="../tasks/log-message.html"><span class="num">&#183;</span><span>Log Message</span></a></li>
         <li><a href="../tasks/set-blackboard.html"><span class="num">&#183;</span><span>Set Blackboard Value</span></a></li>
         <li><a href="../tasks/wait-for-event.html"><span class="num">&#183;</span><span>Wait For Event</span></a></li>
@@ -96,7 +96,7 @@
         <li><a href="../components/player-component.html"><span class="num">&#183;</span><span>SimFlow Player Component</span></a></li>
       </ul>
     </details>
-    <details class="navgroup">
+    <details class="navgroup" open>
       <summary>Blueprint Nodes</summary>
       <ul>
         <li><a href="../blueprint/flow-access.html"><span class="num">&#183;</span><span>Flow Access</span></a></li>
@@ -109,7 +109,7 @@
         <li><a href="../blueprint/status-widget.html"><span class="num">&#183;</span><span>Status Widget</span></a></li>
         <li><a href="../blueprint/any-widget.html"><span class="num">&#183;</span><span>Any Widget</span></a></li>
         <li><a href="../blueprint/world-queries.html"><span class="num">&#183;</span><span>Zones &amp; Identity</span></a></li>
-        <li><a href="../blueprint/scenario-records.html"><span class="num">&#183;</span><span>Scenario Records</span></a></li>
+        <li><a href="../blueprint/scenario-records.html" aria-current="page"><span class="num">&#183;</span><span>Scenario Records</span></a></li>
         <li><a href="../blueprint/graph-introspection.html"><span class="num">&#183;</span><span>Graph Introspection</span></a></li>
       </ul>
     </details>
@@ -140,82 +140,123 @@
     <nav class="crumbs" aria-label="Breadcrumb">
       <ol>
         <li><a href="../index.html">User Guide</a></li>
-        <li><svg width="11" height="11" viewBox="0 0 12 12" fill="none" stroke="currentColor" stroke-width="1.6" aria-hidden="true"><path d="m4.5 2.5 3.5 3.5-3.5 3.5"/></svg><a href="../03-authoring.html">Task Reference</a></li>
-        <li><svg width="11" height="11" viewBox="0 0 12 12" fill="none" stroke="currentColor" stroke-width="1.6" aria-hidden="true"><path d="m4.5 2.5 3.5 3.5-3.5 3.5"/></svg><span aria-current="page">Delay</span></li>
+        <li><svg width="11" height="11" viewBox="0 0 12 12" fill="none" stroke="currentColor" stroke-width="1.6" aria-hidden="true"><path d="m4.5 2.5 3.5 3.5-3.5 3.5"/></svg><a href="../05-runtime-blueprint.html">Blueprint Nodes</a></li>
+        <li><svg width="11" height="11" viewBox="0 0 12 12" fill="none" stroke="currentColor" stroke-width="1.6" aria-hidden="true"><path d="m4.5 2.5 3.5 3.5-3.5 3.5"/></svg><span aria-current="page">Scenario Records</span></li>
       </ol>
     </nav>
 
-    <p class="eyebrow">Task Reference</p>
-    <h1>Delay Task</h1>
+    <p class="eyebrow">Blueprint Nodes</p>
+    <h1>Scenario Record Nodes</h1>
 
     <dl class="idcard">
-      <dt>Class</dt><dd><code>USimFlowTask_Delay</code></dd>
-      <dt>Select via</dt><dd><a href="../nodes/task.html">Task node</a> &#8594; <strong>Task</strong> dropdown &#8594; <strong>Delay</strong></dd>
-      <dt>Finishes with</dt><dd><code>Succeeded</code>, once the wait elapses</dd>
-      <dt>Category</dt><dd>Timing</dd>
+      <dt>Library</dt><dd><code>USimFlowStatics</code></dd>
+      <dt>Target pin</dt><dd>None. These are static.</dd>
+      <dt>Authority</dt><dd>Submitting and resetting are server-only. The getters read anywhere.</dd>
+      <dt>Category</dt><dd>SimFlow &#124; High Score</dd>
     </dl>
 
-    <p class="usefor"><b>Use it for:</b> a wait that needs something the <a href="../nodes/delay.html">Delay node</a> cannot give you: a random extra, a place inside a Parallel Group, or a Task node's abort condition around it.</p>
+    <p class="usefor"><b>Use them for:</b> a personal best on a drill, a debrief screen that says whether this run beat it, and a table across every scenario.</p>
 
-    <p>For a plain pause in the graph, the node form is the better choice.</p>
+    <p><a href="blackboard-nodes.html">Score</a> is a blackboard key, so it belongs to one run and dies with it. These nodes keep the best score a flow has ever seen, across runs and across sessions.</p>
 
-    <h2 id="fields">How long it waits</h2>
+    <h2 id="where">Where the record lives</h2>
+
+    <p>High scores go in their own save slot, <code>SimFlowScenarios</code> by default, rather than in the slot your flow saves to. That separation is the whole point.</p>
 
     <div class="tw">
       <table>
-        <caption>USimFlowTask_Delay, own settings</caption>
-        <thead><tr><th scope="col">Field</th><th scope="col">Type</th><th scope="col">Default</th><th scope="col">Meaning</th></tr></thead>
+        <thead><tr><th scope="col">What you do</th><th scope="col">Run save</th><th scope="col">High score</th></tr></thead>
         <tbody>
-          <tr><td class="t-name">Duration</td><td class="t-type">Float, seconds, min 0</td><td class="t-def">1.0</td><td>Base wait time.</td></tr>
-          <tr><td class="t-name">Random Extra</td><td class="t-type">Float, seconds, min 0</td><td class="t-def">0.0</td><td>Randomly adds up to this many seconds on top of <code>Duration</code>.</td></tr>
+          <tr><td>Quick Save, then Quick Load</td><td>Restored</td><td>Untouched</td></tr>
+          <tr><td>Delete Flow Save</td><td>Gone</td><td>Survives</td></tr>
+          <tr><td>Start the drill again from scratch</td><td>Overwritten on next save</td><td>Survives</td></tr>
+          <tr><td>Reset Scenario Record</td><td>Untouched</td><td>Gone</td></tr>
         </tbody>
       </table>
     </div>
 
-    <p>Plus the <a href="../03-authoring.html#step-metadata">fields every task has</a>.</p>
+    <p>Records are keyed by <b>Flow Save Id</b>, the same key run saves use, so every drill keeps its own best. A flow with no <code>Flow Save Id</code> falls back to its owning actor's name, exactly as saving does.</p>
 
-    <p>The actual wait is <code>Duration + random(0, Random Extra)</code>, rolled once when the task starts. With both at 0 the task finishes almost immediately, effectively a pass-through. With <code>Duration</code> at 0 and <code>Random Extra</code> set, you get a purely random wait between zero and that value.</p>
+    <h2 id="nodes">The nodes</h2>
+
+    <div class="tw">
+      <table>
+        <thead><tr><th scope="col">Node</th><th scope="col">Returns</th><th scope="col">Notes</th></tr></thead>
+        <tbody>
+          <tr><td>Submit High Score (Flow Save Id, Score, Slot Name, User Index)</td><td>bool</td><td>True only when the record moved</td></tr>
+          <tr><td>Get High Score (Flow Save Id, Slot Name, User Index)</td><td>float</td><td><code>0</code> when nothing is stored</td></tr>
+          <tr><td>Has Scenario Record (Flow Save Id, Slot Name, User Index)</td><td>bool</td><td>Tells a stored <code>0</code> from no record</td></tr>
+          <tr><td>Get Scenario Record (Flow Save Id, Slot Name, User Index)</td><td>Struct</td><td>Best score, play count, last outcome, last played</td></tr>
+          <tr><td>Get All Scenario Records (Slot Name, User Index)</td><td>Map of Name to Struct</td><td>The whole table</td></tr>
+          <tr><td>Would Beat High Score (Flow Save Id, Score, Slot Name, User Index)</td><td>bool</td><td>Asks without writing</td></tr>
+          <tr><td>Reset Scenario Record (Flow Save Id, Slot Name, User Index)</td><td>bool</td><td>True when there was one to clear</td></tr>
+          <tr><td>Reset All Scenario Records (Slot Name, User Index)</td><td>bool</td><td>Empties the table</td></tr>
+        </tbody>
+      </table>
+    </div>
+
+    <p>Leave <b>Slot Name</b> empty and you get <code>SimFlowScenarios</code>. <b>User Index</b> is the platform user index and defaults to <code>0</code>, as everywhere else in SimFlow.</p>
+
+    <div class="note">
+      <svg class="ico" width="16" height="16" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5" aria-hidden="true"><circle cx="8" cy="8" r="6.3"/><path d="M8 7.2v4M8 4.9v.7"/></svg>
+      <div>
+        <span class="ct">Has Scenario Record is not redundant</span>
+        <p><code>Get High Score</code> returns <code>0</code> for a flow with no record, and <code>0</code> is a real score once a task carries a negative <code>Score On Failure</code>. Check <code>Has Scenario Record</code> before showing a number to anyone.</p>
+      </div>
+    </div>
+
+    <h2 id="replacement">Higher replaces, equal does not</h2>
+
+    <p>A submitted score has to be <b>strictly higher</b> than the stored one to take its place. Submit 200 against a stored 200 and nothing changes: the record keeps its original timestamp, and <code>Record Play</code> returns <code>false</code>. That false means "did not beat it", not "something went wrong".</p>
+
+    <h2 id="component">From the component</h2>
+
+    <p>The <a href="../05-runtime-blueprint.html">SimFlow Component</a> wraps all of this against its own <code>Flow Save Id</code>, so a Blueprint on the flow actor never has to pass one. It also submits for you when a run ends.</p>
+
+    <div class="tw">
+      <table>
+        <thead><tr><th scope="col">Field</th><th scope="col">Default</th><th scope="col">Meaning</th></tr></thead>
+        <tbody>
+          <tr><td>Scenario Slot Name</td><td><code>SimFlowScenarios</code></td><td></td></tr>
+          <tr><td>Scenario User Index</td><td><code>0</code></td><td></td></tr>
+          <tr><td>Record Play On Finish</td><td><code>true</code></td><td>Offer the run score to the record when the flow ends</td></tr>
+          <tr><td>High Score Requires Completion</td><td><code>true</code></td><td>Turn off and a failed or aborted run can set one too</td></tr>
+        </tbody>
+      </table>
+    </div>
+
+    <p><b>On New High Score</b> fires with the new and previous values whenever the record moves. Previous is <code>0</code> when there was no record, so pair it with <code>Has Scenario Record</code> if you want to say "first attempt" rather than "beat 0".</p>
+
+    <h2 id="debrief">A debrief screen</h2>
+
+    <p>The auto-submit runs <em>before</em> <b>On Flow Finished</b> broadcasts, so a widget listening there already reads the new number.</p>
+
+    <figure>
+      <pre class="graph"><code>On Flow Finished ──▶ Get Score        ──▶ "You scored: {}"
+                 ──▶ Get High Score   ──▶ "Best: {}"
+                 ──▶ Has Scenario Record   ──▶ Branch ──▶ show the Best line at all</code></pre>
+      <figcaption>Three reads, no comparison logic of your own.</figcaption>
+    </figure>
+
+    <p>For the "new record" banner, bind to <b>On New High Score</b> rather than comparing numbers yourself.</p>
+
+    <figure>
+      <pre class="graph"><code>On New High Score (New Score, Previous Score)
+   └─▶ Play banner ──▶ "New record: {New Score}, up from {Previous Score}"</code></pre>
+      <figcaption>Fires only when the record actually moved.</figcaption>
+    </figure>
+
+    <h2 id="authority">Authority</h2>
+
+    <p>Submitting and resetting are authority-only, like <a href="control-and-save.html">save and load</a>. On a client mirror they log and do nothing. The getters read on any machine, but a client reads that machine's own save file, which is not the server's.</p>
 
     <div class="warn">
       <svg class="ico" width="16" height="16" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5" aria-hidden="true"><path d="M8 2.4 15 14H1Z"/><path d="M8 6.4v3.2M8 11.6v.6"/></svg>
       <div>
-        <span class="ct">Tick While Paused is almost never what you want</span>
-        <p>Pausing the flow normally stops the timer and resumes it where it left off. Turn on the base <code>Tick While Paused</code> field and the delay keeps counting through the pause instead.</p>
+        <span class="ct">Every getter opens the save file</span>
+        <p>That is fine when a run ends, and wrong in a widget binding that ticks. Read once on <b>On Flow Finished</b> or <b>On New High Score</b>, store the value in a variable, and bind your UI to that.</p>
       </div>
     </div>
-
-    <h2 id="node-or-task">Node or task?</h2>
-
-    <div class="decide">
-      <div>
-        <h4>Use the <a href="../nodes/delay.html">Delay node</a></h4>
-        <ul>
-          <li>A plain pause, which is the usual case</li>
-          <li>You want the graph to read clearly</li>
-        </ul>
-      </div>
-      <div>
-        <h4>Use the Delay task</h4>
-        <ul>
-          <li>You want <code>Random Extra</code></li>
-          <li>You want it inside a <a href="parallel-group.html">Parallel Group</a></li>
-          <li>You want a <code>Task Id</code>, an instruction, or scoring attached</li>
-          <li>You want the <a href="../nodes/task.html">Task node</a>'s abort condition around it</li>
-        </ul>
-      </div>
-    </div>
-
-    <h2 id="example">Varied ambient pacing</h2>
-
-    <p>An idle scenario where a radio call arrives every twenty to thirty seconds, so it does not feel scripted.</p>
-
-    <ol class="steps">
-      <li><span class="sh">Add the task</span><p>A <a href="../nodes/task.html">Task node</a> with <strong>Task</strong> set to <strong>Delay</strong>.</p></li>
-      <li><span class="sh">Set the window</span><p><strong>Duration</strong> to <code>20</code>, <strong>Random Extra</strong> to <code>10</code>, making the wait 20 to 30 seconds.</p></li>
-      <li><span class="sh">Wire the payoff</span><p><code>Completed</code> into the radio-call task.</p></li>
-      <li><span class="sh">Repeat it</span><p>Wrap the pair in a <a href="../nodes/loop.html">Loop node</a> with <code>Iterations</code> of <code>0</code> and a break condition, so the calls repeat until the scenario ends.</p>
-        <p class="tip"><b>Let a real event cut the wait short.</b> On the Task node, set <strong>Abort Condition</strong> to <strong>Event Was Raised</strong> with your interrupt tag and <strong>Abort Result</strong> to <code>Succeeded</code>.</p></li>
-    </ol>
 
     <h2 id="misbehaves">When it misbehaves</h2>
 
@@ -223,20 +264,21 @@
       <table>
         <thead><tr><th scope="col">Symptom</th><th scope="col">Cause</th></tr></thead>
         <tbody>
-          <tr><td>The delay runs longer than configured</td><td><code>Random Extra</code> is set. It adds on top of <code>Duration</code> rather than blending into it. Or the flow was paused.</td></tr>
-          <tr><td>The delay does not pause with the game</td><td><code>Tick While Paused</code> is on, or the component's <code>Follow Game Pause</code> is off.</td></tr>
-          <tr><td>You wanted a timeout, not a pause</td><td>Use the <a href="../nodes/task.html">Task node</a>'s <code>Time Limit</code>, or race a delay against the work with a <a href="../nodes/join.html">Join</a> in <strong>Wait For Any</strong> mode.</td></tr>
-          <tr><td>The graph is filling with Task nodes that only wait</td><td>The <a href="../nodes/delay.html">Delay node</a> exists for exactly that.</td></tr>
+          <tr><td>Record Play always returns false</td><td>The score is not beating the stored one, or <code>Flow Save Id</code> is <code>None</code> and you called the static form directly. The static needs a real id; the component version fills it in.</td></tr>
+          <tr><td>The record vanished after a new attempt</td><td>It should not. Check that nothing calls <code>Reset Scenario Record</code> on start, and that <code>Scenario Slot Name</code> matches between the submit and the read.</td></tr>
+          <tr><td>Nothing is stored and the log says the slot holds something else</td><td>Another save object already owns that slot name. SimFlow refuses to overwrite it rather than destroying your data. Pick a different <code>Scenario Slot Name</code>.</td></tr>
+          <tr><td>A client shows a different best than the server</td><td>Expected. Each machine reads its own save file. Replicate the number yourself if clients need the server's.</td></tr>
+          <tr><td>Scores are recorded for runs that failed</td><td><code>High Score Requires Completion</code> is off, or something calls <code>Submit High Score</code> directly.</td></tr>
         </tbody>
       </table>
     </div>
 
     <h2 id="related">Related</h2>
-    <p><a href="../nodes/delay.html">Delay node</a> &middot; <a href="../nodes/task.html">Task node</a> &middot; <a href="parallel-group.html">Parallel Group</a></p>
+    <p><a href="control-and-save.html">Control &amp; Save</a> &middot; <a href="blackboard-nodes.html">Blackboard Nodes</a> &middot; <a href="status-widget.html">Status Widget</a></p>
 
     <nav class="pager" aria-label="Page navigation">
-      <a href="../03-authoring.html"><span class="d">Previous</span><span class="t">Authoring in the Node Graph</span></a>
-      <a class="next" href="log-message.html"><span class="d">Next</span><span class="t">Log Message</span></a>
+      <a href="world-queries.html"><span class="d">Previous</span><span class="t">Zones &amp; Identity</span></a>
+      <a class="next" href="graph-introspection.html"><span class="d">Next</span><span class="t">Graph Introspection</span></a>
     </nav>
 
     <div class="foot">
