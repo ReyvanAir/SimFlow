@@ -30,7 +30,8 @@ Most projects only need two of these pages. Start with
 | [Flow Instance](instance.md) | The running flow object: state, active tasks, mistakes, events, save |
 | [Subsystem](subsystem.md) | The game-instance registry of every flow, and the debug HUD toggle |
 | [Player Component](player-component.md) | The client-to-server channel, and how to gate it |
-| [Status Widget](status-widget.md) | The UMG base class: bindings, button handlers, design events |
+| [Status Widget](status-widget.md) | The UMG base class: bindings, button handlers, design events, showing the previous task's result |
+| [Scenario selector](selector-widget.md) | The briefing-table panel: `Build Scenario Options`, `Apply Scenario Records`, `Start Scenario`, and the widget base class |
 | [Scenario records](scenario-records.md) | Play count, last outcome, last played and best score, kept out of the run save |
 | [Driving any widget](any-widget.md) | Showing flow state in a widget owned by another plugin's base class |
 | [Zones and identity](world-queries.md) | Asking the world what's where and what things are |

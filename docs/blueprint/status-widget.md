@@ -114,6 +114,48 @@ construct time there may be no flow yet.
 arrives. Refresh anything you cached rather than recomputing on tick. Bindings that
 call the query nodes above update on their own.
 
+## Showing the previous task, and how it went
+
+A panel that reads "previous step failed, current step running" needs something the
+query nodes do not give you. `Get Task Name` and `Get Instruction` describe the task
+running *now*; nothing holds on to the one before it.
+
+Keep it yourself. **On Task Finished** hands you the task and its result together, so
+three widget variables cover it:
+
+```
+Event On Task Finished ( Task , Result )
+  ├─▶ Set Previous Task Name   = Task ▸ Get Display Name Text
+  ├─▶ Set Previous Task Result = Result        ( ESimFlowResult )
+  └─▶ Set Has Previous Task    = true
+```
+
+Render the result with [`Result To Text`](values.md), which covers all five values —
+Succeeded, Failed, Skipped, Timed Out, Aborted:
+
+```
+Previous:  {Previous Task Name} — {Result To Text( Previous Task Result )}
+Current:   {Get Task Name} — in progress
+```
+
+The ordering works in your favour. **On Task Finished** for one task fires before
+**On Task Started** for the next, so by the time the new step begins, the cached
+"previous" is already the one that just ended. It works in multiplayer too: the event
+multicasts, resolving the task from its node id on every machine.
+
+For the whole run rather than just the last step, make the variable an array of a
+small struct — name plus result — and Add instead of Set. Same event, one node
+different, and you have a debrief list at the end.
+
+> `Get Flow Instance` › `Get Last Task Result` looks like the answer and is not. It
+> gives the result with no task name, it starts life reading `Succeeded` before
+> anything has run, and the instance is null on a client — which reads as `Succeeded`
+> too. See [Flow Instance](instance.md).
+
+For *why* a task failed, `Get Flow Instance` › `Get Mistakes` returns records carrying
+a ready-to-show description such as "Placed CO2 Extinguisher — expected Foam
+Extinguisher", keyed by task id. Server-side only.
+
 ## A VR wrist panel
 
 1. Reparent the widget to **SimFlow Status Widget**.

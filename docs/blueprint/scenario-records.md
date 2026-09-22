@@ -29,6 +29,7 @@ actor's name, exactly as saving does.
 |---|---|---|
 | Submit High Score (Flow Save Id, Score, Slot Name, User Index) | bool | True only when the record moved |
 | Get High Score (Flow Save Id, Slot Name, User Index) | float | `0` when nothing is stored |
+| Get Play Count (Flow Save Id, Slot Name, User Index) | int | `0` when nothing is stored |
 | Has Scenario Record (Flow Save Id, Slot Name, User Index) | bool | Tells a stored `0` from no record |
 | Get Scenario Record (Flow Save Id, Slot Name, User Index) | Struct | Best score, play count, last outcome, last played |
 | Get All Scenario Records (Slot Name, User Index) | Map of Name to Struct | The whole table |
@@ -42,6 +43,24 @@ platform user index and defaults to `0`, same as everywhere else in SimFlow.
 **Has Scenario Record** is not redundant. `Get High Score` returns `0` for a flow with no
 record, and `0` is a real score once a task carries a negative
 `Score On Failure`. Check `Has Scenario Record` before showing a number to anyone.
+
+### "High score" and "best score" are the same number
+
+`Get High Score` and `Get Play Count` are shortcuts. Each one calls
+`Get Scenario Record` and hands you a single field:
+
+```
+Get High Score  ≡  Get Scenario Record ▸ Best Score
+Get Play Count  ≡  Get Scenario Record ▸ Play Count
+```
+
+Split the struct pin and Unreal names each sub-pin `Return Value <Field>`, so the same
+value appears as **Return Value Best Score**. The accessor says "high score", the field
+says "best score"; nothing differs but the name.
+
+Which means three nodes off one component — `Get High Score`, `Get Play Count` and
+`Get Scenario Record` — are three separate reads of the same file for data the last one
+already contains. Call `Get Scenario Record` once into a variable and read its pins.
 
 ## Higher replaces, equal does not
 

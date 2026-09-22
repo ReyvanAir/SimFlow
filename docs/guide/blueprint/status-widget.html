@@ -107,6 +107,7 @@
         <li><a href="../blueprint/subsystem.html"><span class="num">&#183;</span><span>Subsystem</span></a></li>
         <li><a href="../blueprint/player-component.html"><span class="num">&#183;</span><span>Player Component</span></a></li>
         <li><a href="../blueprint/status-widget.html" aria-current="page"><span class="num">&#183;</span><span>Status Widget</span></a></li>
+        <li><a href="../blueprint/selector-widget.html"><span class="num">&#183;</span><span>Scenario Selector</span></a></li>
         <li><a href="../blueprint/any-widget.html"><span class="num">&#183;</span><span>Any Widget</span></a></li>
         <li><a href="../blueprint/world-queries.html"><span class="num">&#183;</span><span>Zones &amp; Identity</span></a></li>
         <li><a href="../blueprint/scenario-records.html"><span class="num">&#183;</span><span>Scenario Records</span></a></li>
@@ -269,6 +270,36 @@
 
     <p><strong>On Flow State Replicated</strong> fires only on clients, every time the server's state arrives. Refresh anything you cached there rather than recomputing on tick. Bindings that call the query nodes update on their own.</p>
 
+    <h2 id="task-history">Showing the previous task, and how it went</h2>
+
+    <p>A panel that reads &#8220;previous step failed, current step running&#8221; needs two things the query nodes do not give you. <code>Get Task Name</code> and <code>Get Instruction</code> describe the task running <em>now</em>; nothing holds on to the one before it.</p>
+
+    <p>Keep it yourself. <strong>On Task Finished</strong> hands you the task and its result together, so three widget variables cover it:</p>
+
+<pre><code>Event On Task Finished ( Task , Result )
+  ├─▶ Set Previous Task Name   = Task ▸ Get Display Name Text
+  ├─▶ Set Previous Task Result = Result        ( ESimFlowResult )
+  └─▶ Set Has Previous Task    = true</code></pre>
+
+    <p>Render the result with <a href="values.html"><code>Result To Text</code></a>, which covers all five values &#8212; Succeeded, Failed, Skipped, Timed Out, Aborted:</p>
+
+<pre><code>Previous:  {Previous Task Name} — {Result To Text( Previous Task Result )}
+Current:   {Get Task Name} — in progress</code></pre>
+
+    <p>The ordering works in your favour. <strong>On Task Finished</strong> for one task fires before <strong>On Task Started</strong> for the next, so by the time the new step begins, the cached &#8220;previous&#8221; is already the one that just ended. It works in multiplayer too: the event multicasts, resolving the task from its node id on every machine.</p>
+
+    <p>For the whole run rather than just the last step, make the variable an array of a small struct &#8212; name plus result &#8212; and Add instead of Set. Same event, one node different, and you have a debrief list at the end.</p>
+
+    <div class="note">
+      <svg class="ico" width="16" height="16" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5" aria-hidden="true"><circle cx="8" cy="8" r="6.3"/><path d="M8 7.2v4M8 4.9v.7"/></svg>
+      <div>
+        <span class="ct">Get Last Task Result looks like the answer, but is not</span>
+        <p><code>Get Flow Instance</code> &#8250; <code>Get Last Task Result</code> exists. It gives the result with no task name, it starts life reading <code>Succeeded</code> before anything has run, and the instance is null on a client &#8212; which reads as <code>Succeeded</code> too. The event above has none of those problems. See <a href="instance.html">Flow Instance</a>.</p>
+      </div>
+    </div>
+
+    <p>For <em>why</em> a task failed, <code>Get Flow Instance</code> &#8250; <code>Get Mistakes</code> returns records carrying a ready-to-show description such as &#8220;Placed CO2 Extinguisher &#8212; expected Foam Extinguisher&#8221;, keyed by task id. Server-side only.</p>
+
     <h2 id="example">A VR wrist panel</h2>
 
     <ol>
@@ -304,7 +335,7 @@
 
     <nav class="pager" aria-label="Page navigation">
       <a href="player-component.html"><span class="d">Previous</span><span class="t">Player Component</span></a>
-      <a class="next" href="any-widget.html"><span class="d">Next</span><span class="t">Any Widget</span></a>
+      <a class="next" href="selector-widget.html"><span class="d">Next</span><span class="t">Scenario Selector</span></a>
     </nav>
 
     <div class="foot">
