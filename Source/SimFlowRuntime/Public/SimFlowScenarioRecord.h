@@ -7,6 +7,8 @@
 #include "SimFlowTypes.h"
 #include "SimFlowScenarioRecord.generated.h"
 
+class USimFlowAsset;
+
 /** Raised when a recorded score beats the stored best. PreviousBest is 0 when there was none. */
 DECLARE_DYNAMIC_MULTICAST_DELEGATE_TwoParams(FSimFlowHighScoreSignature, float, NewScore, float, PreviousBest);
 
@@ -41,6 +43,44 @@ struct SIMFLOWRUNTIME_API FSimFlowScenarioRecord
 	/** UTC, when that attempt ended. */
 	UPROPERTY(BlueprintReadWrite, Category = "SimFlow|Record")
 	FDateTime LastPlayedAt = FDateTime(0);
+};
+
+/**
+ * One pickable scenario: a flow asset, the Start node to begin from, and whatever
+ * that scenario has done before.
+ *
+ * Built by Build Scenario Options. SimFlow Selector Widget holds a list of these,
+ * but nothing about them needs that widget - any Blueprint can build the list.
+ */
+USTRUCT(BlueprintType)
+struct SIMFLOWRUNTIME_API FSimFlowScenarioOption
+{
+	GENERATED_BODY()
+
+	UPROPERTY(BlueprintReadOnly, Category = "SimFlow|Selector")
+	TObjectPtr<USimFlowAsset> FlowAsset = nullptr;
+
+	UPROPERTY(BlueprintReadOnly, Category = "SimFlow|Selector")
+	FName EntryName = TEXT("Default");
+
+	/** Button label: the asset's display name, or the entry name when one asset holds several. */
+	UPROPERTY(BlueprintReadOnly, Category = "SimFlow|Selector")
+	FText DisplayName;
+
+	UPROPERTY(BlueprintReadOnly, Category = "SimFlow|Selector")
+	FText Description;
+
+	/** Record key for this scenario. The asset name, or Asset.Entry when the asset has several entries. */
+	UPROPERTY(BlueprintReadOnly, Category = "SimFlow|Selector")
+	FName SaveId = NAME_None;
+
+	/** History as of the last refresh. All zero when never played - check bHasRecord first. */
+	UPROPERTY(BlueprintReadOnly, Category = "SimFlow|Selector")
+	FSimFlowScenarioRecord Record;
+
+	/** Tells a stored 0 from never played. */
+	UPROPERTY(BlueprintReadOnly, Category = "SimFlow|Selector")
+	bool bHasRecord = false;
 };
 
 /**

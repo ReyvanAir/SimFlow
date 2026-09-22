@@ -13,11 +13,13 @@ All notable changes to SimFlow. Versions follow the plugin's `VersionName`.
   score the scenario has produced — keyed by the same `Flow Save Id`, in its own
   slot (`SimFlowScenarios`). A score takes the best only when strictly higher; a tie
   changes nothing.
-- **Nine Blueprint nodes on `SimFlow Statics`**: Record Play, Submit High Score, Get
-  Scenario Record, Has Scenario Record, Get High Score, Get All Scenario Records,
-  Would Beat High Score, Reset Scenario Record, Reset High Score and Reset All
-  Scenario Records. Get All Scenario Records hands a selector the whole table
-  without loading a flow or touching the level.
+- **Eleven Blueprint nodes on `SimFlow Statics`**: Record Play, Submit High Score, Get
+  Scenario Record, Has Scenario Record, Get High Score, Get Play Count, Get All
+  Scenario Records, Would Beat High Score, Reset Scenario Record, Reset High Score and
+  Reset All Scenario Records. Get All Scenario Records hands a selector the whole table
+  without loading a flow or touching the level. None of them need a component, a
+  running flow, or a SimFlow widget class — any Blueprint can read a scenario's
+  history by its Flow Save Id.
 - **The component records itself.** `Record Play`, `Get Scenario Record`,
   `Get High Score`, `Get Play Count`, `Has Scenario Record`, `Is Beating High Score`
   and `Reset Scenario Record` all work off the component's own `Flow Save Id`. With
@@ -27,6 +29,27 @@ All notable changes to SimFlow. Versions follow the plugin's `VersionName`.
   `High Score Requires Completion` governs only whether the score may take the best.
 - **`Stop All Flows` on the statics library.** Pause All Flows and Resume All Flows
   were both there; stopping meant reaching through the subsystem.
+- **A scenario list any widget can build: `Build Scenario Options`, `Apply Scenario
+  Records` and `Start Scenario` on `SimFlow Statics`.** Hand Build Scenario Options
+  your flow assets and each comes back as an option carrying display name,
+  description and record key; Apply Scenario Records fills in best score, play count,
+  last outcome and last played, reading the slot once for the whole list rather than
+  once per option; Start Scenario points a flow at the pick and runs it. An asset
+  holding several Start nodes expands to one option per entry, so both authoring
+  shapes work without a setting.
+- **A scenario picker: `SimFlow Selector Widget`.** `SimFlow Status Widget` covers the
+  panel shown during a run; this is the one shown before it. It is the three nodes
+  above with the list and the target flow held for you — `Scenarios`, `Refresh
+  Options`, `Select Scenario`, and `On Options Refreshed` to rebuild your buttons.
+  Reparenting to it is a convenience, never a requirement: a widget on any other base
+  class calls the statics and keeps the array itself.
+- **Each pick gets its own history.** With `Assign Save Id` on — the default, and
+  `Assign Save Id On Select` on the widget — starting a scenario writes its key to the
+  component's `Flow Save Id` first: the asset's name, or `Asset.Entry` when one asset
+  holds several entries.
+  Six scenarios run through one briefing-table component otherwise file every play
+  under that component's single id and their histories merge. Renaming a flow asset
+  starts a fresh history; turn the setting off to key them yourself.
 
 Recording and resetting are authority-only, like save and load. On a client mirror
 they log and do nothing. If the record slot turns out to hold some other save

@@ -104,6 +104,10 @@ public:
 	UFUNCTION(BlueprintPure, Category = "SimFlow|Record")
 	static float GetHighScore(FName FlowSaveId, const FString& SlotName, int32 UserIndex = 0);
 
+	/** How many finished attempts, or 0 when there is no record. */
+	UFUNCTION(BlueprintPure, Category = "SimFlow|Record")
+	static int32 GetPlayCount(FName FlowSaveId, const FString& SlotName, int32 UserIndex = 0);
+
 	/** Every record in the slot. This is what a scenario selector reads. */
 	UFUNCTION(BlueprintPure, Category = "SimFlow|Record")
 	static TMap<FName, FSimFlowScenarioRecord> GetAllScenarioRecords(const FString& SlotName, int32 UserIndex = 0);
@@ -123,6 +127,36 @@ public:
 	/** Empties the whole table. */
 	UFUNCTION(BlueprintCallable, Category = "SimFlow|Record")
 	static bool ResetAllScenarioRecords(const FString& SlotName, int32 UserIndex = 0);
+
+	// ------------------------------------------------------- Scenario picker
+	//
+	// A scenario list for any widget. SimFlow Selector Widget is these three nodes
+	// with a list held for you; a Blueprint on some other base class calls them
+	// directly and keeps the array itself.
+
+	/**
+	 * Expands flow assets into one option per Start node, so a single-entry asset
+	 * gives one scenario and an asset holding several gives one each. Leaves Record
+	 * empty - pass the result through Apply Scenario Records to fill it.
+	 */
+	UFUNCTION(BlueprintPure, Category = "SimFlow|Selector")
+	static TArray<FSimFlowScenarioOption> BuildScenarioOptions(const TArray<USimFlowAsset*>& Assets);
+
+	/** Stamps each option with its stored history, in one read of the slot. */
+	UFUNCTION(BlueprintCallable, Category = "SimFlow|Selector")
+	static void ApplyScenarioRecords(UPARAM(ref) TArray<FSimFlowScenarioOption>& Options, const FString& SlotName, int32 UserIndex = 0);
+
+	/**
+	 * Points a flow at the chosen scenario and starts it, ending whatever it was
+	 * running first.
+	 *
+	 * With bAssignSaveId on, the component's Flow Save Id becomes the option's, so
+	 * each scenario keeps its own history instead of every pick filing under the
+	 * one component. On a client mirror this only forwards a start request: the
+	 * asset lives on the server.
+	 */
+	UFUNCTION(BlueprintCallable, Category = "SimFlow|Selector")
+	static bool StartScenario(USimFlowComponent* Flow, const FSimFlowScenarioOption& Option, bool bAssignSaveId = true);
 
 	// ------------------------------------------------------------ Value makers
 

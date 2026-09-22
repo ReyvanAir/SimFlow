@@ -1,6 +1,7 @@
 // Copyright SimFlow. All Rights Reserved.
 
 #include "SimFlowStatics.h"
+#include "SimFlowAsset.h"
 #include "SimFlowComponent.h"
 #include "SimFlowSubsystem.h"
 #include "SimFlowPlayerComponent.h"
@@ -269,6 +270,11 @@ float USimFlowStatics::GetHighScore(FName FlowSaveId, const FString& SlotName, i
 	return GetScenarioRecord(FlowSaveId, SlotName, UserIndex).BestScore;
 }
 
+int32 USimFlowStatics::GetPlayCount(FName FlowSaveId, const FString& SlotName, int32 UserIndex)
+{
+	return GetScenarioRecord(FlowSaveId, SlotName, UserIndex).PlayCount;
+}
+
 TMap<FName, FSimFlowScenarioRecord> USimFlowStatics::GetAllScenarioRecords(const FString& SlotName, int32 UserIndex)
 {
 	if (const USimFlowScenarioSave* Save = OpenScenarioSave(ResolveScenarioSlot(SlotName), UserIndex, false))
@@ -333,6 +339,105 @@ bool USimFlowStatics::ResetAllScenarioRecords(const FString& SlotName, int32 Use
 
 	Save->Records.Empty();
 	return WriteScenarioSave(Save, Slot, UserIndex);
+}
+
+TArray<FSimFlowScenarioOption> USimFlowStatics::BuildScenarioOptions(const TArray<USimFlowAsset*>& Assets)
+{
+	TArray<FSimFlowScenarioOption> Result;
+
+	for (USimFlowAsset* Asset : Assets)
+	{
+		if (!Asset)
+		{
+			continue;
+		}
+
+		const TArray<FName> Entries = Asset->GetEntryNames();
+		if (Entries.Num() == 0)
+		{
+			// No Start node means nothing to start. A button for it would always fail.
+			UE_LOG(LogSimFlow, Warning,
+				TEXT("Flow '%s' has no Start node, so it cannot be offered as a scenario."),
+				*Asset->GetName());
+			continue;
+		}
+
+		// One asset per scenario is the common shape; several Start nodes in one asset
+		// is the other. Expanding every entry covers both without a switch.
+		const bool bManyEntries = Entries.Num() > 1;
+
+		for (const FName Entry : Entries)
+		{
+			FSimFlowScenarioOption& Option = Result.AddDefaulted_GetRef();
+			Option.FlowAsset = Asset;
+			Option.EntryName = Entry;
+			Option.Description = Asset->FlowDescription;
+			Option.DisplayName = bManyEntries ? FText::FromName(Entry) : Asset->GetDisplayNameText();
+			Option.SaveId = bManyEntries
+				? FName(*FString::Printf(TEXT("%s.%s"), *Asset->GetName(), *Entry.ToString()))
+				: Asset->GetFName();
+		}
+	}
+
+	return Result;
+}
+
+void USimFlowStatics::ApplyScenarioRecords(TArray<FSimFlowScenarioOption>& Options, const FString& SlotName, int32 UserIndex)
+{
+	// One read of the slot for the whole list, not one per option.
+	const TMap<FName, FSimFlowScenarioRecord> All = GetAllScenarioRecords(SlotName, UserIndex);
+
+	for (FSimFlowScenarioOption& Option : Options)
+	{
+		const FSimFlowScenarioRecord* Found = All.Find(Option.SaveId);
+		Option.Record = Found ? *Found : FSimFlowScenarioRecord();
+		Option.bHasRecord = Found != nullptr;
+	}
+}
+
+bool USimFlowStatics::StartScenario(USimFlowComponent* Flow, const FSimFlowScenarioOption& Option, bool bAssignSaveId)
+{
+	if (!Flow)
+	{
+		UE_LOG(LogSimFlow, Warning,
+			TEXT("Start Scenario: no flow to run '%s' on. Get Primary Flow or Find Flow By Id first."),
+			*Option.SaveId.ToString());
+		return false;
+	}
+
+	if (Flow->IsClientMirror())
+	{
+		// The asset and the save id live on the server. Writing them here would only
+		// desync the mirror, so forward the start and let the server use its own.
+		UE_LOG(LogSimFlow, Warning,
+			TEXT("Start Scenario picked '%s', but flow '%s' is server-authoritative: the server starts the scenario it has configured. "
+				 "Choose the scenario server-side, or give each trainee an unreplicated flow."),
+			*Option.SaveId.ToString(), *Flow->GetEffectiveSaveId().ToString());
+
+		return Flow->StartFlow();
+	}
+
+	if (!Option.FlowAsset)
+	{
+		UE_LOG(LogSimFlow, Warning, TEXT("Start Scenario: option '%s' has no flow asset."), *Option.SaveId.ToString());
+		return false;
+	}
+
+	// Swapping the asset under a running flow would leave the old instance mid-task,
+	// so end it first. The stop counts as an Aborted play.
+	if (Flow->IsFlowRunning())
+	{
+		Flow->StopFlow();
+	}
+
+	if (bAssignSaveId)
+	{
+		Flow->FlowSaveId = Option.SaveId;
+	}
+	Flow->FlowAsset = Option.FlowAsset;
+	Flow->EntryName = Option.EntryName;
+
+	return Flow->StartFlowFromEntry(Option.EntryName);
 }
 
 FSimFlowValue USimFlowStatics::MakeFlowBool(bool Value)					{ return FSimFlowValue::MakeBool(Value); }
