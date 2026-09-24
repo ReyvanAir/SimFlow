@@ -50,6 +50,15 @@ All notable changes to SimFlow. Versions follow the plugin's `VersionName`.
   Six scenarios run through one briefing-table component otherwise file every play
   under that component's single id and their histories merge. Renaming a flow asset
   starts a fresh history; turn the setting off to key them yourself.
+- **Scripted editing of flow graphs: `SimFlow Editor Library`** (editor only; in
+  Python, `unreal.SimFlowEditorLibrary`). The asset already had `Add Node`,
+  `Connect Nodes` and `Validate Flow`, but once an asset had been opened its graph
+  won: a node added from a script never appeared, and the next edit in the graph
+  erased it. `Sync Graph From Asset` rebuilds the graph from the nodes and keeps
+  comment boxes. `Describe Flow` returns the whole flow as JSON (nodes, pins, links,
+  task ids, sub flows, validation errors and warnings) for a tool or an AI to read.
+  `Set Node Position` places a scripted node, since the position is not otherwise
+  reachable from a script. Nothing at runtime changes.
 
 Recording and resetting are authority-only, like save and load. On a client mirror
 they log and do nothing. If the record slot turns out to hold some other save
