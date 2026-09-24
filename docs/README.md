@@ -30,10 +30,11 @@ actor over there".
 | [Actor Query](actor-query.md) | Which object a task means, and how near misses are graded |
 | [Zones](zones.md) | Named volumes that report what's inside, and when it has settled |
 
-## Nodes
+## Graph nodes
 
-A node controls where execution goes. The full index is in the
-[node reference](nodes/README.md).
+A node controls where execution goes inside a flow asset. The full index is in the
+[node reference](nodes/README.md). For the SimFlow nodes you place in a *Blueprint*,
+see [Blueprint nodes](blueprint/README.md) below.
 
 | Category | Nodes |
 |---|---|
@@ -60,6 +61,27 @@ is in the [task reference](tasks/README.md).
 | [Delay](tasks/delay.md) | Wait a number of seconds |
 | [Log Message](tasks/log-message.md) | Print a message. Ideal for blocking out a flow |
 | [Set Blackboard Value](tasks/set-blackboard.md) | Write a blackboard key |
+
+## Blueprint nodes
+
+The SimFlow nodes you place in an Actor, widget or component Blueprint — a different
+set from the graph nodes above. The full index is in the
+[Blueprint node reference](blueprint/README.md).
+
+| Page | What it covers |
+|---|---|
+| [Flow access](blueprint/flow-access.md) | Getting hold of a running flow: `Get Primary Flow`, `Find Flow By Id`, `Get Flow From Actor` |
+| [Control and save](blueprint/control-and-save.md) | `Request Flow Control`, bulk pause and resume, save across every flow |
+| [Values](blueprint/values.md) | `Make SimFlow Value`, `Flow Value To …`, and the text formatters for UI |
+| [Blackboard nodes](blueprint/blackboard-nodes.md) | Every typed getter and setter |
+| [Flow Instance](blueprint/instance.md) | Active tasks, mistakes, raised events, elapsed time |
+| [Subsystem](blueprint/subsystem.md) | Every flow in the game instance, and the debug HUD |
+| [Player Component](blueprint/player-component.md) | The client-to-server channel, and how to gate it |
+| [Status Widget](blueprint/status-widget.md) | The UMG base class for tutorial panels |
+| [Scenario records](blueprint/scenario-records.md) | Play count, last outcome, last played and best score, kept out of the run save |
+| [Driving any widget](blueprint/any-widget.md) | Showing flow state in a widget owned by another plugin's base class |
+| [Zones and identity](blueprint/world-queries.md) | Asking the world what's where and what things are |
+| [Graph introspection](blueprint/graph-introspection.md) | Reading and building flow assets from Blueprint |
 
 ## Worked examples
 

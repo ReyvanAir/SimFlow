@@ -4,6 +4,65 @@ All notable changes to SimFlow. Versions follow the plugin's `VersionName`.
 
 ## Unreleased
 
+### Added
+
+- **A scenario record per flow, separate from the run save.** `USimFlowSaveGame` is
+  a resume snapshot: it holds what one attempt looked like at one moment, and
+  `Delete Flow Save` clears it. `USimFlowScenarioSave` is the history that outlives
+  every attempt — play count, how the last one ended, when that was, and the best
+  score the scenario has produced — keyed by the same `Flow Save Id`, in its own
+  slot (`SimFlowScenarios`). A score takes the best only when strictly higher; a tie
+  changes nothing.
+- **Eleven Blueprint nodes on `SimFlow Statics`**: Record Play, Submit High Score, Get
+  Scenario Record, Has Scenario Record, Get High Score, Get Play Count, Get All
+  Scenario Records, Would Beat High Score, Reset Scenario Record, Reset High Score and
+  Reset All Scenario Records. Get All Scenario Records hands a selector the whole table
+  without loading a flow or touching the level. None of them need a component, a
+  running flow, or a SimFlow widget class — any Blueprint can read a scenario's
+  history by its Flow Save Id.
+- **The component records itself.** `Record Play`, `Get Scenario Record`,
+  `Get High Score`, `Get Play Count`, `Has Scenario Record`, `Is Beating High Score`
+  and `Reset Scenario Record` all work off the component's own `Flow Save Id`. With
+  `Record Play On Finish` on — the default — a finishing run records before
+  `On Flow Finished` broadcasts, so a debrief widget reads the new numbers. Every
+  finish counts as a play, including Failed and Aborted;
+  `High Score Requires Completion` governs only whether the score may take the best.
+- **`Stop All Flows` on the statics library.** Pause All Flows and Resume All Flows
+  were both there; stopping meant reaching through the subsystem.
+- **A scenario list any widget can build: `Build Scenario Options`, `Apply Scenario
+  Records` and `Start Scenario` on `SimFlow Statics`.** Hand Build Scenario Options
+  your flow assets and each comes back as an option carrying display name,
+  description and record key; Apply Scenario Records fills in best score, play count,
+  last outcome and last played, reading the slot once for the whole list rather than
+  once per option; Start Scenario points a flow at the pick and runs it. An asset
+  holding several Start nodes expands to one option per entry, so both authoring
+  shapes work without a setting.
+- **A scenario picker: `SimFlow Selector Widget`.** `SimFlow Status Widget` covers the
+  panel shown during a run; this is the one shown before it. It is the three nodes
+  above with the list and the target flow held for you — `Scenarios`, `Refresh
+  Options`, `Select Scenario`, and `On Options Refreshed` to rebuild your buttons.
+  Reparenting to it is a convenience, never a requirement: a widget on any other base
+  class calls the statics and keeps the array itself.
+- **Each pick gets its own history.** With `Assign Save Id` on — the default, and
+  `Assign Save Id On Select` on the widget — starting a scenario writes its key to the
+  component's `Flow Save Id` first: the asset's name, or `Asset.Entry` when one asset
+  holds several entries.
+  Six scenarios run through one briefing-table component otherwise file every play
+  under that component's single id and their histories merge. Renaming a flow asset
+  starts a fresh history; turn the setting off to key them yourself.
+
+Recording and resetting are authority-only, like save and load. On a client mirror
+they log and do nothing. If the record slot turns out to hold some other save
+object, SimFlow warns and refuses rather than overwriting it.
+
+## 1.1.5
+
+Two repairs that have nothing to do with each other. A tag in a Zone query could
+match a prop instead of the zone and take the task down at start, and the editor
+module was overriding an engine function that 5.6 deprecated — harmless on a
+warning-tolerant build, fatal on a strict one. No runtime API moved.
+`.uplugin` Version 8.
+
 ### Changed
 
 - **A tag in a Place Object In Zone `Zone` query now matches zones only.** It used
@@ -14,6 +73,15 @@ All notable changes to SimFlow. Versions follow the plugin's `VersionName`.
   `ASimFlowZone` actors, so nothing else can shadow one. `Specific Actor` and
   `Blackboard Key` are unchanged: they name one actor, and being told that actor is
   not a zone is the useful answer there.
+- **The `PerformAction` location type follows the engine version.**
+  `SimFlowEditorCompat.h` used to pin `SIMFLOW_PERFORMACTION_LOCATION_MODE` at
+  `0` on every engine and leave the choice to whoever hit the build error. It now
+  reads `UE_VERSION_OLDER_THAN(5, 6, 0)` and selects `const FVector2D` below 5.6,
+  `const FVector2f&` from 5.6 up, so a fresh 5.8 project compiles with nothing to
+  set. Modes `1` and `2` are gone — they named
+  `UE::Slate::FDeprecateVector2DParameter`, which no release declares as a
+  `PerformAction` parameter, so working down the list meant two dead ends before
+  the one that builds. `0` and `3` keep their numbers.
 
 ### Fixed
 
@@ -24,6 +92,21 @@ All notable changes to SimFlow. Versions follow the plugin's `VersionName`.
   that exist but do not carry the tag — and in that last case lists every zone in
   the level with its actual identity tags, plus a note when a non-zone actor is
   wearing the tag you asked for.
+- **The editor module overrode a deprecated engine virtual on 5.6 and newer.** The
+  `FVector2D` overload of `FEdGraphSchemaAction::PerformAction` has carried
+  `UE_DEPRECATED(5.6)` since 5.6, so the two schema actions that spawn nodes and
+  comment boxes warned on every build. On a target that promotes deprecation
+  warnings to errors, Fab submission included, they failed outright. The header,
+  the README and the developer guide all said the opposite, that 5.8 left the
+  overload undeprecated and that mode `0` was the right pick. Node placement is
+  unchanged: both signatures convert to `FVector2D` before the schema does
+  anything with the position.
+- **The docs told you to set the mode with `PrivateDefinitions`.** The chosen type
+  lands in the `PerformAction` signature of `SIMFLOWEDITOR_API` structs in the
+  public header `SimFlowGraphSchema.h`, so a private define would have left every
+  other module compiling a different signature — a link error, or an `override`
+  bound to the wrong base function without a word from the compiler. Both pages
+  now say `PublicDefinitions` and explain why.
 
 ## 1.1.4
 

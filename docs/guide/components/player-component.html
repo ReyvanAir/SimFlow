@@ -1,0 +1,268 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>SimFlow Player Component | SimFlow User Guide</title>
+<meta name="description" content="SimFlow Player Component (USimFlowPlayerComponent) in SimFlow: The component that lets a client drive a server-owned flow, and the server-side gate on what it may ask for. What it does, when to add it, its Details panel fields and the traps.">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500;600&family=IBM+Plex+Sans:wght@400;500;600&display=swap">
+<link rel="stylesheet" href="../assets/guide.css">
+<script src="../assets/search-index.js" defer></script>
+<script src="../assets/guide.js" defer></script>
+</head>
+<body>
+<a class="skip-link" href="#content">Skip to content</a>
+
+<header class="topbar">
+  <button id="navToggle" class="icon-btn" aria-expanded="false" aria-controls="sidebar" aria-label="Open chapter navigation">
+    <svg width="16" height="16" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.6" aria-hidden="true"><path d="M2 4.5h12M2 8h12M2 11.5h12"/></svg>
+  </button>
+
+  <a class="brand" href="../index.html">
+    <svg width="20" height="20" viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.5" aria-hidden="true"><rect x="1.4" y="2.6" width="6.4" height="4.6" rx="1"/><rect x="12.2" y="7.4" width="6.4" height="4.6" rx="1"/><rect x="1.4" y="12.8" width="6.4" height="4.6" rx="1"/><path d="M7.8 4.9h2.2a1.4 1.4 0 0 1 1.4 1.4v1.1M7.8 15.1h2.2a1.4 1.4 0 0 0 1.4-1.4v-1.4"/></svg>
+    SimFlow <span class="ver">1.1.5</span>
+  </a>
+
+  <div class="spacer"></div>
+
+  <div class="search" role="search">
+    <svg class="mag" width="14" height="14" viewBox="0 0 14 14" fill="none" stroke="currentColor" stroke-width="1.6" aria-hidden="true"><circle cx="6" cy="6" r="4.2"/><path d="M9.2 9.2 12.5 12.5"/></svg>
+    <input id="q" type="search" placeholder="Search the guide" autocomplete="off" aria-label="Search the guide" aria-controls="results">
+    <kbd>/</kbd>
+    <div class="results" id="results" hidden role="listbox" aria-label="Search results"></div>
+  </div>
+
+  <button id="themeToggle" class="icon-btn" aria-pressed="false" aria-label="Switch to light theme">
+    <svg class="i-moon" width="15" height="15" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5" aria-hidden="true"><path d="M13.4 9.8A5.9 5.9 0 0 1 6.2 2.6a5.9 5.9 0 1 0 7.2 7.2Z"/></svg>
+    <svg class="i-sun" width="15" height="15" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5" aria-hidden="true" hidden><circle cx="8" cy="8" r="3.1"/><path d="M8 1v1.8M8 13.2V15M15 8h-1.8M2.8 8H1m11-4.9-1.3 1.3M5.3 10.7 4 12m0-8 1.3 1.3m5.4 5.4L12 12"/></svg>
+  </button>
+</header>
+<div class="scrim" id="scrim" hidden></div>
+
+<div class="shell">
+
+<aside class="sidebar" id="sidebar">
+  <nav aria-label="Guide navigation">
+    <h2>User Guide</h2>
+    <ol>
+      <li><a href="../index.html"><span class="num">00</span><span>Overview</span></a></li>
+      <li><a href="../01-getting-started.html"><span class="num">01</span><span>Getting Started &amp; Installation</span></a></li>
+      <li><a href="../02-architecture.html"><span class="num">02</span><span>Core Mental Model</span></a></li>
+      <li><a href="../03-authoring.html"><span class="num">03</span><span>Authoring in the Node Graph</span></a></li>
+      <li><a href="../04-rules-and-policies.html"><span class="num">04</span><span>Rules &amp; Failure Policies</span></a></li>
+      <li><a href="../05-runtime-blueprint.html"><span class="num">05</span><span>Runtime &amp; Blueprint Wiring</span></a></li>
+      <li><a href="../06-ui-and-vr.html"><span class="num">06</span><span>Driving UI &amp; VR Feedback</span></a></li>
+      <li><a href="../07-troubleshooting.html"><span class="num">07</span><span>Troubleshooting</span></a></li>
+    </ol>
+    <details class="navgroup">
+      <summary>Node Reference</summary>
+      <ul>
+        <li><a href="../nodes/start.html"><span class="num">&#183;</span><span>Start</span></a></li>
+        <li><a href="../nodes/delay.html"><span class="num">&#183;</span><span>Delay</span></a></li>
+        <li><a href="../nodes/branch.html"><span class="num">&#183;</span><span>Branch</span></a></li>
+        <li><a href="../nodes/random-branch.html"><span class="num">&#183;</span><span>Random Branch</span></a></li>
+        <li><a href="../nodes/parallel.html"><span class="num">&#183;</span><span>Parallel</span></a></li>
+        <li><a href="../nodes/join.html"><span class="num">&#183;</span><span>Join</span></a></li>
+        <li><a href="../nodes/loop.html"><span class="num">&#183;</span><span>Loop</span></a></li>
+        <li><a href="../nodes/finish.html"><span class="num">&#183;</span><span>Finish</span></a></li>
+        <li><a href="../nodes/task.html"><span class="num">&#183;</span><span>Task</span></a></li>
+        <li><a href="../nodes/sub-flow.html"><span class="num">&#183;</span><span>Sub Flow</span></a></li>
+        <li><a href="../nodes/checkpoint.html"><span class="num">&#183;</span><span>Checkpoint</span></a></li>
+        <li><a href="../nodes/set-blackboard.html"><span class="num">&#183;</span><span>Set Blackboard Value</span></a></li>
+      </ul>
+    </details>
+    <details class="navgroup">
+      <summary>Task Reference</summary>
+      <ul>
+        <li><a href="../tasks/delay.html"><span class="num">&#183;</span><span>Delay</span></a></li>
+        <li><a href="../tasks/log-message.html"><span class="num">&#183;</span><span>Log Message</span></a></li>
+        <li><a href="../tasks/set-blackboard.html"><span class="num">&#183;</span><span>Set Blackboard Value</span></a></li>
+        <li><a href="../tasks/wait-for-event.html"><span class="num">&#183;</span><span>Wait For Event</span></a></li>
+        <li><a href="../tasks/wait-for-condition.html"><span class="num">&#183;</span><span>Wait For Condition</span></a></li>
+        <li><a href="../tasks/go-to-location.html"><span class="num">&#183;</span><span>Go To Location</span></a></li>
+        <li><a href="../tasks/quiz.html"><span class="num">&#183;</span><span>Quiz</span></a></li>
+        <li><a href="../tasks/parallel-group.html"><span class="num">&#183;</span><span>Parallel Group</span></a></li>
+        <li><a href="../tasks/place-object-in-zone.html"><span class="num">&#183;</span><span>Place Object In Zone</span></a></li>
+        <li><a href="../tasks/ordered-sequence.html"><span class="num">&#183;</span><span>Ordered Sequence</span></a></li>
+      </ul>
+    </details>
+    <details class="navgroup" open>
+      <summary>Components</summary>
+      <ul>
+        <li><a href="../components/flow-component.html"><span class="num">&#183;</span><span>SimFlow Component</span></a></li>
+        <li><a href="../components/identity.html"><span class="num">&#183;</span><span>SimFlow Identity</span></a></li>
+        <li><a href="../components/player-component.html" aria-current="page"><span class="num">&#183;</span><span>SimFlow Player Component</span></a></li>
+      </ul>
+    </details>
+    <details class="navgroup">
+      <summary>Blueprint Nodes</summary>
+      <ul>
+        <li><a href="../blueprint/flow-access.html"><span class="num">&#183;</span><span>Flow Access</span></a></li>
+        <li><a href="../blueprint/control-and-save.html"><span class="num">&#183;</span><span>Control &amp; Save</span></a></li>
+        <li><a href="../blueprint/values.html"><span class="num">&#183;</span><span>Values</span></a></li>
+        <li><a href="../blueprint/blackboard-nodes.html"><span class="num">&#183;</span><span>Blackboard Nodes</span></a></li>
+        <li><a href="../blueprint/instance.html"><span class="num">&#183;</span><span>Flow Instance</span></a></li>
+        <li><a href="../blueprint/subsystem.html"><span class="num">&#183;</span><span>Subsystem</span></a></li>
+        <li><a href="../blueprint/player-component.html"><span class="num">&#183;</span><span>Player Component</span></a></li>
+        <li><a href="../blueprint/status-widget.html"><span class="num">&#183;</span><span>Status Widget</span></a></li>
+        <li><a href="../blueprint/selector-widget.html"><span class="num">&#183;</span><span>Scenario Selector</span></a></li>
+        <li><a href="../blueprint/any-widget.html"><span class="num">&#183;</span><span>Any Widget</span></a></li>
+        <li><a href="../blueprint/world-queries.html"><span class="num">&#183;</span><span>Zones &amp; Identity</span></a></li>
+        <li><a href="../blueprint/scenario-records.html"><span class="num">&#183;</span><span>Scenario Records</span></a></li>
+        <li><a href="../blueprint/graph-introspection.html"><span class="num">&#183;</span><span>Graph Introspection</span></a></li>
+      </ul>
+    </details>
+    <details class="navgroup">
+      <summary>Developer Guide</summary>
+      <ul>
+        <li><a href="../dev/architecture.html"><span class="num">&#183;</span><span>Architecture & Modules</span></a></li>
+        <li><a href="../dev/execution-model.html"><span class="num">&#183;</span><span>Execution Model</span></a></li>
+        <li><a href="../dev/custom-nodes.html"><span class="num">&#183;</span><span>Writing a Custom Node</span></a></li>
+        <li><a href="../dev/custom-tasks.html"><span class="num">&#183;</span><span>Custom Tasks & Conditions</span></a></li>
+        <li><a href="../dev/blackboard-internals.html"><span class="num">&#183;</span><span>Blackboard & Values</span></a></li>
+        <li><a href="../dev/persistence.html"><span class="num">&#183;</span><span>Save and Load Internals</span></a></li>
+        <li><a href="../dev/replication.html"><span class="num">&#183;</span><span>Replication</span></a></li>
+        <li><a href="../dev/editor-module.html"><span class="num">&#183;</span><span>The Editor Module</span></a></li>
+        <li><a href="../dev/api-reference.html"><span class="num">&#183;</span><span>API Reference</span></a></li>
+        <li><a href="../dev/diagnostics.html"><span class="num">&#183;</span><span>Diagnostics & Limits</span></a></li>
+      </ul>
+    </details>
+    <h2>Reference</h2>
+    <ul>
+      <li><a href="../../Cheatsheet.md"><span class="num">&#8599;</span><span>Cheat sheet</span></a></li>
+      <li><a href="../../glossary.md"><span class="num">&#8599;</span><span>Glossary</span></a></li>
+    </ul>
+  </nav>
+</aside>
+
+  <main id="content">
+    <nav class="crumbs" aria-label="Breadcrumb">
+      <ol>
+        <li><a href="../index.html">User Guide</a></li>
+        <li><svg width="11" height="11" viewBox="0 0 12 12" fill="none" stroke="currentColor" stroke-width="1.6" aria-hidden="true"><path d="m4.5 2.5 3.5 3.5-3.5 3.5"/></svg><a href="../05-runtime-blueprint.html">Components</a></li>
+        <li><svg width="11" height="11" viewBox="0 0 12 12" fill="none" stroke="currentColor" stroke-width="1.6" aria-hidden="true"><path d="m4.5 2.5 3.5 3.5-3.5 3.5"/></svg><span aria-current="page">SimFlow Player Component</span></li>
+      </ol>
+    </nav>
+
+    <p class="eyebrow">Components</p>
+    <h1>SimFlow Player Component</h1>
+
+    <dl class="idcard">
+      <dt>Class</dt><dd><code>USimFlowPlayerComponent</code></dd>
+      <dt>Add via</dt><dd>Add Component &#8594; <strong>SimFlow Player Component</strong></dd>
+      <dt>Goes on</dt><dd>Your PlayerController Blueprint, and nowhere else</dd>
+      <dt>Needed when</dt><dd>Clients have to drive a replicated flow</dd>
+    </dl>
+
+    <p class="usefor"><b>Use it for:</b> letting a client answer a quiz, press retry, or raise an interaction event on a flow the server owns.</p>
+
+    <p>A flow usually lives on the Game State or a level actor, and neither has an owning connection. Unreal will not let a client send an RPC to something it does not own, so without this component a client's button press reaches nothing.</p>
+
+    <p>The PlayerController always has a connection. This component sits there and forwards requests to whichever flow the server says owns a given save id.</p>
+
+    <h2 id="when">When you need it</h2>
+
+    <div class="decide">
+      <div>
+        <h4>Add it</h4>
+        <p>The flow has <strong>Replicate Flow</strong> on, and clients press buttons: answering quizzes, retrying a task, an instructor skipping ahead, or props raising events on the client that have to reach the server.</p>
+      </div>
+      <div>
+        <h4>Skip it</h4>
+        <p>Single player. Or a server-authoritative flow that clients only watch, where every control call already happens on the server.</p>
+      </div>
+    </div>
+
+    <p>Adding it when you do not need it costs nothing, and it is one component on one Blueprint, so most multiplayer projects add it once and forget about it.</p>
+
+    <h2 id="setup">Setting it up</h2>
+
+    <ol class="steps">
+      <li>
+        <span class="sh">Open your PlayerController Blueprint and add the component</span>
+        <p>Add Component &#8594; SimFlow Player Component. There is nothing to configure for the common case.</p>
+      </li>
+      <li>
+        <span class="sh">Give every replicated flow a Flow Save Id</span>
+        <p>That id is how a request finds its flow on the server. With the id left as None the request goes to the primary flow, which is fine with one flow and wrong with two.</p>
+      </li>
+      <li>
+        <span class="sh">Leave your UI calling the flow component</span>
+        <p>Your buttons keep calling <strong>Retry Current Task</strong> and <strong>Submit Quiz Answer</strong> on the <a href="flow-component.html">SimFlow Component</a>. It notices it is on a client and routes through this component for you.</p>
+      </li>
+    </ol>
+
+    <p>You rarely call this component directly. <a href="../blueprint/control-and-save.html">Request Flow Control</a> and <code>Broadcast Flow Event</code> both find the local one themselves. When you do need the reference, <strong>Get Local</strong> returns it, or null when the PlayerController has none. The full node list is on <a href="../blueprint/player-component.html">Player Component Nodes</a>.</p>
+
+    <div class="note">
+      <svg class="ico" width="16" height="16" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5" aria-hidden="true"><circle cx="8" cy="8" r="6.3"/><path d="M8 7.2v4M8 4.9v.7"/></svg>
+      <div>
+        <span class="ct">The symptom of a missing component</span>
+        <p>Nothing crashes. The client's button does nothing, and the log carries a <code>LogSimFlow</code> warning naming the flow and saying the PlayerController has no SimFlow Player Component. That warning is the whole diagnosis.</p>
+      </div>
+    </div>
+
+    <h2 id="what-travels">What goes through it</h2>
+
+    <div class="tw">
+      <table>
+        <caption>Client request &#8594; server action</caption>
+        <thead><tr><th scope="col">Request</th><th scope="col">Server does</th></tr></thead>
+        <tbody>
+          <tr><td class="t-name">Request Control</td><td>Start, Stop, Restart, Pause, Resume, Toggle Pause, Retry, Skip or Fail on the named flow.</td></tr>
+          <tr><td class="t-name">Request Quiz Answer</td><td>Submits an answer, addressed by quiz node Guid and option index.</td></tr>
+          <tr><td class="t-name">Request Event</td><td>Raises an event tag. A flow id of None hits every flow.</td></tr>
+        </tbody>
+      </table>
+    </div>
+
+    <p>All three are safe to call on the server too, where they take the direct path instead of an RPC. Save and load are not in the list on purpose: they stay authority only and never travel from a client.</p>
+
+    <h2 id="gate">Gating what clients may ask for</h2>
+
+    <p><strong>Is Request Authorised</strong> is a BlueprintNativeEvent that runs on the server for every incoming request, before anything happens. Override it in a Blueprint subclass of the component to write your own rules.</p>
+
+    <figure>
+      <pre class="graph"><code>Is Request Authorised
+   ├── Request == Skip ── or ── Fail   ──▶  return Is Instructor
+   └── otherwise                       ──▶  return true</code></pre>
+      <figcaption>Every client request arrives here first, which makes this the only place worth enforcing anything.</figcaption>
+    </figure>
+
+    <p>The one field, <strong>Restrict To Owned Flows</strong>, is the built-in version of the same idea. Off by default. Turn it on and the default check accepts a request only for a flow whose owning actor is this player's own actor, that actor's owner, or an actor this player instigated, which is right for a flow per trainee on the PlayerState and wrong for an instructor driving everyone's scenario.</p>
+
+    <p>The flag only gates the <em>default</em> check. Override <strong>Is Request Authorised</strong> and it does nothing unless your override reads it.</p>
+
+    <div class="trap">
+      <svg class="ico" width="16" height="16" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5" aria-hidden="true"><circle cx="8" cy="8" r="6.3"/><path d="M5.6 5.6l4.8 4.8M10.4 5.6l-4.8 4.8"/></svg>
+      <div>
+        <span class="ct">A check in the UI stops an honest player and nobody else</span>
+        <p>Hiding the skip button does not stop a client from sending the request. Gate Skip, Fail, Stop and Restart here, on the server. A trainee who can skip a task can skip an assessment.</p>
+      </div>
+    </div>
+
+    <h2 id="instructor">The instructor pattern</h2>
+
+    <p>One PlayerController Blueprint for trainees, a subclass for the instructor, or a single subclass that reads a role off the PlayerState. Either way the decision lives in <strong>Is Request Authorised</strong> on the server, and the instructor UI is a UI that sends requests which happen to be accepted.</p>
+
+    <p>Keep <strong>Restrict To Owned Flows</strong> on for the trainee controller and off for the instructor one, then let the override handle the rest.</p>
+
+    <nav class="pager" aria-label="Page navigation">
+      <a href="identity.html"><span class="d">Previous</span><span class="t">SimFlow Identity</span></a>
+      <a class="next" href="../blueprint/flow-access.html"><span class="d">Next</span><span class="t">Flow Access Nodes</span></a>
+    </nav>
+
+    <div class="foot">
+      <p>SimFlow 1.1.5 &middot; User Guide &middot; Unreal Engine 5.6 and 5.8</p>
+    </div>
+  </main>
+
+  <aside class="rail" id="rail" aria-label="On this page">
+    <h2>On this page</h2>
+  </aside>
+
+</div>
+</body>
+</html>

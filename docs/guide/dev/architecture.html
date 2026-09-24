@@ -22,7 +22,7 @@
 
   <a class="brand" href="../index.html">
     <svg width="20" height="20" viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.5" aria-hidden="true"><rect x="1.4" y="2.6" width="6.4" height="4.6" rx="1"/><rect x="12.2" y="7.4" width="6.4" height="4.6" rx="1"/><rect x="1.4" y="12.8" width="6.4" height="4.6" rx="1"/><path d="M7.8 4.9h2.2a1.4 1.4 0 0 1 1.4 1.4v1.1M7.8 15.1h2.2a1.4 1.4 0 0 0 1.4-1.4v-1.4"/></svg>
-    SimFlow <span class="ver">1.1.4</span>
+    SimFlow <span class="ver">1.1.5</span>
   </a>
 
   <div class="spacer"></div>
@@ -86,6 +86,32 @@
         <li><a href="../tasks/parallel-group.html"><span class="num">&#183;</span><span>Parallel Group</span></a></li>
         <li><a href="../tasks/place-object-in-zone.html"><span class="num">&#183;</span><span>Place Object In Zone</span></a></li>
         <li><a href="../tasks/ordered-sequence.html"><span class="num">&#183;</span><span>Ordered Sequence</span></a></li>
+      </ul>
+    </details>
+    <details class="navgroup">
+      <summary>Components</summary>
+      <ul>
+        <li><a href="../components/flow-component.html"><span class="num">&#183;</span><span>SimFlow Component</span></a></li>
+        <li><a href="../components/identity.html"><span class="num">&#183;</span><span>SimFlow Identity</span></a></li>
+        <li><a href="../components/player-component.html"><span class="num">&#183;</span><span>SimFlow Player Component</span></a></li>
+      </ul>
+    </details>
+    <details class="navgroup">
+      <summary>Blueprint Nodes</summary>
+      <ul>
+        <li><a href="../blueprint/flow-access.html"><span class="num">&#183;</span><span>Flow Access</span></a></li>
+        <li><a href="../blueprint/control-and-save.html"><span class="num">&#183;</span><span>Control &amp; Save</span></a></li>
+        <li><a href="../blueprint/values.html"><span class="num">&#183;</span><span>Values</span></a></li>
+        <li><a href="../blueprint/blackboard-nodes.html"><span class="num">&#183;</span><span>Blackboard Nodes</span></a></li>
+        <li><a href="../blueprint/instance.html"><span class="num">&#183;</span><span>Flow Instance</span></a></li>
+        <li><a href="../blueprint/subsystem.html"><span class="num">&#183;</span><span>Subsystem</span></a></li>
+        <li><a href="../blueprint/player-component.html"><span class="num">&#183;</span><span>Player Component</span></a></li>
+        <li><a href="../blueprint/status-widget.html"><span class="num">&#183;</span><span>Status Widget</span></a></li>
+        <li><a href="../blueprint/selector-widget.html"><span class="num">&#183;</span><span>Scenario Selector</span></a></li>
+        <li><a href="../blueprint/any-widget.html"><span class="num">&#183;</span><span>Any Widget</span></a></li>
+        <li><a href="../blueprint/world-queries.html"><span class="num">&#183;</span><span>Zones &amp; Identity</span></a></li>
+        <li><a href="../blueprint/scenario-records.html"><span class="num">&#183;</span><span>Scenario Records</span></a></li>
+        <li><a href="../blueprint/graph-introspection.html"><span class="num">&#183;</span><span>Graph Introspection</span></a></li>
       </ul>
     </details>
     <details class="navgroup" open>
@@ -220,28 +246,30 @@ USimFlowComponent                  on an actor
 
     <h2 id="engine">Engine compatibility</h2>
 
-    <p>The plugin targets 5.8 and builds on 5.4 through 5.6. One line has to match the engine.</p>
+    <p>The plugin targets 5.8 and builds on 5.4 through 5.6. One type has to match the engine, and the header works it out for you.</p>
 
-    <p><code>FEdGraphSchemaAction::PerformAction</code>'s location parameter moves between <code>FVector2D</code> and the <code>FVector2f</code>-backed <code>UE::Slate::FDeprecateVector2DParameter</code> depending on the release, and the version number alone does not tell you which. <code>SimFlowEditorCompat.h</code> selects it with one switch:</p>
+    <p><code>FEdGraphSchemaAction::PerformAction</code>'s location parameter moved from <code>FVector2D</code> to <code>FVector2f</code> partway through the 5.x line. <code>SimFlowEditorCompat.h</code> picks by version, so an ordinary build needs no setup:</p>
 
     <pre><code>// SimFlowEditorCompat.h
-#define SIMFLOW_PERFORMACTION_LOCATION_MODE 0
-//  0  const FVector2D                                 (verified on UE 5.4 to 5.8)
-//  1  const UE::Slate::FDeprecateVector2DParameter&amp;
-//  2  const UE::Slate::FDeprecateVector2DParameter
-//  3  const FVector2f&amp;                                (post-migration signature)</code></pre>
+#if UE_VERSION_OLDER_THAN(5, 6, 0)
+    #define SIMFLOW_PERFORMACTION_LOCATION_MODE 0   // const FVector2D
+#else
+    #define SIMFLOW_PERFORMACTION_LOCATION_MODE 3   // const FVector2f&amp;
+#endif</code></pre>
 
-    <p>You can override it from <code>SimFlowEditor.Build.cs</code> without touching the header:</p>
+    <p>5.4 declares only the <code>FVector2D</code> overload. 5.6 added the <code>FVector2f&amp;</code> one and stamped <code>UE_DEPRECATED(5.6)</code> on the old one, and 5.8 has not changed that — which is where the cut comes from. Mode 0 on a newer engine does compile, because the engine's <code>FVector2f&amp;</code> overload forwards to the deprecated one, but every override warns, and a target that promotes those warnings to errors will not build. Fab submission is one of those targets.</p>
 
-    <pre><code>PrivateDefinitions.Add("SIMFLOW_PERFORMACTION_LOCATION_MODE=3");</code></pre>
+    <p>To force a mode from <code>SimFlowEditor.Build.cs</code>, use <code>PublicDefinitions</code>:</p>
 
-    <p>UE 5.8 still declares the <code>FVector2D</code> overload and does not mark it deprecated, so mode 0 is correct there too.</p>
+    <pre><code>PublicDefinitions.Add("SIMFLOW_PERFORMACTION_LOCATION_MODE=3");</code></pre>
+
+    <p><code>PrivateDefinitions</code> will not do. The chosen type ends up in the <code>PerformAction</code> signature of exported structs in the public header <code>SimFlowGraphSchema.h</code>, so a define that reaches only SimFlowEditor leaves every other module compiling a different signature — a link error, or an <code>override</code> quietly bound to the wrong base function.</p>
 
     <div class="warn">
       <svg class="ico" width="16" height="16" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5" aria-hidden="true"><path d="M8 2.4 15 14H1Z"/><path d="M8 6.4v3.2M8 11.6v.6"/></svg>
       <div>
         <span class="ct">A wrong setting fails loudly, which is the good case</span>
-        <p>You get <em>"method with override specifier 'override' did not override any base class methods"</em>. Try mode 3, or open <code>Engine/Source/Runtime/Engine/Classes/EdGraph/EdGraphSchema.h</code>, find the <code>PerformAction</code> overload taking a single <code>UEdGraphPin* FromPin</code>, and match its third parameter.</p>
+        <p>If you ever see <em>"method with override specifier 'override' did not override any base class methods"</em>, the version guard guessed wrong for your engine. Open <code>Engine/Source/Runtime/Engine/Classes/EdGraph/EdGraphSchema.h</code>, find the <code>PerformAction</code> overload taking a single <code>UEdGraphPin* FromPin</code>, match its third parameter, and force that mode from your <code>Build.cs</code>.</p>
       </div>
     </div>
 
@@ -254,7 +282,7 @@ USimFlowComponent                  on an actor
     </nav>
 
     <div class="foot">
-      <p>SimFlow 1.1.4 &middot; User Guide &middot; Unreal Engine 5.6 and 5.8</p>
+      <p>SimFlow 1.1.5 &middot; User Guide &middot; Unreal Engine 5.6 and 5.8</p>
     </div>
   </main>
 

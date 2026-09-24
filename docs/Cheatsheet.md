@@ -22,6 +22,11 @@ HasSaveInSlot(Slot, UserIndex)
 SaveFlowState() -> FSimFlowSaveState
 LoadFlowState(State, LoadMode)
 
+// Scenario record - own slot, survives DeleteFlowSave
+RecordPlay()                   GetScenarioRecord()
+GetHighScore()  GetPlayCount()  HasScenarioRecord()
+IsBeatingHighScore()           ResetScenarioRecord()
+
 // Queries
 GetRunState()  IsFlowRunning()  IsFlowPaused()
 GetCurrentTask()  GetCurrentTaskName()  GetCurrentInstruction()
@@ -33,6 +38,7 @@ GetProgress()  GetScore()  GetBlackboard()  GetDebugText()
 `OnFlowStarted` · `OnFlowPaused` · `OnFlowResumed` · `OnFlowFinished(State)`
 `OnTaskStarted(Node, Task)` · `OnTaskFinished(Node, Task, Result)` · `OnTaskRetried(Node, Task)`
 `OnCheckpointReached(Checkpoint)` · `OnQuizPresented(Quiz)`
+`OnNewHighScore(NewScore, PreviousScore)`
 
 ## Writing a task (Blueprint)
 
@@ -138,7 +144,7 @@ In your own Blueprint task, call **Record Mistake** or **Apply Mismatch Policy**
 
 | Key | Written by |
 |---|---|
-| `Score` | `ScoreOnSuccess` / `ScoreOnFailure` on any task, `AddScore` |
+| `Score` | `ScoreOnSuccess` / `ScoreOnFailure` on any task, `AddScore` (per run; see [scenario records](blueprint/scenario-records.md) for the persistent best) |
 | `Mistakes` | any recorded mistake (Quiz, wrong item, wrong target, wrong order) |
 | `LastResult` | every task when it finishes |
 | `LastAnswerIndex`, `LastAnswerCorrect` | Quiz task |

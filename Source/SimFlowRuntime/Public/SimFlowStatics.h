@@ -7,6 +7,7 @@
 #include "GameplayTagContainer.h"
 #include "SimFlowTypes.h"
 #include "SimFlowNetTypes.h"
+#include "SimFlowScenarioRecord.h"
 #include "SimFlowStatics.generated.h"
 
 class USimFlowComponent;
@@ -57,6 +58,9 @@ public:
 	UFUNCTION(BlueprintCallable, Category = "SimFlow|Control", meta = (WorldContext = "WorldContextObject"))
 	static void ResumeAllFlows(const UObject* WorldContextObject);
 
+	UFUNCTION(BlueprintCallable, Category = "SimFlow|Control", meta = (WorldContext = "WorldContextObject"))
+	static void StopAllFlows(const UObject* WorldContextObject);
+
 	UFUNCTION(BlueprintCallable, Category = "SimFlow|Save", meta = (WorldContext = "WorldContextObject"))
 	static bool SaveAllFlows(const UObject* WorldContextObject, const FString& SlotName, int32 UserIndex = 0);
 
@@ -66,6 +70,93 @@ public:
 
 	UFUNCTION(BlueprintCallable, Category = "SimFlow|Save")
 	static bool DeleteFlowSave(const FString& SlotName, int32 UserIndex = 0);
+
+	// --------------------------------------------------------- Scenario record
+
+	// Per-scenario history - play count, last outcome, last played, best score -
+	// in its own slot, so deleting a run save leaves it standing. Keyed by Flow
+	// Save Id. Leave SlotName empty to use "SimFlowScenarios".
+	//
+	// Every one of these opens the slot off disk. Read once and cache; do not bind
+	// one to a widget that ticks.
+
+	/**
+	 * One call at the end of an attempt: counts the play, stores how it ended and
+	 * when, and takes the score if it beats the stored best. Returns true only when
+	 * the best moved.
+	 */
+	UFUNCTION(BlueprintCallable, Category = "SimFlow|Record")
+	static bool RecordPlay(FName FlowSaveId, float Score, ESimFlowRunState Outcome, const FString& SlotName, int32 UserIndex = 0, bool bScoreCounts = true);
+
+	/** Score only, no play counted. Returns true when the best moved; a tie does not. */
+	UFUNCTION(BlueprintCallable, Category = "SimFlow|Record")
+	static bool SubmitHighScore(FName FlowSaveId, float Score, const FString& SlotName, int32 UserIndex = 0);
+
+	/** Everything stored for one scenario. All fields zero when there is no record. */
+	UFUNCTION(BlueprintPure, Category = "SimFlow|Record")
+	static FSimFlowScenarioRecord GetScenarioRecord(FName FlowSaveId, const FString& SlotName, int32 UserIndex = 0);
+
+	/** Tells a stored 0 from never played. Check this before showing a number. */
+	UFUNCTION(BlueprintPure, Category = "SimFlow|Record")
+	static bool HasScenarioRecord(FName FlowSaveId, const FString& SlotName, int32 UserIndex = 0);
+
+	/** Best score, or 0 when there is no record. */
+	UFUNCTION(BlueprintPure, Category = "SimFlow|Record")
+	static float GetHighScore(FName FlowSaveId, const FString& SlotName, int32 UserIndex = 0);
+
+	/** How many finished attempts, or 0 when there is no record. */
+	UFUNCTION(BlueprintPure, Category = "SimFlow|Record")
+	static int32 GetPlayCount(FName FlowSaveId, const FString& SlotName, int32 UserIndex = 0);
+
+	/** Every record in the slot. This is what a scenario selector reads. */
+	UFUNCTION(BlueprintPure, Category = "SimFlow|Record")
+	static TMap<FName, FSimFlowScenarioRecord> GetAllScenarioRecords(const FString& SlotName, int32 UserIndex = 0);
+
+	/** Would this score take the best? Writes nothing. */
+	UFUNCTION(BlueprintPure, Category = "SimFlow|Record")
+	static bool WouldBeatHighScore(FName FlowSaveId, float Score, const FString& SlotName, int32 UserIndex = 0);
+
+	/** Clears one scenario's history. True when there was one to clear. */
+	UFUNCTION(BlueprintCallable, Category = "SimFlow|Record")
+	static bool ResetScenarioRecord(FName FlowSaveId, const FString& SlotName, int32 UserIndex = 0);
+
+	/** Clears the best score but keeps the play count and last outcome. */
+	UFUNCTION(BlueprintCallable, Category = "SimFlow|Record")
+	static bool ResetHighScore(FName FlowSaveId, const FString& SlotName, int32 UserIndex = 0);
+
+	/** Empties the whole table. */
+	UFUNCTION(BlueprintCallable, Category = "SimFlow|Record")
+	static bool ResetAllScenarioRecords(const FString& SlotName, int32 UserIndex = 0);
+
+	// ------------------------------------------------------- Scenario picker
+	//
+	// A scenario list for any widget. SimFlow Selector Widget is these three nodes
+	// with a list held for you; a Blueprint on some other base class calls them
+	// directly and keeps the array itself.
+
+	/**
+	 * Expands flow assets into one option per Start node, so a single-entry asset
+	 * gives one scenario and an asset holding several gives one each. Leaves Record
+	 * empty - pass the result through Apply Scenario Records to fill it.
+	 */
+	UFUNCTION(BlueprintPure, Category = "SimFlow|Selector")
+	static TArray<FSimFlowScenarioOption> BuildScenarioOptions(const TArray<USimFlowAsset*>& Assets);
+
+	/** Stamps each option with its stored history, in one read of the slot. */
+	UFUNCTION(BlueprintCallable, Category = "SimFlow|Selector")
+	static void ApplyScenarioRecords(UPARAM(ref) TArray<FSimFlowScenarioOption>& Options, const FString& SlotName, int32 UserIndex = 0);
+
+	/**
+	 * Points a flow at the chosen scenario and starts it, ending whatever it was
+	 * running first.
+	 *
+	 * With bAssignSaveId on, the component's Flow Save Id becomes the option's, so
+	 * each scenario keeps its own history instead of every pick filing under the
+	 * one component. On a client mirror this only forwards a start request: the
+	 * asset lives on the server.
+	 */
+	UFUNCTION(BlueprintCallable, Category = "SimFlow|Selector")
+	static bool StartScenario(USimFlowComponent* Flow, const FSimFlowScenarioOption& Option, bool bAssignSaveId = true);
 
 	// ------------------------------------------------------------ Value makers
 

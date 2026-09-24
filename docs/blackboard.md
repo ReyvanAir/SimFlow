@@ -66,6 +66,9 @@ is the exception: no default, returns null.
 
 For score, `Add Score` adds to the well-known `Score` key and `Get Score` reads it.
 
+That value belongs to the run. For a best score that outlives it, see
+[scenario records](blueprint/scenario-records.md).
+
 For serialisation, `To Entries` (with `bStripObjectReferences` defaulting to true)
 flattens the blackboard to an array for saving, and `From Entries` (Entries,
 `bClearFirst` defaulting to true) restores it. `Merge From` (Other,

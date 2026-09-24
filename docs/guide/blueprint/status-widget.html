@@ -1,0 +1,352 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Status Widget Nodes | SimFlow User Guide</title>
+<meta name="description" content="Status Widget Nodes (USimFlowStatusWidget) in SimFlow: The UMG base class for tutorial panels: bindings, button handlers and design events. Node tables, a worked example and the failure modes.">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500;600&family=IBM+Plex+Sans:wght@400;500;600&display=swap">
+<link rel="stylesheet" href="../assets/guide.css">
+<script src="../assets/search-index.js" defer></script>
+<script src="../assets/guide.js" defer></script>
+</head>
+<body>
+<a class="skip-link" href="#content">Skip to content</a>
+
+<header class="topbar">
+  <button id="navToggle" class="icon-btn" aria-expanded="false" aria-controls="sidebar" aria-label="Open chapter navigation">
+    <svg width="16" height="16" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.6" aria-hidden="true"><path d="M2 4.5h12M2 8h12M2 11.5h12"/></svg>
+  </button>
+
+  <a class="brand" href="../index.html">
+    <svg width="20" height="20" viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.5" aria-hidden="true"><rect x="1.4" y="2.6" width="6.4" height="4.6" rx="1"/><rect x="12.2" y="7.4" width="6.4" height="4.6" rx="1"/><rect x="1.4" y="12.8" width="6.4" height="4.6" rx="1"/><path d="M7.8 4.9h2.2a1.4 1.4 0 0 1 1.4 1.4v1.1M7.8 15.1h2.2a1.4 1.4 0 0 0 1.4-1.4v-1.4"/></svg>
+    SimFlow <span class="ver">1.1.5</span>
+  </a>
+
+  <div class="spacer"></div>
+
+  <div class="search" role="search">
+    <svg class="mag" width="14" height="14" viewBox="0 0 14 14" fill="none" stroke="currentColor" stroke-width="1.6" aria-hidden="true"><circle cx="6" cy="6" r="4.2"/><path d="M9.2 9.2 12.5 12.5"/></svg>
+    <input id="q" type="search" placeholder="Search the guide" autocomplete="off" aria-label="Search the guide" aria-controls="results">
+    <kbd>/</kbd>
+    <div class="results" id="results" hidden role="listbox" aria-label="Search results"></div>
+  </div>
+
+  <button id="themeToggle" class="icon-btn" aria-pressed="false" aria-label="Switch to light theme">
+    <svg class="i-moon" width="15" height="15" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5" aria-hidden="true"><path d="M13.4 9.8A5.9 5.9 0 0 1 6.2 2.6a5.9 5.9 0 1 0 7.2 7.2Z"/></svg>
+    <svg class="i-sun" width="15" height="15" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5" aria-hidden="true" hidden><circle cx="8" cy="8" r="3.1"/><path d="M8 1v1.8M8 13.2V15M15 8h-1.8M2.8 8H1m11-4.9-1.3 1.3M5.3 10.7 4 12m0-8 1.3 1.3m5.4 5.4L12 12"/></svg>
+  </button>
+</header>
+<div class="scrim" id="scrim" hidden></div>
+
+<div class="shell">
+
+<aside class="sidebar" id="sidebar">
+  <nav aria-label="Guide navigation">
+    <h2>User Guide</h2>
+    <ol>
+      <li><a href="../index.html"><span class="num">00</span><span>Overview</span></a></li>
+      <li><a href="../01-getting-started.html"><span class="num">01</span><span>Getting Started &amp; Installation</span></a></li>
+      <li><a href="../02-architecture.html"><span class="num">02</span><span>Core Mental Model</span></a></li>
+      <li><a href="../03-authoring.html"><span class="num">03</span><span>Authoring in the Node Graph</span></a></li>
+      <li><a href="../04-rules-and-policies.html"><span class="num">04</span><span>Rules &amp; Failure Policies</span></a></li>
+      <li><a href="../05-runtime-blueprint.html"><span class="num">05</span><span>Runtime &amp; Blueprint Wiring</span></a></li>
+      <li><a href="../06-ui-and-vr.html"><span class="num">06</span><span>Driving UI &amp; VR Feedback</span></a></li>
+      <li><a href="../07-troubleshooting.html"><span class="num">07</span><span>Troubleshooting</span></a></li>
+    </ol>
+    <details class="navgroup">
+      <summary>Node Reference</summary>
+      <ul>
+        <li><a href="../nodes/start.html"><span class="num">&#183;</span><span>Start</span></a></li>
+        <li><a href="../nodes/delay.html"><span class="num">&#183;</span><span>Delay</span></a></li>
+        <li><a href="../nodes/branch.html"><span class="num">&#183;</span><span>Branch</span></a></li>
+        <li><a href="../nodes/random-branch.html"><span class="num">&#183;</span><span>Random Branch</span></a></li>
+        <li><a href="../nodes/parallel.html"><span class="num">&#183;</span><span>Parallel</span></a></li>
+        <li><a href="../nodes/join.html"><span class="num">&#183;</span><span>Join</span></a></li>
+        <li><a href="../nodes/loop.html"><span class="num">&#183;</span><span>Loop</span></a></li>
+        <li><a href="../nodes/finish.html"><span class="num">&#183;</span><span>Finish</span></a></li>
+        <li><a href="../nodes/task.html"><span class="num">&#183;</span><span>Task</span></a></li>
+        <li><a href="../nodes/sub-flow.html"><span class="num">&#183;</span><span>Sub Flow</span></a></li>
+        <li><a href="../nodes/checkpoint.html"><span class="num">&#183;</span><span>Checkpoint</span></a></li>
+        <li><a href="../nodes/set-blackboard.html"><span class="num">&#183;</span><span>Set Blackboard Value</span></a></li>
+      </ul>
+    </details>
+    <details class="navgroup">
+      <summary>Task Reference</summary>
+      <ul>
+        <li><a href="../tasks/delay.html"><span class="num">&#183;</span><span>Delay</span></a></li>
+        <li><a href="../tasks/log-message.html"><span class="num">&#183;</span><span>Log Message</span></a></li>
+        <li><a href="../tasks/set-blackboard.html"><span class="num">&#183;</span><span>Set Blackboard Value</span></a></li>
+        <li><a href="../tasks/wait-for-event.html"><span class="num">&#183;</span><span>Wait For Event</span></a></li>
+        <li><a href="../tasks/wait-for-condition.html"><span class="num">&#183;</span><span>Wait For Condition</span></a></li>
+        <li><a href="../tasks/go-to-location.html"><span class="num">&#183;</span><span>Go To Location</span></a></li>
+        <li><a href="../tasks/quiz.html"><span class="num">&#183;</span><span>Quiz</span></a></li>
+        <li><a href="../tasks/parallel-group.html"><span class="num">&#183;</span><span>Parallel Group</span></a></li>
+        <li><a href="../tasks/place-object-in-zone.html"><span class="num">&#183;</span><span>Place Object In Zone</span></a></li>
+        <li><a href="../tasks/ordered-sequence.html"><span class="num">&#183;</span><span>Ordered Sequence</span></a></li>
+      </ul>
+    </details>
+    <details class="navgroup">
+      <summary>Components</summary>
+      <ul>
+        <li><a href="../components/flow-component.html"><span class="num">&#183;</span><span>SimFlow Component</span></a></li>
+        <li><a href="../components/identity.html"><span class="num">&#183;</span><span>SimFlow Identity</span></a></li>
+        <li><a href="../components/player-component.html"><span class="num">&#183;</span><span>SimFlow Player Component</span></a></li>
+      </ul>
+    </details>
+    <details class="navgroup" open>
+      <summary>Blueprint Nodes</summary>
+      <ul>
+        <li><a href="../blueprint/flow-access.html"><span class="num">&#183;</span><span>Flow Access</span></a></li>
+        <li><a href="../blueprint/control-and-save.html"><span class="num">&#183;</span><span>Control &amp; Save</span></a></li>
+        <li><a href="../blueprint/values.html"><span class="num">&#183;</span><span>Values</span></a></li>
+        <li><a href="../blueprint/blackboard-nodes.html"><span class="num">&#183;</span><span>Blackboard Nodes</span></a></li>
+        <li><a href="../blueprint/instance.html"><span class="num">&#183;</span><span>Flow Instance</span></a></li>
+        <li><a href="../blueprint/subsystem.html"><span class="num">&#183;</span><span>Subsystem</span></a></li>
+        <li><a href="../blueprint/player-component.html"><span class="num">&#183;</span><span>Player Component</span></a></li>
+        <li><a href="../blueprint/status-widget.html" aria-current="page"><span class="num">&#183;</span><span>Status Widget</span></a></li>
+        <li><a href="../blueprint/selector-widget.html"><span class="num">&#183;</span><span>Scenario Selector</span></a></li>
+        <li><a href="../blueprint/any-widget.html"><span class="num">&#183;</span><span>Any Widget</span></a></li>
+        <li><a href="../blueprint/world-queries.html"><span class="num">&#183;</span><span>Zones &amp; Identity</span></a></li>
+        <li><a href="../blueprint/scenario-records.html"><span class="num">&#183;</span><span>Scenario Records</span></a></li>
+        <li><a href="../blueprint/graph-introspection.html"><span class="num">&#183;</span><span>Graph Introspection</span></a></li>
+      </ul>
+    </details>
+    <details class="navgroup">
+      <summary>Developer Guide</summary>
+      <ul>
+        <li><a href="../dev/architecture.html"><span class="num">&#183;</span><span>Architecture & Modules</span></a></li>
+        <li><a href="../dev/execution-model.html"><span class="num">&#183;</span><span>Execution Model</span></a></li>
+        <li><a href="../dev/custom-nodes.html"><span class="num">&#183;</span><span>Writing a Custom Node</span></a></li>
+        <li><a href="../dev/custom-tasks.html"><span class="num">&#183;</span><span>Custom Tasks & Conditions</span></a></li>
+        <li><a href="../dev/blackboard-internals.html"><span class="num">&#183;</span><span>Blackboard & Values</span></a></li>
+        <li><a href="../dev/persistence.html"><span class="num">&#183;</span><span>Save and Load Internals</span></a></li>
+        <li><a href="../dev/replication.html"><span class="num">&#183;</span><span>Replication</span></a></li>
+        <li><a href="../dev/editor-module.html"><span class="num">&#183;</span><span>The Editor Module</span></a></li>
+        <li><a href="../dev/api-reference.html"><span class="num">&#183;</span><span>API Reference</span></a></li>
+        <li><a href="../dev/diagnostics.html"><span class="num">&#183;</span><span>Diagnostics & Limits</span></a></li>
+      </ul>
+    </details>
+    <h2>Reference</h2>
+    <ul>
+      <li><a href="../../Cheatsheet.md"><span class="num">&#8599;</span><span>Cheat sheet</span></a></li>
+      <li><a href="../../glossary.md"><span class="num">&#8599;</span><span>Glossary</span></a></li>
+    </ul>
+  </nav>
+</aside>
+
+  <main id="content">
+    <nav class="crumbs" aria-label="Breadcrumb">
+      <ol>
+        <li><a href="../index.html">User Guide</a></li>
+        <li><svg width="11" height="11" viewBox="0 0 12 12" fill="none" stroke="currentColor" stroke-width="1.6" aria-hidden="true"><path d="m4.5 2.5 3.5 3.5-3.5 3.5"/></svg><a href="../05-runtime-blueprint.html">Blueprint Nodes</a></li>
+        <li><svg width="11" height="11" viewBox="0 0 12 12" fill="none" stroke="currentColor" stroke-width="1.6" aria-hidden="true"><path d="m4.5 2.5 3.5 3.5-3.5 3.5"/></svg><span aria-current="page">Status Widget</span></li>
+      </ol>
+    </nav>
+
+    <p class="eyebrow">Blueprint Nodes</p>
+    <h1>Status Widget Nodes</h1>
+
+    <dl class="idcard">
+      <dt>Class</dt><dd><code>USimFlowStatusWidget</code>, abstract</dd>
+      <dt>Use it by</dt><dd>Reparenting your UMG widget Blueprint to it</dd>
+      <dt>Works as</dt><dd>A screen-space HUD or a world-space VR panel</dd>
+      <dt>Category</dt><dd>SimFlow</dd>
+    </dl>
+
+    <p class="usefor"><b>Use it for:</b> a tutorial panel that finds its own flow, updates itself, and forwards its buttons correctly in multiplayer.</p>
+
+    <p>Reparent your widget to this and you get the flow lookup, the event bindings and the button handlers already wired. You supply the layout. The alternative is calling <a href="flow-access.html">Get Primary Flow</a> yourself and binding every dispatcher by hand.</p>
+
+    <h2 id="setup">Setup</h2>
+
+    <ol>
+      <li>Open your widget Blueprint.</li>
+      <li><strong>File &#8594; Reparent Blueprint &#8594; SimFlow Status Widget</strong>.</li>
+      <li>Leave <strong>Auto Bind</strong> on.</li>
+      <li>Set <strong>Flow Save Id</strong> if you have more than one flow, or leave it <code>None</code> to follow the primary one.</li>
+    </ol>
+
+    <div class="tw">
+      <table>
+        <caption>USimFlowStatusWidget, Details panel</caption>
+        <thead><tr><th scope="col">Field</th><th scope="col">Type</th><th scope="col">Default</th><th scope="col">Meaning</th></tr></thead>
+        <tbody>
+          <tr><td class="t-name">Flow Save Id</td><td class="t-type">Name</td><td class="t-def">None</td><td>Which flow to watch. <code>None</code> follows the primary flow.</td></tr>
+          <tr><td class="t-name">Auto Bind</td><td class="t-type">Bool</td><td class="t-def">true</td><td>Keep looking every frame until a flow turns up.</td></tr>
+        </tbody>
+      </table>
+    </div>
+
+    <p><strong>Auto Bind</strong> is what makes the widget survive being created before the flow starts. It re-checks on tick until it finds one, then stops.</p>
+
+    <h2 id="binding">Binding</h2>
+
+    <div class="tw">
+      <table>
+        <caption>USimFlowStatusWidget, binding</caption>
+        <thead><tr><th scope="col">Node</th><th scope="col">Notes</th></tr></thead>
+        <tbody>
+          <tr><td class="t-name">Bind To Flow</td><td>Point the widget at a specific component. Unbinds the old flow first.</td></tr>
+          <tr><td class="t-name">Unbind From Flow</td><td>Stop watching.</td></tr>
+          <tr><td class="t-name">Get Bound Flow</td><td>The component, or null.</td></tr>
+        </tbody>
+      </table>
+    </div>
+
+    <p>Call <strong>Bind To Flow</strong> when you want to choose the flow yourself, such as an instructor panel switching between scenarios. Turn <strong>Auto Bind</strong> off if you do, or the widget drifts back to the primary flow.</p>
+
+    <h2 id="queries">Reading state</h2>
+
+    <div class="tw">
+      <table>
+        <caption>USimFlowStatusWidget, pure queries</caption>
+        <thead><tr><th scope="col">Node</th><th scope="col">Returns</th></tr></thead>
+        <tbody>
+          <tr><td class="t-name">Get Task Name</td><td>The current task's display name.</td></tr>
+          <tr><td class="t-name">Get Instruction</td><td>The current task's instruction text.</td></tr>
+          <tr><td class="t-name">Get Progress</td><td>0 to 1.</td></tr>
+          <tr><td class="t-name">Get Score</td><td>The <code>Score</code> blackboard key.</td></tr>
+          <tr><td class="t-name">Get Time Remaining Text</td><td>Already formatted as <code>MM:SS</code>.</td></tr>
+          <tr><td class="t-name">Is Flow Paused</td><td>bool</td></tr>
+          <tr><td class="t-name">Can Retry</td><td>Whether the current task allows it.</td></tr>
+          <tr><td class="t-name">Can Skip</td><td>Whether the current task allows it.</td></tr>
+        </tbody>
+      </table>
+    </div>
+
+    <p>All safe when nothing is bound: they return empty text, zero or false. Wire them to property bindings on your text blocks and progress bars. They resolve against the flow asset rather than replicated text, so they read correctly on clients.</p>
+
+    <p><strong>Can Retry</strong> and <strong>Can Skip</strong> are what your buttons' <strong>Is Enabled</strong> bindings want. A greyed-out skip button on a task that does not allow skipping beats a button that does nothing.</p>
+
+    <h2 id="buttons">Buttons</h2>
+
+    <div class="tw">
+      <table>
+        <caption>USimFlowStatusWidget, wire these to On Clicked</caption>
+        <thead><tr><th scope="col">Node</th><th scope="col">Notes</th></tr></thead>
+        <tbody>
+          <tr><td class="t-name">Request Pause Toggle</td><td></td></tr>
+          <tr><td class="t-name">Request Retry</td><td></td></tr>
+          <tr><td class="t-name">Request Skip</td><td></td></tr>
+          <tr><td class="t-name">Request Restart</td><td></td></tr>
+          <tr><td class="t-name">Submit Quiz Answer</td><td>Answers the quiz on screen, by option index.</td></tr>
+          <tr><td class="t-name">Get Current Quiz</td><td>The quiz task, or null. Read Question and Options off it.</td></tr>
+        </tbody>
+      </table>
+    </div>
+
+    <p>Each routes through the flow's component, so they forward to the server on a client without you doing anything.</p>
+
+    <h2 id="design-events">Design events</h2>
+
+    <div class="tw">
+      <table>
+        <caption>USimFlowStatusWidget, override these in your graph</caption>
+        <thead><tr><th scope="col">Event</th><th scope="col">Fires when</th><th scope="col">Carries</th></tr></thead>
+        <tbody>
+          <tr><td class="t-name">On Flow Bound</td><td>The widget finds its flow</td><td>The component</td></tr>
+          <tr><td class="t-name">On Flow Started</td><td>The run begins</td><td></td></tr>
+          <tr><td class="t-name">On Flow Paused</td><td></td><td></td></tr>
+          <tr><td class="t-name">On Flow Resumed</td><td></td><td></td></tr>
+          <tr><td class="t-name">On Flow Finished</td><td>The run ends</td><td>The final run state</td></tr>
+          <tr><td class="t-name">On Task Started</td><td>A task begins</td><td>The task</td></tr>
+          <tr><td class="t-name">On Task Finished</td><td>A task ends</td><td>The task and its result</td></tr>
+          <tr><td class="t-name">On Quiz Presented</td><td>A quiz appears</td><td>The quiz task</td></tr>
+          <tr><td class="t-name">On Flow State Replicated</td><td>Server state arrives on a client</td><td></td></tr>
+        </tbody>
+      </table>
+    </div>
+
+    <div class="note">
+      <svg class="ico" width="16" height="16" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5" aria-hidden="true"><circle cx="8" cy="8" r="6.3"/><path d="M8 7.2v4M8 4.9v.7"/></svg>
+      <div>
+        <span class="ct">Do first-time setup in On Flow Bound, not Event Construct</span>
+        <p>At construct time there may be no flow yet, which is the whole reason Auto Bind exists. On Flow Bound fires the moment there is one, whether that is immediately or forty frames later.</p>
+      </div>
+    </div>
+
+    <p><strong>On Flow State Replicated</strong> fires only on clients, every time the server's state arrives. Refresh anything you cached there rather than recomputing on tick. Bindings that call the query nodes update on their own.</p>
+
+    <h2 id="task-history">Showing the previous task, and how it went</h2>
+
+    <p>A panel that reads &#8220;previous step failed, current step running&#8221; needs two things the query nodes do not give you. <code>Get Task Name</code> and <code>Get Instruction</code> describe the task running <em>now</em>; nothing holds on to the one before it.</p>
+
+    <p>Keep it yourself. <strong>On Task Finished</strong> hands you the task and its result together, so three widget variables cover it:</p>
+
+<pre><code>Event On Task Finished ( Task , Result )
+  ├─▶ Set Previous Task Name   = Task ▸ Get Display Name Text
+  ├─▶ Set Previous Task Result = Result        ( ESimFlowResult )
+  └─▶ Set Has Previous Task    = true</code></pre>
+
+    <p>Render the result with <a href="values.html"><code>Result To Text</code></a>, which covers all five values &#8212; Succeeded, Failed, Skipped, Timed Out, Aborted:</p>
+
+<pre><code>Previous:  {Previous Task Name} — {Result To Text( Previous Task Result )}
+Current:   {Get Task Name} — in progress</code></pre>
+
+    <p>The ordering works in your favour. <strong>On Task Finished</strong> for one task fires before <strong>On Task Started</strong> for the next, so by the time the new step begins, the cached &#8220;previous&#8221; is already the one that just ended. It works in multiplayer too: the event multicasts, resolving the task from its node id on every machine.</p>
+
+    <p>For the whole run rather than just the last step, make the variable an array of a small struct &#8212; name plus result &#8212; and Add instead of Set. Same event, one node different, and you have a debrief list at the end.</p>
+
+    <div class="note">
+      <svg class="ico" width="16" height="16" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5" aria-hidden="true"><circle cx="8" cy="8" r="6.3"/><path d="M8 7.2v4M8 4.9v.7"/></svg>
+      <div>
+        <span class="ct">Get Last Task Result looks like the answer, but is not</span>
+        <p><code>Get Flow Instance</code> &#8250; <code>Get Last Task Result</code> exists. It gives the result with no task name, it starts life reading <code>Succeeded</code> before anything has run, and the instance is null on a client &#8212; which reads as <code>Succeeded</code> too. The event above has none of those problems. See <a href="instance.html">Flow Instance</a>.</p>
+      </div>
+    </div>
+
+    <p>For <em>why</em> a task failed, <code>Get Flow Instance</code> &#8250; <code>Get Mistakes</code> returns records carrying a ready-to-show description such as &#8220;Placed CO2 Extinguisher &#8212; expected Foam Extinguisher&#8221;, keyed by task id. Server-side only.</p>
+
+    <h2 id="example">A VR wrist panel</h2>
+
+    <ol>
+      <li>Reparent the widget to <strong>SimFlow Status Widget</strong>.</li>
+      <li>Bind a text block to <strong>Get Instruction</strong>, another to <strong>Get Task Name</strong>.</li>
+      <li>Bind a progress bar to <strong>Get Progress</strong>.</li>
+      <li>Bind a countdown text block to <strong>Get Time Remaining Text</strong>.</li>
+      <li>Add retry and skip buttons wired to <strong>Request Retry</strong> and <strong>Request Skip</strong>, with their <strong>Is Enabled</strong> bound to <strong>Can Retry</strong> and <strong>Can Skip</strong>.</li>
+      <li>Override <strong>On Quiz Presented</strong> to swap to your quiz panel, building the buttons from <strong>Get Current Quiz</strong>.</li>
+      <li>Put the widget on a Widget Component on the player's wrist.</li>
+    </ol>
+
+    <p>Nothing in there names a flow, so the same panel works in every level.</p>
+
+    <h2 id="misbehaves">When it misbehaves</h2>
+
+    <div class="tw">
+      <table>
+        <thead><tr><th scope="col">Symptom</th><th scope="col">Cause</th></tr></thead>
+        <tbody>
+          <tr><td>Everything is blank</td><td>No flow is bound. Check <code>Auto Bind</code> is on, or that <code>Flow Save Id</code> matches a component in the level.</td></tr>
+          <tr><td>It binds to the wrong flow</td><td><code>Flow Save Id</code> is <code>None</code> and several flows are running, so it took the primary one.</td></tr>
+          <tr><td>Bindings stop updating after a restart</td><td>The widget rebinds on its own with Auto Bind on. With it off, call Bind To Flow again.</td></tr>
+          <tr><td>Buttons do nothing on a client</td><td>The PlayerController has no <a href="player-component.html">SimFlow Player Component</a>.</td></tr>
+          <tr><td>The countdown reads <code>00:00</code> on every task</td><td>Those tasks have no <code>Time Limit</code>.</td></tr>
+          <tr><td>On Flow Started never fires</td><td>The widget was created after the flow started, so it missed the event. Use On Flow Bound for setup.</td></tr>
+        </tbody>
+      </table>
+    </div>
+
+    <h2 id="related">Related</h2>
+    <p><a href="values.html">Value Nodes</a> &middot; <a href="player-component.html">Player Component</a> &middot; <a href="../06-ui-and-vr.html">Driving UI &amp; VR Feedback</a></p>
+
+    <nav class="pager" aria-label="Page navigation">
+      <a href="player-component.html"><span class="d">Previous</span><span class="t">Player Component</span></a>
+      <a class="next" href="selector-widget.html"><span class="d">Next</span><span class="t">Scenario Selector</span></a>
+    </nav>
+
+    <div class="foot">
+      <p>SimFlow 1.1.5 &middot; User Guide &middot; Unreal Engine 5.6 and 5.8</p>
+    </div>
+  </main>
+
+  <aside class="rail" id="rail" aria-label="On this page">
+    <h2>On this page</h2>
+  </aside>
+
+</div>
+</body>
+</html>

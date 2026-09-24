@@ -7,6 +7,7 @@
 #include "SimFlowTasks.h"
 #include "SimFlowBlackboard.h"
 #include "SimFlowSaveGame.h"
+#include "SimFlowStatics.h"
 #include "SimFlowSubsystem.h"
 #include "SimFlowPlayerComponent.h"
 #include "SimFlowRuntimeModule.h"
@@ -815,6 +816,69 @@ bool USimFlowComponent::HasSaveInSlot(const FString& SlotName, int32 UserIndex) 
 	return SaveGame && SaveGame->Flows.Contains(GetEffectiveSaveId());
 }
 
+// ----------------------------------------------------------- Scenario record
+
+bool USimFlowComponent::RecordPlay()
+{
+	if (IsClientMirror())
+	{
+		UE_LOG(LogSimFlow, Warning, TEXT("Recording a play for a replicated flow is server-only."));
+		return false;
+	}
+
+	const FName SaveId = GetEffectiveSaveId();
+	const float Previous = USimFlowStatics::GetHighScore(SaveId, ScenarioSlotName, ScenarioUserIndex);
+	const ESimFlowRunState Outcome = GetRunState();
+
+	// A run that did not complete still counts as a play; whether it may set a best
+	// score is the caller's policy.
+	const bool bScoreCounts = !bHighScoreRequiresCompletion || Outcome == ESimFlowRunState::Completed;
+	const float Score = GetScore();
+
+	if (!USimFlowStatics::RecordPlay(SaveId, Score, Outcome, ScenarioSlotName, ScenarioUserIndex, bScoreCounts))
+	{
+		return false;
+	}
+
+	OnNewHighScore.Broadcast(Score, Previous);
+	return true;
+}
+
+FSimFlowScenarioRecord USimFlowComponent::GetScenarioRecord() const
+{
+	return USimFlowStatics::GetScenarioRecord(GetEffectiveSaveId(), ScenarioSlotName, ScenarioUserIndex);
+}
+
+float USimFlowComponent::GetHighScore() const
+{
+	return GetScenarioRecord().BestScore;
+}
+
+int32 USimFlowComponent::GetPlayCount() const
+{
+	return GetScenarioRecord().PlayCount;
+}
+
+bool USimFlowComponent::HasScenarioRecord() const
+{
+	return USimFlowStatics::HasScenarioRecord(GetEffectiveSaveId(), ScenarioSlotName, ScenarioUserIndex);
+}
+
+bool USimFlowComponent::IsBeatingHighScore() const
+{
+	return USimFlowStatics::WouldBeatHighScore(GetEffectiveSaveId(), GetScore(), ScenarioSlotName, ScenarioUserIndex);
+}
+
+bool USimFlowComponent::ResetScenarioRecord()
+{
+	if (IsClientMirror())
+	{
+		UE_LOG(LogSimFlow, Warning, TEXT("Clearing a scenario record for a replicated flow is server-only."));
+		return false;
+	}
+	return USimFlowStatics::ResetScenarioRecord(GetEffectiveSaveId(), ScenarioSlotName, ScenarioUserIndex);
+}
+
 // ------------------------------------------------------------------- Queries
 
 USimFlowBlackboard* USimFlowComponent::GetBlackboard() const
@@ -998,6 +1062,13 @@ void USimFlowComponent::HandleFlowResumed()
 
 void USimFlowComponent::HandleFlowFinished(ESimFlowRunState FinalState)
 {
+	// Before the broadcast, so a debrief widget listening on OnFlowFinished
+	// already reads the updated record.
+	if (bRecordPlayOnFinish && !IsClientMirror())
+	{
+		RecordPlay();
+	}
+
 	if (ShouldMulticastEvents())
 	{
 		MulticastFlowFinished(FinalState);
