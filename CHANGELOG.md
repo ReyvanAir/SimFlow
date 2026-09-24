@@ -55,6 +55,24 @@ Recording and resetting are authority-only, like save and load. On a client mirr
 they log and do nothing. If the record slot turns out to hold some other save
 object, SimFlow warns and refuses rather than overwriting it.
 
+### Fixed
+
+- **A task inside a Sub Flow fired its events into nothing.** A Sub Flow node runs
+  its child as a separate instance and listened to it for one thing, finishing; the
+  component binds only the root. So `On Task Started`, `On Task Finished`,
+  `On Task Retried`, `On Checkpoint Reached` and `On Quiz Presented` never reached
+  the component for any node inside a sub flow — an actor bound to them never heard,
+  a Status Widget's design events stayed silent, and a quiz inside a sub flow never
+  showed its question. Each event now also fires on every ancestor instance, however
+  deep the nesting. Only the broadcast climbs: the child keeps its own last result,
+  completed tasks and checkpoint, so the parent's progress is unchanged.
+- **A replicated flow could not name a task from a sub flow.** Multicast events
+  resolve their node by id in the component's asset, where a sub flow's nodes do not
+  exist, so they resolved to null. They now search every flow the main one calls,
+  through the new `USimFlowAsset::FindNodeByGuidInTree`; flows that call each other
+  are visited once. `Find Node By Guid` is unchanged, so the scheduler and save/load
+  behave exactly as before.
+
 ## 1.1.5
 
 Two repairs that have nothing to do with each other. A tag in a Zone query could

@@ -659,9 +659,11 @@ USimFlowNode_Task* USimFlowComponent::ResolveTaskNode(const FGuid& NodeGuid) con
 		}
 	}
 
+	// InTree, because a task inside a sub flow belongs to the child's asset. Its node
+	// is the authored template, so authored fields read true and runtime state does not.
 	if (FlowAsset)
 	{
-		return Cast<USimFlowNode_Task>(FlowAsset->FindNodeByGuid(NodeGuid));
+		return Cast<USimFlowNode_Task>(FlowAsset->FindNodeByGuidInTree(NodeGuid));
 	}
 
 	return nullptr;
@@ -1201,7 +1203,7 @@ void USimFlowComponent::MulticastCheckpointReached_Implementation(FGuid NodeGuid
 	}
 	if (!Checkpoint && FlowAsset)
 	{
-		Checkpoint = Cast<USimFlowNode_Checkpoint>(FlowAsset->FindNodeByGuid(NodeGuid));
+		Checkpoint = Cast<USimFlowNode_Checkpoint>(FlowAsset->FindNodeByGuidInTree(NodeGuid));
 	}
 
 	OnCheckpointReached.Broadcast(Checkpoint);

@@ -28,6 +28,42 @@ USimFlowNode* USimFlowAsset::FindNodeByGuid(const FGuid& Guid) const
 	return nullptr;
 }
 
+namespace
+{
+	USimFlowNode* FindInTree(const USimFlowAsset* Asset, const FGuid& Guid, TSet<const USimFlowAsset*>& Visited)
+	{
+		// A flow may call itself, or two may call each other. Nothing stops that at
+		// author time, so the search has to.
+		if (!Asset || Visited.Contains(Asset))
+		{
+			return nullptr;
+		}
+		Visited.Add(Asset);
+
+		if (USimFlowNode* Found = Asset->FindNodeByGuid(Guid))
+		{
+			return Found;
+		}
+		for (const TObjectPtr<USimFlowNode>& Node : Asset->Nodes)
+		{
+			if (const USimFlowNode_SubFlow* Sub = Cast<USimFlowNode_SubFlow>(Node))
+			{
+				if (USimFlowNode* Found = FindInTree(Sub->SubFlow, Guid, Visited))
+				{
+					return Found;
+				}
+			}
+		}
+		return nullptr;
+	}
+}
+
+USimFlowNode* USimFlowAsset::FindNodeByGuidInTree(const FGuid& Guid) const
+{
+	TSet<const USimFlowAsset*> Visited;
+	return FindInTree(this, Guid, Visited);
+}
+
 USimFlowNode_Entry* USimFlowAsset::FindEntryNode(FName EntryName) const
 {
 	USimFlowNode_Entry* FirstEntry = nullptr;

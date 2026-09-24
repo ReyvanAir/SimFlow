@@ -795,11 +795,23 @@ UWorld* USimFlowInstance::GetWorld() const
 }
 
 // -------------------------------------------------------------- Node hooks
+//
+// A Sub Flow node runs its child as a separate instance and listens to it for one
+// thing: finishing. The component binds only the root. So every hook below also
+// broadcasts on each ancestor, or a task inside a sub flow would fire into nothing.
+//
+// Only the broadcast climbs. LastTaskResult, CompletedTaskNodes and
+// LastCheckpointGuid stay on the instance that owns the node: the parent's progress
+// counts the parent's tasks, and its checkpoint must be a node it can resume from.
 
 void USimFlowInstance::NotifyTaskStarted(USimFlowNode_Task* Node, USimFlowTask* Task)
 {
 	UE_LOG(LogSimFlow, Verbose, TEXT("Task started: %s"), Task ? *Task->GetDisplayNameText().ToString() : TEXT("<none>"));
 	OnTaskStarted.Broadcast(Node, Task);
+	for (USimFlowInstance* Up = ParentInstance; Up; Up = Up->ParentInstance)
+	{
+		Up->OnTaskStarted.Broadcast(Node, Task);
+	}
 }
 
 void USimFlowInstance::NotifyTaskFinished(USimFlowNode_Task* Node, USimFlowTask* Task, ESimFlowResult Result)
@@ -818,11 +830,19 @@ void USimFlowInstance::NotifyTaskFinished(USimFlowNode_Task* Node, USimFlowTask*
 	}
 
 	OnTaskFinished.Broadcast(Node, Task, Result);
+	for (USimFlowInstance* Up = ParentInstance; Up; Up = Up->ParentInstance)
+	{
+		Up->OnTaskFinished.Broadcast(Node, Task, Result);
+	}
 }
 
 void USimFlowInstance::NotifyTaskRetried(USimFlowNode_Task* Node, USimFlowTask* Task)
 {
 	OnTaskRetried.Broadcast(Node, Task);
+	for (USimFlowInstance* Up = ParentInstance; Up; Up = Up->ParentInstance)
+	{
+		Up->OnTaskRetried.Broadcast(Node, Task);
+	}
 }
 
 void USimFlowInstance::NotifyCheckpointReached(USimFlowNode_Checkpoint* Checkpoint)
@@ -832,9 +852,17 @@ void USimFlowInstance::NotifyCheckpointReached(USimFlowNode_Checkpoint* Checkpoi
 		LastCheckpointGuid = Checkpoint->NodeGuid;
 	}
 	OnCheckpointReached.Broadcast(Checkpoint);
+	for (USimFlowInstance* Up = ParentInstance; Up; Up = Up->ParentInstance)
+	{
+		Up->OnCheckpointReached.Broadcast(Checkpoint);
+	}
 }
 
 void USimFlowInstance::NotifyQuizPresented(USimFlowTask_Quiz* Quiz)
 {
 	OnQuizPresented.Broadcast(Quiz);
+	for (USimFlowInstance* Up = ParentInstance; Up; Up = Up->ParentInstance)
+	{
+		Up->OnQuizPresented.Broadcast(Quiz);
+	}
 }

@@ -55,6 +55,13 @@ public:
 	UFUNCTION(BlueprintPure, Category = "SimFlow")
 	USimFlowNode* FindNodeByGuid(const FGuid& Guid) const;
 
+	/**
+	 * FindNodeByGuid, then every flow this one calls through a Sub Flow node, however
+	 * deep. For naming a node that an event reported: a task inside a sub flow lives
+	 * in the child's asset, not this one. Flows that call each other are visited once.
+	 */
+	USimFlowNode* FindNodeByGuidInTree(const FGuid& Guid) const;
+
 	/** Returns the entry node with the given name, or the first entry when EntryName is None. */
 	USimFlowNode_Entry* FindEntryNode(FName EntryName = NAME_None) const;
 
