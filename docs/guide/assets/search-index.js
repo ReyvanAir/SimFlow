@@ -317,7 +317,7 @@ window.SIMFLOW_INDEX = [
     s: "Why mid-play edits do nothing, and why inserting a Branch case moves wires." },
   { t: "Still stuck", p: "07-troubleshooting.html", h: "still-stuck", c: "07 Troubleshooting",
     k: "report issue github log message swap task escalate",
-    s: "The last-resort sequence, and what to include in an issue report." },,,,,,,,,,,,,,,,,
+    s: "The last-resort sequence, and what to include in an issue report." },,,,,,,,,,,,,,,,,,
 
 
   /* ==== generated reference entries (rebuilt by build.py) ==== */
@@ -535,9 +535,9 @@ window.SIMFLOW_INDEX = [
   { t: "Sub Flow: An empty Sub Flow node is a silent pass-through", p: "nodes/sub-flow.html", h: "silent", c: "Node Reference",
     k: "sub flow node an empty sub flow node is a silent pass-through silent",
     s: "Four ways this node goes quiet Leave Sub Flow null and the node logs \"has no asset assigned\" and triggers Completed." },
-  { t: "Sub Flow: Pause, skip and fail", p: "nodes/sub-flow.html", h: "forwarding", c: "Node Reference",
-    k: "sub flow node pause, skip and fail forwarding",
-    s: "The node forwards all three to the child." },
+  { t: "Sub Flow: Pause, skip, fail and events", p: "nodes/sub-flow.html", h: "forwarding", c: "Node Reference",
+    k: "sub flow node pause, skip, fail and events forwarding",
+    s: "Pausing the parent pauses the child." },
   { t: "Sub Flow: A reusable PPE check", p: "nodes/sub-flow.html", h: "example", c: "Node Reference",
     k: "sub flow node a reusable ppe check example",
     s: "Every scenario starts by making the trainee put on a helmet and gloves." },

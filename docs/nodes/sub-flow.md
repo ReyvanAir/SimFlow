@@ -16,8 +16,8 @@ the fix.
 |---|---|---|---|
 | Sub Flow | SimFlow Asset | *null* | The child flow to run. |
 | Entry Name | Name | `Default` | Which [Start](start.md) node of the child to begin from. |
-| Inherit Blackboard | Bool | `true` | Copy the parent [blackboard](../blackboard.md) into the child at start. |
-| Write Back Blackboard | Bool | `true` | Copy the child's blackboard back into the parent when it ends. |
+| Inherit Blackboard | Bool | `true` | The child starts with the parent's [blackboard](../blackboard.md) values. |
+| Write Back Blackboard | Bool | `true` | The child's changes reach the parent. |
 
 `Completed` is taken when the child finishes successfully, `Failed` when it fails or
 aborts.
@@ -28,14 +28,16 @@ The two blackboard settings give you four arrangements:
 
 | Inherit | Write Back | Behaviour |
 |---|---|---|
-| on | on | The default. The child sees everything and its changes come back — closest to inlining the section. |
-| on | off | The child reads parent state but its changes are discarded. A sandbox. |
-| off | on | The child starts clean and hands results back. Good for a self-contained scored section. |
+| on | on | The default. Parent and child share one blackboard while the child runs, which is closest to inlining the section. A value an actor sets mid-sub-flow reaches the child at once, and the score keeps adding up across sub flows. |
+| on | off | The child works on a copy of the parent's values and its changes are discarded. A sandbox. |
+| off | on | The child starts from its own defaults, and its values are copied into the parent when it ends. That includes `Score`: the child's total replaces the parent's. |
 | off | off | Fully isolated. |
 
-Both directions are a merge that overwrites by default, not a replace, so keys the
-child never touched keep their parent values on write-back. Object references move
-across fine — this is an in-memory merge, not a save.
+The child asset's own blackboard defaults fill in keys the parent does not have.
+Where both have a key, the parent's value wins. The copies in the two middle rows
+are merges, not replacements, so keys the child never touched keep their parent
+values on write-back. Object references move across fine, because this all happens
+in memory rather than through a save.
 
 ## An empty Sub Flow node is a silent pass-through
 
@@ -49,11 +51,17 @@ child means the child can't start. A child with no [Finish](finish.md) node neve
 reports completion, so the parent waits on this node forever. And a flow that calls
 itself recurses infinitely — there is no depth guard, so don't.
 
-## Pause, skip and fail
+## Pause, skip, fail and events
 
-The node forwards all three to the child. Pausing the parent pauses the child. Skip
-is always allowed here and ends the child. Fail ends the child and leaves through
-`Failed`.
+Pausing the parent pauses the child. `Retry Current Task`, `Skip Current Task` and
+`Fail Current Task` act on the task running inside the sub flow, following that
+task's own `Allow Skip` and pins, exactly as they would in the main flow. The sub
+flow keeps running afterwards.
+
+Events sent with `Send Event` or `Broadcast Flow Event` reach the
+[Wait For Event](../tasks/wait-for-event.md) and Ordered Sequence tasks inside a sub
+flow, however deep it is nested. A tag raised earlier in the run counts inside it
+too, for `Accept Already Raised` and the Event Raised condition.
 
 ## A reusable PPE check
 
@@ -86,8 +94,12 @@ With write-back on, `PPEComplete` is readable in the parent afterwards, so a lat
 
 **Child results are missing in the parent.** `Write Back Blackboard` is off.
 
-**The child overwrote a parent key you wanted kept.** Write-back overwrites by
-default — turn it off, or use distinct key names in the child.
+**The child overwrote a parent key you wanted kept.** Write-back overwrites. Turn
+it off, or use distinct key names in the child.
+
+**The score from an earlier section vanished after a sub flow.** `Inherit
+Blackboard` is off while `Write Back Blackboard` is on, so the child's score total
+replaced the parent's. Turn Inherit on.
 
 **The editor hangs on Play.** A flow is calling itself, directly or through a cycle.
 

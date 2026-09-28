@@ -169,8 +169,8 @@
         <tbody>
           <tr><td class="t-name">Sub Flow</td><td class="t-type">SimFlow Asset</td><td class="t-def">null</td><td>The child flow to run.</td></tr>
           <tr><td class="t-name">Entry Name</td><td class="t-type">Name</td><td class="t-def">Default</td><td>Which <a href="start.html">Start</a> node of the child to begin from.</td></tr>
-          <tr><td class="t-name">Inherit Blackboard</td><td class="t-type">Bool</td><td class="t-def">true</td><td>Copy the parent blackboard into the child at start.</td></tr>
-          <tr><td class="t-name">Write Back Blackboard</td><td class="t-type">Bool</td><td class="t-def">true</td><td>Copy the child's blackboard back into the parent when it ends.</td></tr>
+          <tr><td class="t-name">Inherit Blackboard</td><td class="t-type">Bool</td><td class="t-def">true</td><td>The child starts with the parent's blackboard values.</td></tr>
+          <tr><td class="t-name">Write Back Blackboard</td><td class="t-type">Bool</td><td class="t-def">true</td><td>The child's changes reach the parent.</td></tr>
         </tbody>
       </table>
     </div>
@@ -186,15 +186,15 @@
         <caption>Inherit and write-back combinations</caption>
         <thead><tr><th scope="col">Inherit</th><th scope="col">Write Back</th><th scope="col">Behaviour</th></tr></thead>
         <tbody>
-          <tr><td class="t-def">on</td><td class="t-def">on</td><td>The default. The child sees everything and its changes come back, which is closest to inlining the section.</td></tr>
-          <tr><td class="t-def">on</td><td class="t-def">off</td><td>The child reads parent state but its changes are discarded. A sandbox.</td></tr>
-          <tr><td class="t-def">off</td><td class="t-def">on</td><td>The child starts clean and hands results back. Good for a self-contained scored section.</td></tr>
+          <tr><td class="t-def">on</td><td class="t-def">on</td><td>The default. Parent and child share one blackboard while the child runs, which is closest to inlining the section. A value an actor sets mid-sub-flow reaches the child at once, and the score keeps adding up across sub flows.</td></tr>
+          <tr><td class="t-def">on</td><td class="t-def">off</td><td>The child works on a copy of the parent's values and its changes are discarded. A sandbox.</td></tr>
+          <tr><td class="t-def">off</td><td class="t-def">on</td><td>The child starts from its own defaults, and its values are copied into the parent when it ends. That includes <code>Score</code>: the child's total replaces the parent's.</td></tr>
           <tr><td class="t-def">off</td><td class="t-def">off</td><td>Fully isolated.</td></tr>
         </tbody>
       </table>
     </div>
 
-    <p>Both directions are a merge that overwrites by default, not a replace, so keys the child never touched keep their parent values on write-back. Object references move across fine, because this is an in-memory merge rather than a save.</p>
+    <p>The child asset's own blackboard defaults fill in keys the parent does not have. Where both have a key, the parent's value wins. The copies in the two middle rows are merges, not replacements, so keys the child never touched keep their parent values on write-back. Object references move across fine, because this all happens in memory rather than through a save.</p>
 
     <h2 id="silent">An empty Sub Flow node is a silent pass-through</h2>
 
@@ -211,9 +211,11 @@
       </div>
     </div>
 
-    <h2 id="forwarding">Pause, skip and fail</h2>
+    <h2 id="forwarding">Pause, skip, fail and events</h2>
 
-    <p>The node forwards all three to the child. Pausing the parent pauses the child. Skip is always allowed here and ends the child. Fail ends the child and leaves through <code>Failed</code>.</p>
+    <p>Pausing the parent pauses the child. <code>Retry Current Task</code>, <code>Skip Current Task</code> and <code>Fail Current Task</code> act on the task running inside the sub flow, following that task's own <code>Allow Skip</code> and pins, exactly as they would in the main flow. The sub flow keeps running afterwards.</p>
+
+    <p>Events sent with <code>Send Event</code> or <code>Broadcast Flow Event</code> reach the <a href="../tasks/wait-for-event.html">Wait For Event</a> and Ordered Sequence tasks inside a sub flow, however deep it is nested. A tag raised earlier in the run counts inside it too, for <code>Accept Already Raised</code> and the Event Raised condition.</p>
 
     <h2 id="example">A reusable PPE check</h2>
 
@@ -244,7 +246,8 @@
           <tr><td>The node completed instantly and nothing happened</td><td><code>Sub Flow</code> is empty.</td></tr>
           <tr><td>The parent hangs on the sub flow</td><td>The child has no Finish node.</td></tr>
           <tr><td>Child results are missing in the parent</td><td><code>Write Back Blackboard</code> is off.</td></tr>
-          <tr><td>The child overwrote a parent key you wanted kept</td><td>Write-back overwrites by default. Turn it off, or use distinct key names in the child.</td></tr>
+          <tr><td>The child overwrote a parent key you wanted kept</td><td>Write-back overwrites. Turn it off, or use distinct key names in the child.</td></tr>
+          <tr><td>The score from an earlier section vanished after a sub flow</td><td><code>Inherit Blackboard</code> is off while <code>Write Back Blackboard</code> is on, so the child's score total replaced the parent's. Turn Inherit on.</td></tr>
           <tr><td>The editor hangs on Play</td><td>A flow is calling itself, directly or through a cycle.</td></tr>
         </tbody>
       </table>

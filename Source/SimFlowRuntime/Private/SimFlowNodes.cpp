@@ -788,9 +788,12 @@ void USimFlowNode_SubFlow::ExecuteInput(FName /*PinName*/)
 	ChildInstance = NewObject<USimFlowInstance>(this);
 	ChildInstance->InitializeInstance(SubFlow, FlowInstance->GetOwningComponent(), FlowInstance);
 
+	// Inherit and write back together amount to one blackboard, so share it: a value
+	// an actor sets during the sub flow reaches it, and the score keeps adding up.
+	// Either one alone keeps the child's own copy, which is what turning one off asks for.
 	if (bInheritBlackboard)
 	{
-		ChildInstance->GetBlackboard()->MergeFrom(FlowInstance->GetBlackboard(), true);
+		ChildInstance->SetParentBlackboard(FlowInstance->GetBlackboard(), bWriteBackBlackboard);
 	}
 
 	ChildInstance->OnFlowFinished.AddDynamic(this, &USimFlowNode_SubFlow::HandleChildFinished);
@@ -857,7 +860,9 @@ void USimFlowNode_SubFlow::RequestFail()
 
 void USimFlowNode_SubFlow::HandleChildFinished(ESimFlowRunState FinalState)
 {
-	if (bWriteBackBlackboard && ChildInstance && FlowInstance)
+	// A shared blackboard already holds everything the child wrote.
+	if (bWriteBackBlackboard && ChildInstance && FlowInstance &&
+		ChildInstance->GetBlackboard() != FlowInstance->GetBlackboard())
 	{
 		FlowInstance->GetBlackboard()->MergeFrom(ChildInstance->GetBlackboard(), true);
 	}

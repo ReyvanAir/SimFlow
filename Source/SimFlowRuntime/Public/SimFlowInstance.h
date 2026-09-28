@@ -60,6 +60,14 @@ public:
 
 	void InitializeInstance(USimFlowAsset* InTemplate, USimFlowComponent* InComponent, USimFlowInstance* InParent = nullptr);
 
+	/**
+	 * For a Sub Flow's child, between InitializeInstance and StartInstance. With
+	 * bShare the child reads and writes Source itself, so values set from outside
+	 * reach it while it runs. Without, it starts from its own defaults with Source's
+	 * values copied on top.
+	 */
+	void SetParentBlackboard(USimFlowBlackboard* Source, bool bShare);
+
 	UFUNCTION(BlueprintCallable, Category = "SimFlow")
 	bool StartInstance(FName EntryName = NAME_None);
 
@@ -206,6 +214,13 @@ private:
 
 	UPROPERTY(Transient)
 	TObjectPtr<USimFlowBlackboard> Blackboard = nullptr;
+
+	/** Copied over this flow's defaults at start. Set by SetParentBlackboard. */
+	UPROPERTY(Transient)
+	TObjectPtr<USimFlowBlackboard> InheritedBlackboard = nullptr;
+
+	/** Blackboard belongs to the parent flow: never clear it. */
+	bool bSharedBlackboard = false;
 
 	UPROPERTY(Transient)
 	TArray<TObjectPtr<USimFlowNode>> RuntimeNodes;

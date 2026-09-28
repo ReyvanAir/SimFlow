@@ -81,6 +81,25 @@ object, SimFlow warns and refuses rather than overwriting it.
   through the new `USimFlowAsset::FindNodeByGuidInTree`; flows that call each other
   are visited once. `Find Node By Guid` is unchanged, so the scheduler and save/load
   behave exactly as before.
+- **A Wait For Event inside a Sub Flow never finished.** `Send Event` and
+  `Broadcast Flow Event` raised the tag on the main flow only, while a task inside a
+  sub flow listens on the sub flow's own instance. The event now passes down to every
+  running sub flow, however deep. Ordered Sequence had the same problem and is fixed
+  with it. A sub flow started by the event does not also receive it, the same as a
+  main-flow task started by it. `Accept Already Raised` and the Event Raised
+  condition now count tags raised earlier in the main flow.
+- **Skip, Fail and Retry Current Task missed the task inside a Sub Flow.** Skip and
+  Fail landed on the Sub Flow node and ended the whole sub flow; Retry did nothing.
+  All three now act on the task running inside, with its own `Allow Skip` and pins,
+  and the sub flow carries on.
+- **Inherit Blackboard never took effect, and a sub flow replaced the main flow's
+  score.** The parent's values were copied in and then cleared when the sub flow
+  started, so the child always began from its own defaults. Write Back then copied
+  those over the parent: a main flow at 50 that ran a sub flow worth 10 ended on 10.
+  With both settings on, the default, parent and child now share one blackboard, so
+  the score adds up (60) and a value an actor sets mid-sub-flow reaches the task
+  waiting on it. With only Inherit on, the child gets a real copy of the parent's
+  values on top of its own defaults.
 
 ## 1.1.5
 

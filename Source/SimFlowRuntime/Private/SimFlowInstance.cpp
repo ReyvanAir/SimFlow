@@ -31,6 +31,24 @@ void USimFlowInstance::InitializeInstance(USimFlowAsset* InTemplate, USimFlowCom
 	BuildRuntimeNodes();
 }
 
+void USimFlowInstance::SetParentBlackboard(USimFlowBlackboard* Source, bool bShare)
+{
+	if (!Source)
+	{
+		return;
+	}
+
+	if (bShare)
+	{
+		Blackboard = Source;
+		bSharedBlackboard = true;
+	}
+	else
+	{
+		InheritedBlackboard = Source;
+	}
+}
+
 void USimFlowInstance::BuildRuntimeNodes()
 {
 	RuntimeNodes.Reset();
@@ -89,10 +107,25 @@ bool USimFlowInstance::StartInstance(FName EntryName)
 	LastCheckpointGuid.Invalidate();
 	ActiveEntryName = Entry->EntryName;
 
-	if (Blackboard)
+	if (Blackboard && bSharedBlackboard)
+	{
+		// The parent's blackboard: clearing it would wipe the main flow. This flow's
+		// defaults fill only keys the parent lacks, the same end state as copying
+		// in, letting the parent's values win, and writing back.
+		USimFlowBlackboard* Defaults = NewObject<USimFlowBlackboard>(this);
+		Defaults->FromEntries(Template->InitialBlackboard, false);
+		Blackboard->MergeFrom(Defaults, false);
+	}
+	else if (Blackboard)
 	{
 		Blackboard->ClearAll();
 		Blackboard->FromEntries(Template->InitialBlackboard, false);
+
+		// After the defaults, not before: the parent's values win.
+		if (InheritedBlackboard)
+		{
+			Blackboard->MergeFrom(InheritedBlackboard, true);
+		}
 	}
 
 	RunState = ESimFlowRunState::Running;
@@ -355,13 +388,32 @@ void USimFlowInstance::DeactivateAllNodes()
 
 // ---------------------------------------------------------- Player controls
 
+namespace
+{
+	// The flow a Sub Flow node is running, or null for any other node.
+	USimFlowInstance* GetRunningSubFlow(const USimFlowNode* Node)
+	{
+		const USimFlowNode_SubFlow* SubFlow = Cast<USimFlowNode_SubFlow>(Node);
+		return SubFlow ? SubFlow->GetChildInstance() : nullptr;
+	}
+}
+
+// Retry, skip and fail mean the current task. While a sub flow runs, that task is
+// inside it, so the request goes in rather than landing on the Sub Flow node, which
+// would skip or fail the whole sub flow. Nothing inside can take it (a Delay, or a
+// task that forbids skipping): nothing happens, as in the main flow.
+
 int32 USimFlowInstance::RetryActiveTasks()
 {
 	int32 Count = 0;
 	TArray<TObjectPtr<USimFlowNode>> Snapshot = ActiveNodes;
 	for (const TObjectPtr<USimFlowNode>& Node : Snapshot)
 	{
-		if (Node && Node->CanRetry())
+		if (USimFlowInstance* Child = GetRunningSubFlow(Node))
+		{
+			Count += Child->RetryActiveTasks();
+		}
+		else if (Node && Node->CanRetry())
 		{
 			Node->RequestRetry();
 			Count++;
@@ -377,7 +429,11 @@ int32 USimFlowInstance::SkipActiveTasks()
 	TArray<TObjectPtr<USimFlowNode>> Snapshot = ActiveNodes;
 	for (const TObjectPtr<USimFlowNode>& Node : Snapshot)
 	{
-		if (Node && Node->CanSkip())
+		if (USimFlowInstance* Child = GetRunningSubFlow(Node))
+		{
+			Count += Child->SkipActiveTasks();
+		}
+		else if (Node && Node->CanSkip())
 		{
 			Node->RequestSkip();
 			Count++;
@@ -393,7 +449,11 @@ int32 USimFlowInstance::FailActiveTasks()
 	TArray<TObjectPtr<USimFlowNode>> Snapshot = ActiveNodes;
 	for (const TObjectPtr<USimFlowNode>& Node : Snapshot)
 	{
-		if (Node)
+		if (USimFlowInstance* Child = GetRunningSubFlow(Node))
+		{
+			Count += Child->FailActiveTasks();
+		}
+		else if (Node)
 		{
 			Node->RequestFail();
 			Count++;
@@ -410,14 +470,38 @@ void USimFlowInstance::RaiseEvent(FGameplayTag EventTag, UObject* Payload)
 		return;
 	}
 
+	// Sub flows run as their own instances and their tasks listen there, so pass the
+	// event down. Only to the ones already running: one this event starts has not
+	// heard it, as a task in the main flow that starts afterwards has not either.
+	TArray<USimFlowInstance*> RunningSubFlows;
+	for (const TObjectPtr<USimFlowNode>& Node : ActiveNodes)
+	{
+		if (USimFlowInstance* Child = GetRunningSubFlow(Node))
+		{
+			RunningSubFlows.Add(Child);
+		}
+	}
+
 	RaisedEvents.AddTag(EventTag);
 	OnEventRaised.Broadcast(EventTag, Payload);
 	ProcessPendingActivations();
+
+	for (USimFlowInstance* Child : RunningSubFlows)
+	{
+		// This flow's reaction may have ended the sub flow already.
+		if (Child->IsRunning() || Child->IsPaused())
+		{
+			Child->RaiseEvent(EventTag, Payload);
+		}
+	}
 }
 
 bool USimFlowInstance::WasEventRaised(FGameplayTag EventTag) const
 {
-	return EventTag.IsValid() && RaisedEvents.HasTag(EventTag);
+	// A sub flow belongs to the run that started it: a tag raised earlier in the main
+	// flow counts as raised here too.
+	return EventTag.IsValid() &&
+		(RaisedEvents.HasTag(EventTag) || (ParentInstance && ParentInstance->WasEventRaised(EventTag)));
 }
 
 void USimFlowInstance::ClearRaisedEvents()
