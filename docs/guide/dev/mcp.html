@@ -3,8 +3,8 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>Subsystem Nodes | SimFlow User Guide</title>
-<meta name="description" content="Subsystem Nodes (USimFlowSubsystem) in SimFlow: Every flow in the game instance, bulk control, and the debug HUD toggle. Node tables, a worked example and the failure modes.">
+<title>Controlling SimFlow from Claude | SimFlow User Guide</title>
+<meta name="description" content="Read, edit and run SimFlow flows from Claude or any MCP client, through the engine's MCP server and the SimFlowTools toolset.">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500;600&family=IBM+Plex+Sans:wght@400;500;600&display=swap">
@@ -96,7 +96,7 @@
         <li><a href="../components/player-component.html"><span class="num">&#183;</span><span>SimFlow Player Component</span></a></li>
       </ul>
     </details>
-    <details class="navgroup" open>
+    <details class="navgroup">
       <summary>Blueprint Nodes</summary>
       <ul>
         <li><a href="../blueprint/flow-access.html"><span class="num">&#183;</span><span>Flow Access</span></a></li>
@@ -104,7 +104,7 @@
         <li><a href="../blueprint/values.html"><span class="num">&#183;</span><span>Values</span></a></li>
         <li><a href="../blueprint/blackboard-nodes.html"><span class="num">&#183;</span><span>Blackboard Nodes</span></a></li>
         <li><a href="../blueprint/instance.html"><span class="num">&#183;</span><span>Flow Instance</span></a></li>
-        <li><a href="../blueprint/subsystem.html" aria-current="page"><span class="num">&#183;</span><span>Subsystem</span></a></li>
+        <li><a href="../blueprint/subsystem.html"><span class="num">&#183;</span><span>Subsystem</span></a></li>
         <li><a href="../blueprint/player-component.html"><span class="num">&#183;</span><span>Player Component</span></a></li>
         <li><a href="../blueprint/status-widget.html"><span class="num">&#183;</span><span>Status Widget</span></a></li>
         <li><a href="../blueprint/selector-widget.html"><span class="num">&#183;</span><span>Scenario Selector</span></a></li>
@@ -114,7 +114,7 @@
         <li><a href="../blueprint/graph-introspection.html"><span class="num">&#183;</span><span>Graph Introspection</span></a></li>
       </ul>
     </details>
-    <details class="navgroup">
+    <details class="navgroup" open>
       <summary>Developer Guide</summary>
       <ul>
         <li><a href="../dev/architecture.html"><span class="num">&#183;</span><span>Architecture & Modules</span></a></li>
@@ -125,7 +125,7 @@
         <li><a href="../dev/persistence.html"><span class="num">&#183;</span><span>Save and Load Internals</span></a></li>
         <li><a href="../dev/replication.html"><span class="num">&#183;</span><span>Replication</span></a></li>
         <li><a href="../dev/editor-module.html"><span class="num">&#183;</span><span>The Editor Module</span></a></li>
-        <li><a href="../dev/mcp.html"><span class="num">&#183;</span><span>Controlling SimFlow from Claude</span></a></li>
+        <li><a href="../dev/mcp.html" aria-current="page"><span class="num">&#183;</span><span>Controlling SimFlow from Claude</span></a></li>
         <li><a href="../dev/api-reference.html"><span class="num">&#183;</span><span>API Reference</span></a></li>
         <li><a href="../dev/diagnostics.html"><span class="num">&#183;</span><span>Diagnostics & Limits</span></a></li>
       </ul>
@@ -142,139 +142,129 @@
     <nav class="crumbs" aria-label="Breadcrumb">
       <ol>
         <li><a href="../index.html">User Guide</a></li>
-        <li><svg width="11" height="11" viewBox="0 0 12 12" fill="none" stroke="currentColor" stroke-width="1.6" aria-hidden="true"><path d="m4.5 2.5 3.5 3.5-3.5 3.5"/></svg><a href="../05-runtime-blueprint.html">Blueprint Nodes</a></li>
-        <li><svg width="11" height="11" viewBox="0 0 12 12" fill="none" stroke="currentColor" stroke-width="1.6" aria-hidden="true"><path d="m4.5 2.5 3.5 3.5-3.5 3.5"/></svg><span aria-current="page">Subsystem</span></li>
+        <li><svg width="11" height="11" viewBox="0 0 12 12" fill="none" stroke="currentColor" stroke-width="1.6" aria-hidden="true"><path d="m4.5 2.5 3.5 3.5-3.5 3.5"/></svg><span>Developer Guide</span></li>
+        <li><svg width="11" height="11" viewBox="0 0 12 12" fill="none" stroke="currentColor" stroke-width="1.6" aria-hidden="true"><path d="m4.5 2.5 3.5 3.5-3.5 3.5"/></svg><span aria-current="page">Controlling SimFlow from Claude</span></li>
       </ol>
     </nav>
 
-    <p class="eyebrow">Blueprint Nodes</p>
-    <h1>Subsystem Nodes</h1>
+    <p class="eyebrow">Developer Guide</p>
+    <h1>Controlling SimFlow from Claude (MCP)</h1>
 
     <dl class="idcard">
-      <dt>Class</dt><dd><code>USimFlowSubsystem</code>, a Game Instance Subsystem</dd>
-      <dt>Get a reference</dt><dd><strong>Get Game Instance Subsystem</strong> &#8594; class <code>SimFlowSubsystem</code></dd>
-      <dt>Target pin</dt><dd>The subsystem</dd>
-      <dt>Category</dt><dd>SimFlow, SimFlow &#124; Control, SimFlow &#124; Save, SimFlow &#124; Debug</dd>
+      <dt>Where it lives</dt><dd><code>Content/Python/simflow_toolset</code>, backed by <code>USimFlowEditorLibrary</code></dd>
+      <dt>Needs</dt><dd>The engine's Unreal MCP and Toolset Registry plugins, both experimental. SimFlow works without them.</dd>
+      <dt>Scope</dt><dd>Editor and Play In Editor. Nothing reaches a packaged game.</dd>
     </dl>
 
-    <p class="usefor"><b>Use them for:</b> the three things the statics do not cover &#8212; the full component list, Stop All Flows, and the debug HUD.</p>
+    <p>An MCP client such as Claude Code can read, edit and run flows in the editor. It goes through the engine's own MCP server. SimFlow adds a toolset of 28 tools to it; there is no separate server to run.</p>
 
-    <p>Every <a href="../05-runtime-blueprint.html">SimFlow Component</a> registers itself here on BeginPlay and unregisters on EndPlay. The subsystem is the list.</p>
+    <h2 id="setup">Setup</h2>
 
-    <p>It outlives level travel, since it belongs to the game instance rather than the world. That makes it the right place to ask "what flows exist" from UI code that has no idea what is in the level.</p>
+    <p>Turn on <strong>Unreal MCP</strong>, <strong>Toolset Registry</strong>, <strong>Python Editor Script Plugin</strong> and <strong>Editor Scripting Utilities</strong> in the project. Then, in <strong>Project Settings &gt; Model Context Protocol</strong>, tick <em>Auto Start Server</em> and restart the editor. The server listens on <code>http://localhost:8000/mcp</code> unless you changed the port or path there.</p>
 
-    <p>Most of what it does is also on <a href="flow-access.html"><code>USimFlowStatics</code></a> in static form, which needs no reference and is shorter to wire.</p>
+    <pre><code>claude mcp add --transport http unreal http://localhost:8000/mcp</code></pre>
 
-    <h2 id="finding">Finding flows</h2>
+    <div class="warn">
+      <svg class="ico" width="16" height="16" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5" aria-hidden="true"><path d="M8 2.4 15 14H1Z"/><path d="M8 6.4v3.2M8 11.6v.6"/></svg>
+      <div>
+        <span class="ct">The server has no sign-in</span>
+        <p>Any process on the machine that can reach the port can call the tools, including the ones that edit and delete. Leave it off on a shared computer.</p>
+      </div>
+    </div>
+
+    <p>By default the server lists only <code>list_toolsets</code>, <code>describe_toolset</code> and <code>call_tool</code>, and the client looks up the rest as it needs them. The SimFlow toolset's name is <code>simflow_toolset.toolset.SimFlowTools</code>; a client passes it as <code>toolset_name</code>. Without Toolset Registry, <code>init_unreal.py</code> logs one line and registers nothing.</p>
+
+    <h2 id="tools">The tools</h2>
+
+    <p>Assets are named by path (<code>/Game/Flows/FireDrill</code>), nodes by the guid <code>describe_flow</code> prints, and types by the names the list tools print (<code>SimFlowNode_Task</code>, or <code>Node_Task</code>). A Blueprint type needs its full path.</p>
 
     <div class="tw">
       <table>
-        <caption>USimFlowSubsystem, the registry</caption>
-        <thead><tr><th scope="col">Node</th><th scope="col">Returns</th></tr></thead>
+        <caption>Read</caption>
+        <thead><tr><th scope="col">Tool</th><th scope="col">Returns</th></tr></thead>
         <tbody>
-          <tr><td class="t-name">Get All Flow Components</td><td>Every registered flow, in registration order.</td></tr>
-          <tr><td class="t-name">Find Flow By Id</td><td>One flow, or null.</td></tr>
-          <tr><td class="t-name">Get Primary Flow</td><td>The first running or paused flow, else the first registered, else null.</td></tr>
+          <tr><td class="t-name">list_flows</td><td>Every SimFlow Graph asset in the project.</td></tr>
+          <tr><td class="t-name">describe_flow</td><td>Nodes, pins, links, each node's settings, the task or condition inside it, and validation results.</td></tr>
+          <tr><td class="t-name">validate_flow</td><td>Only the errors and warnings.</td></tr>
+          <tr><td class="t-name">list_node_types<br>list_task_types<br>list_condition_types</td><td>What can be added, Blueprint types included.</td></tr>
+          <tr><td class="t-name">describe_type</td><td>One type, with every setting's type, tooltip, default and allowed values.</td></tr>
         </tbody>
       </table>
     </div>
 
-    <p><strong>Get All Flow Components</strong> is the one with no static equivalent. Use it to build an instructor panel listing every scenario in the level, or to check how many flows are live before assuming there is one.</p>
-
-    <p>Registration order is BeginPlay order, which is not something to depend on. If you care which flow you get, give them <strong>Flow Save Id</strong> values and look them up by name.</p>
-
-    <h2 id="bulk">Bulk control</h2>
-
     <div class="tw">
       <table>
-        <caption>USimFlowSubsystem, every flow at once</caption>
-        <thead><tr><th scope="col">Node</th><th scope="col">Notes</th></tr></thead>
+        <caption>Edit</caption>
+        <thead><tr><th scope="col">Tool</th><th scope="col">Does</th></tr></thead>
         <tbody>
-          <tr><td class="t-name">Pause All Flows</td><td></td></tr>
-          <tr><td class="t-name">Resume All Flows</td><td></td></tr>
-          <tr><td class="t-name">Stop All Flows</td><td>Every flow reports <strong>Aborted</strong>.</td></tr>
+          <tr><td class="t-name">create_flow</td><td>A new flow with its Start node.</td></tr>
+          <tr><td class="t-name">set_flow_properties</td><td>Display name, description, initial blackboard.</td></tr>
+          <tr><td class="t-name">add_node<br>remove_node<br>set_node_position</td><td>Place, delete and move nodes.</td></tr>
+          <tr><td class="t-name">connect_nodes<br>disconnect_nodes</td><td>Wire an output pin to an input pin.</td></tr>
+          <tr><td class="t-name">set_node_properties</td><td>Change a node's settings from a JSON object.</td></tr>
+          <tr><td class="t-name">set_task</td><td>Put a task on a Task node.</td></tr>
+          <tr><td class="t-name">set_instanced</td><td>Put a task or condition into a slot such as <code>AbortCondition</code> or <code>Cases[1].Condition</code>.</td></tr>
+          <tr><td class="t-name">save_flow</td><td>Write the asset and report its validation result.</td></tr>
         </tbody>
       </table>
     </div>
 
-    <p>None of these check authority. On a client with replication on they change the local mirrors and the next server update reverts them.</p>
-
-    <p><strong>Stop All Flows</strong> has no static wrapper, so this is the only way to reach it from Blueprint.</p>
-
-    <h2 id="save">Save and load</h2>
-
     <div class="tw">
       <table>
-        <caption>USimFlowSubsystem, slot persistence</caption>
-        <thead><tr><th scope="col">Node</th><th scope="col">Returns</th></tr></thead>
+        <caption>Run (Play In Editor)</caption>
+        <thead><tr><th scope="col">Tool</th><th scope="col">Does</th></tr></thead>
         <tbody>
-          <tr><td class="t-name">Save All Flows To Slot</td><td>bool</td></tr>
-          <tr><td class="t-name">Load All Flows From Slot</td><td>How many flows were restored.</td></tr>
-          <tr><td class="t-name">Delete Save Slot</td><td>bool. Static, so the node has no target pin.</td></tr>
+          <tr><td class="t-name">start_play_in_editor<br>stop_play_in_editor</td><td>Start returns at once; the game is up a moment later.</td></tr>
+          <tr><td class="t-name">list_running_flows</td><td>State, progress, score, current task, active nodes, blackboard, mistakes and scenario record of each flow component.</td></tr>
+          <tr><td class="t-name">flow_control</td><td>Start, stop, restart, pause, resume, or retry, skip or fail the current task.</td></tr>
+          <tr><td class="t-name">send_event</td><td>Raise a gameplay-tag event, as a Send Event node would.</td></tr>
+          <tr><td class="t-name">submit_quiz_answer</td><td>Answer the quiz being asked.</td></tr>
+          <tr><td class="t-name">set_blackboard_value</td><td>Write a bool, int, float, string or name.</td></tr>
+          <tr><td class="t-name">save_flow_state<br>load_flow_state</td><td>Progress to and from a save slot.</td></tr>
+          <tr><td class="t-name">reset_scenario_record</td><td>Clear a scenario's history. It cannot be undone.</td></tr>
         </tbody>
       </table>
     </div>
 
-    <p>One slot holds every registered flow, matched back by <strong>Flow Save Id</strong>. A flow with no id can be written but never matched on load. Authority-only, like all SimFlow persistence.</p>
+    <h2 id="editing">How an edit works</h2>
 
-    <h2 id="debug">Debug HUD</h2>
+    <p>Each tool loads the asset, changes the runtime nodes inside one editor transaction, then calls <code>SyncGraphFromAsset</code> so the graph view matches. That is why an edit shows in an open editor tab and is one undo step. Nothing reaches disk until <code>save_flow</code>.</p>
 
-    <div class="tw">
-      <table>
-        <caption>USimFlowSubsystem, diagnostics</caption>
-        <thead><tr><th scope="col">Node</th><th scope="col">Notes</th></tr></thead>
-        <tbody>
-          <tr><td class="t-name">Set Debug HUD Enabled</td><td>Toggles the overlay for every flow.</td></tr>
-          <tr><td class="t-name">Is Debug HUD Enabled</td><td>bool</td></tr>
-          <tr><td class="t-name">Build Global Debug Text</td><td>Combined status text for every registered flow.</td></tr>
-        </tbody>
-      </table>
-    </div>
+    <p>Settings travel as a JSON object keyed by the names <code>describe_type</code> gives. <code>SetPropertiesFromJson</code> checks every name first and refuses the whole call, naming the bad ones, if any is not an editable plain property. Otherwise it applies them and sends the same change notification the Details panel does, so a Branch rebuilds its pins.</p>
 
-    <p><strong>Set Debug HUD Enabled</strong> is the Blueprint equivalent of <code>SimFlow.Debug 1</code>. Both drive the same flag, so a console toggle changes what <strong>Is Debug HUD Enabled</strong> returns.</p>
+    <p>A task or condition is created in its slot by class, with <code>SetInstancedProperty</code>. The slot is a path from the node: <code>Task</code>, <code>Cases[1].Condition</code>, <code>Task.Condition</code>. A path steps through structs, array elements and objects already in place, and ends at an object slot or at an array to append to. The new object is outered to the node that holds it, so it saves with the asset.</p>
 
     <div class="note">
       <svg class="ico" width="16" height="16" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5" aria-hidden="true"><circle cx="8" cy="8" r="6.3"/><path d="M8 7.2v4M8 4.9v.7"/></svg>
       <div>
-        <span class="ct">Build Global Debug Text is the VR answer</span>
-        <p>The screen-space overlay is not visible in a headset. This node returns the same content as a string, so you can put it on a world-space widget the player can actually look at. For a single flow, <code>Get Debug Text</code> on the component is narrower and usually more readable.</p>
+        <span class="ct">Setting an array replaces it</span>
+        <p>Writing a Branch's <code>Cases</code> from JSON builds new elements, and the conditions inside the old ones are gone. Set the cases first, their conditions after.</p>
       </div>
     </div>
 
-    <h2 id="example">A scenario picker</h2>
+    <h2 id="own-tools">Adding a tool of your own</h2>
 
-    <p>Listing every flow in the level so an instructor can start one:</p>
+    <p>The toolset is a Python class deriving <code>unreal.ToolsetDefinition</code>. A tool is a static method under <code>@toolset_registry.tool_call</code>, with every parameter and the return value annotated and the docstring's <code>Args</code> and <code>Returns</code> filled in; the docstring becomes the description the client sees. Add it to <code>SimFlowTools</code> in <code>simflow_toolset/toolset.py</code>. If it needs something a script cannot reach, add a <code>UFUNCTION</code> to <code>USimFlowEditorLibrary</code> for it, as <code>GetNodeGuidString</code> was.</p>
 
-    <ol>
-      <li><strong>Get Game Instance Subsystem</strong> &#8594; <code>SimFlowSubsystem</code>.</li>
-      <li><strong>Get All Flow Components</strong>.</li>
-      <li>For each, <strong>Get Flow Asset</strong> then <strong>Get Display Name Text</strong> for the button label.</li>
-      <li>On click, take that component's <strong>Get Effective Save Id</strong> and pass it to <a href="control-and-save.html">Request Flow Control</a> with <code>Start</code>.</li>
-    </ol>
+    <h2 id="tests">Tests</h2>
 
-    <p>Going through Request Flow Control rather than calling <code>Start Flow</code> directly keeps the panel working on a client.</p>
+    <p><code>SimFlow.Editor.McpHelpers</code> covers the C++ helpers. <code>SimFlowToolset.Python</code> runs <code>simflow_toolset/tests</code> through Epic's Python test runner: it builds, wires, reads back and breaks a flow through the same static entry points the server calls. Both run under <code>Automation RunTests SimFlow</code>. The Play In Editor tools have no automated test, because they need a running game.</p>
 
-    <h2 id="misbehaves">When it misbehaves</h2>
+    <h2 id="limits">Limits</h2>
 
-    <div class="tw">
-      <table>
-        <thead><tr><th scope="col">Symptom</th><th scope="col">Cause</th></tr></thead>
-        <tbody>
-          <tr><td>Get All Flow Components is empty on BeginPlay</td><td>Components register during their own BeginPlay, and yours may run first. Check on the first tick.</td></tr>
-          <tr><td>A destroyed flow looks like it is still listed</td><td>It is not. The subsystem holds weak pointers and skips dead entries. What you are seeing is a component whose actor still exists.</td></tr>
-          <tr><td>The debug HUD will not turn off</td><td><code>SimFlow.Debug</code> and Set Debug HUD Enabled share one flag, but the component's own <strong>Show Debug HUD</strong> checkbox is separate and wins for that flow.</td></tr>
-          <tr><td>Stop All Flows recorded Aborted, not Failed</td><td>That is what it reports. Route through a <a href="../nodes/finish.html">Finish</a> node for Failed.</td></tr>
-          <tr><td>The subsystem is null</td><td>It needs a valid world context. This happens in construction scripts and in the editor preview.</td></tr>
-        </tbody>
-      </table>
-    </div>
+    <ul>
+      <li>Toolset Registry and Unreal MCP are experimental and 5.8 only. A later engine version may change the Python side.</li>
+      <li>Only editable settings are reachable. Runtime-only state is not.</li>
+      <li>A Blueprint task's settings appear when its variables are Instance Editable.</li>
+      <li>Nothing here works in a packaged game.</li>
+    </ul>
 
     <h2 id="related">Related</h2>
-    <p><a href="flow-access.html">Flow Access</a> &middot; <a href="control-and-save.html">Control &amp; Save</a> &middot; <a href="../07-troubleshooting.html">Troubleshooting</a></p>
+    <p><a href="editor-module.html">The Editor Module</a> &middot; <a href="../blueprint/graph-introspection.html">Graph Introspection</a> &middot; <a href="custom-tasks.html">Custom Tasks &amp; Conditions</a></p>
 
     <nav class="pager" aria-label="Page navigation">
-      <a href="instance.html"><span class="d">Previous</span><span class="t">Flow Instance</span></a>
-      <a class="next" href="player-component.html"><span class="d">Next</span><span class="t">Player Component</span></a>
+      <a href="editor-module.html"><span class="d">Previous</span><span class="t">The Editor Module</span></a>
+      <a class="next" href="api-reference.html"><span class="d">Next</span><span class="t">API Reference</span></a>
     </nav>
 
     <div class="foot">

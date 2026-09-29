@@ -2,6 +2,28 @@
 
 All notable changes to SimFlow. Versions follow the plugin's `VersionName`.
 
+## Unreleased
+
+### Added
+
+- **SimFlow tools for Claude and other MCP clients.** With the engine's experimental
+  Model Context Protocol and Toolset Registry plugins on, an MCP client can read,
+  edit and run flows in the editor. `Content/Python/simflow_toolset` registers a
+  `SimFlowTools` toolset of 28 tools: list flows and the node, task and condition
+  types; describe a flow or a type with every setting, its default and its allowed
+  values; create a flow, add, move, wire and remove nodes, set node and task
+  settings, put a task or condition into a slot (including `Cases[1].Condition` on a
+  Branch); save; and, in Play In Editor, start, pause, skip, send an event, answer a
+  quiz, write a blackboard value, save or load progress, and read state, score,
+  mistakes and the scenario record. Each edit is one undo step. Without the
+  Toolset Registry plugin nothing registers and SimFlow loads as before.
+- **More on `SimFlow Editor Library`** (the helpers the tools use, also callable from
+  Python): `Set Properties From Json`, `Set Instanced Property`, `Find Class`,
+  `List Classes`, `Describe Class`, `Describe Running Flow`, `Find Node By Guid String`,
+  `Get Node Guid String` and `Send Event By Name`. `Describe Flow` now also returns
+  each node's editable settings, with the task and any conditions inside it, and each
+  node's `classPath`. Nothing at runtime changes.
+
 ## 1.6.1
 
 Scenario records with run history and CSV/JSON export, a scenario picker, scripted

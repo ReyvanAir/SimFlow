@@ -35,7 +35,9 @@ public class SimFlowEditor : ModuleRules
 			"Projects",
 			"GameplayTags",
 			"WorkspaceMenuStructure",
-			"Json"
+			"AssetRegistry",
+			"Json",
+			"JsonUtilities"
 		});
 	}
 }

@@ -26,5 +26,22 @@
 			"Type": "Editor",
 			"LoadingPhase": "Default"
 		}
+	],
+	"Plugins": [
+		{
+			"Name": "PythonScriptPlugin",
+			"Enabled": true,
+			"Optional": true
+		},
+		{
+			"Name": "EditorScriptingUtilities",
+			"Enabled": true,
+			"Optional": true
+		},
+		{
+			"Name": "ToolsetRegistry",
+			"Enabled": true,
+			"Optional": true
+		}
 	]
 }

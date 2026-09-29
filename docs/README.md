@@ -83,6 +83,12 @@ set from the graph nodes above. The full index is in the
 | [Zones and identity](blueprint/world-queries.md) | Asking the world what's where and what things are |
 | [Graph introspection](blueprint/graph-introspection.md) | Reading and building flow assets from Blueprint |
 
+## Working with Claude
+
+| Page | What it covers |
+|---|---|
+| [Controlling SimFlow from Claude (MCP)](mcp.md) | Reading, editing and running flows from an MCP client through the engine's MCP server |
+
 ## Worked examples
 
 Complete scenarios showing several nodes and tasks together, indexed in
