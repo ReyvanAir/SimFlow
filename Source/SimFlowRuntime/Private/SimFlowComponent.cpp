@@ -837,7 +837,9 @@ bool USimFlowComponent::RecordPlay()
 	const bool bScoreCounts = !bHighScoreRequiresCompletion || Outcome == ESimFlowRunState::Completed;
 	const float Score = GetScore();
 
-	if (!USimFlowStatics::RecordPlay(SaveId, Score, Outcome, ScenarioSlotName, ScenarioUserIndex, bScoreCounts))
+	const float Elapsed = Instance ? Instance->GetElapsedTime() : 0.f;
+
+	if (!USimFlowStatics::RecordPlay(SaveId, Score, Outcome, ScenarioSlotName, ScenarioUserIndex, bScoreCounts, Elapsed))
 	{
 		return false;
 	}

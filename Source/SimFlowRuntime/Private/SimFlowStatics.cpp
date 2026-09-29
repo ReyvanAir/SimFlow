@@ -8,6 +8,10 @@
 #include "SimFlowRuntimeModule.h"
 #include "SimFlowScenarioRecord.h"
 #include "Kismet/GameplayStatics.h"
+#include "JsonObjectConverter.h"
+#include "Serialization/JsonSerializer.h"
+#include "Misc/FileHelper.h"
+#include "Misc/Paths.h"
 #include "Engine/Engine.h"
 #include "Engine/World.h"
 #include "GameFramework/Actor.h"
@@ -188,7 +192,7 @@ namespace
 	}
 
 	/** Shared by RecordPlay and SubmitHighScore. bCountPlay separates the two. */
-	bool UpdateRecord(FName FlowSaveId, float Score, ESimFlowRunState Outcome,
+	bool UpdateRecord(FName FlowSaveId, float Score, ESimFlowRunState Outcome, float ElapsedSeconds,
 		bool bCountPlay, bool bScoreCounts, const FString& SlotName, int32 UserIndex)
 	{
 		if (FlowSaveId.IsNone())
@@ -205,6 +209,7 @@ namespace
 		}
 
 		FSimFlowScenarioRecord& Record = Save->Records.FindOrAdd(FlowSaveId);
+		const FDateTime Now = FDateTime::UtcNow();
 
 		// First score ever takes it; after that it has to beat the best, ties do not.
 		const bool bNewBest = bScoreCounts
@@ -212,14 +217,27 @@ namespace
 		if (bNewBest)
 		{
 			Record.BestScore = Score;
-			Record.BestScoreAt = FDateTime::UtcNow();
+			Record.BestScoreAt = Now;
 		}
 
 		if (bCountPlay)
 		{
 			Record.PlayCount++;
 			Record.LastOutcome = Outcome;
-			Record.LastPlayedAt = FDateTime::UtcNow();
+			Record.LastPlayedAt = Now;
+
+			FSimFlowRunEntry& Run = Record.Runs.AddDefaulted_GetRef();
+			Run.EndedAt = Now;
+			Run.Outcome = Outcome;
+			Run.Score = Score;
+			Run.ElapsedSeconds = ElapsedSeconds;
+			Run.bScoreCounted = bScoreCounts;
+
+			const int32 Excess = Record.Runs.Num() - SimFlowScenarioDefaults::MaxRunsKept;
+			if (Excess > 0)
+			{
+				Record.Runs.RemoveAt(0, Excess);
+			}
 		}
 		else if (!bNewBest)
 		{
@@ -237,14 +255,14 @@ namespace
 	}
 }
 
-bool USimFlowStatics::RecordPlay(FName FlowSaveId, float Score, ESimFlowRunState Outcome, const FString& SlotName, int32 UserIndex, bool bScoreCounts)
+bool USimFlowStatics::RecordPlay(FName FlowSaveId, float Score, ESimFlowRunState Outcome, const FString& SlotName, int32 UserIndex, bool bScoreCounts, float ElapsedSeconds)
 {
-	return UpdateRecord(FlowSaveId, Score, Outcome, true, bScoreCounts, SlotName, UserIndex);
+	return UpdateRecord(FlowSaveId, Score, Outcome, ElapsedSeconds, true, bScoreCounts, SlotName, UserIndex);
 }
 
 bool USimFlowStatics::SubmitHighScore(FName FlowSaveId, float Score, const FString& SlotName, int32 UserIndex)
 {
-	return UpdateRecord(FlowSaveId, Score, ESimFlowRunState::NotStarted, false, true, SlotName, UserIndex);
+	return UpdateRecord(FlowSaveId, Score, ESimFlowRunState::NotStarted, 0.f, false, true, SlotName, UserIndex);
 }
 
 FSimFlowScenarioRecord USimFlowStatics::GetScenarioRecord(FName FlowSaveId, const FString& SlotName, int32 UserIndex)
@@ -339,6 +357,149 @@ bool USimFlowStatics::ResetAllScenarioRecords(const FString& SlotName, int32 Use
 
 	Save->Records.Empty();
 	return WriteScenarioSave(Save, Slot, UserIndex);
+}
+
+// ---------------------------------------------------------------------- Export
+
+namespace
+{
+	FString IsoOrBlank(const FDateTime& Time)
+	{
+		return Time == FDateTime(0) ? FString() : Time.ToIso8601();
+	}
+
+	FString OutcomeName(ESimFlowRunState Outcome)
+	{
+		return StaticEnum<ESimFlowRunState>()->GetNameStringByValue(static_cast<int64>(Outcome));
+	}
+
+	FString CsvField(const FString& Value)
+	{
+		if (Value.Contains(TEXT(",")) || Value.Contains(TEXT("\"")) || Value.Contains(TEXT("\n")))
+		{
+			return TEXT("\"") + Value.Replace(TEXT("\""), TEXT("\"\"")) + TEXT("\"");
+		}
+		return Value;
+	}
+
+	/** One row per run, each carrying its scenario's best score and play count. */
+	FString RecordsToCsv(const TMap<FName, FSimFlowScenarioRecord>& Records)
+	{
+		FString Csv = TEXT("Scenario,Play,EndedAtUtc,Outcome,Score,ElapsedSeconds,ScoreCounted,BestScore,PlayCount\n");
+
+		for (const TPair<FName, FSimFlowScenarioRecord>& Pair : Records)
+		{
+			const FSimFlowScenarioRecord& Record = Pair.Value;
+			const FString Id = CsvField(Pair.Key.ToString());
+			const FString Summary = FString::Printf(TEXT("%s,%d"), *FString::SanitizeFloat(Record.BestScore), Record.PlayCount);
+
+			if (Record.Runs.IsEmpty())
+			{
+				// Played before run history existed: the summary is all there is.
+				Csv += FString::Printf(TEXT("%s,,,,,,,%s\n"), *Id, *Summary);
+				continue;
+			}
+
+			// Plays before history began, or past the cap, have no entry; number from the end.
+			const int32 FirstPlay = FMath::Max(1, Record.PlayCount - Record.Runs.Num() + 1);
+			for (int32 Index = 0; Index < Record.Runs.Num(); ++Index)
+			{
+				const FSimFlowRunEntry& Run = Record.Runs[Index];
+				Csv += FString::Printf(TEXT("%s,%d,%s,%s,%s,%s,%s,%s\n"),
+					*Id, FirstPlay + Index, *IsoOrBlank(Run.EndedAt), *OutcomeName(Run.Outcome),
+					*FString::SanitizeFloat(Run.Score), *FString::SanitizeFloat(Run.ElapsedSeconds),
+					Run.bScoreCounted ? TEXT("true") : TEXT("false"), *Summary);
+			}
+		}
+		return Csv;
+	}
+
+	FString RecordsToJson(const TMap<FName, FSimFlowScenarioRecord>& Records)
+	{
+		// ISO 8601 instead of Unreal's own date text, so any JSON reader can parse them.
+		FJsonObjectConverter::CustomExportCallback IsoDates;
+		IsoDates.BindLambda([](FProperty* Property, const void* Value) -> TSharedPtr<FJsonValue>
+		{
+			const FStructProperty* StructProperty = CastField<FStructProperty>(Property);
+			if (!StructProperty || StructProperty->Struct != TBaseStructure<FDateTime>::Get())
+			{
+				return nullptr;
+			}
+			const FDateTime& Time = *static_cast<const FDateTime*>(Value);
+			return Time == FDateTime(0)
+				? StaticCastSharedRef<FJsonValue>(MakeShared<FJsonValueNull>())
+				: StaticCastSharedRef<FJsonValue>(MakeShared<FJsonValueString>(Time.ToIso8601()));
+		});
+
+		const TSharedRef<FJsonObject> Scenarios = MakeShared<FJsonObject>();
+		for (const TPair<FName, FSimFlowScenarioRecord>& Pair : Records)
+		{
+			const TSharedRef<FJsonObject> Entry = MakeShared<FJsonObject>();
+			FJsonObjectConverter::UStructToJsonObject(FSimFlowScenarioRecord::StaticStruct(), &Pair.Value, Entry, 0, 0, &IsoDates);
+			Scenarios->SetObjectField(Pair.Key.ToString(), Entry);
+		}
+
+		const TSharedRef<FJsonObject> Root = MakeShared<FJsonObject>();
+		Root->SetNumberField(TEXT("schemaVersion"), 1);
+		Root->SetStringField(TEXT("exportedAt"), FDateTime::UtcNow().ToIso8601());
+		Root->SetObjectField(TEXT("scenarios"), Scenarios);
+
+		FString Json;
+		FJsonSerializer::Serialize(Root, TJsonWriterFactory<>::Create(&Json));
+		return Json;
+	}
+
+	bool ExportRecords(const FString& FileName, const TCHAR* Extension, const FString& SlotName, int32 UserIndex,
+		FString& OutFilePath, FFileHelper::EEncodingOptions Encoding,
+		TFunctionRef<FString(const TMap<FName, FSimFlowScenarioRecord>&)> Format)
+	{
+		OutFilePath.Reset();
+
+		FString Name = FileName.IsEmpty()
+			? FDateTime::Now().ToString(TEXT("SimFlowRecords_%Y%m%d_%H%M%S"))
+			: FileName;
+
+		// A plain name only, so whatever a Blueprint passes stays inside the exports folder.
+		if (Name.Contains(TEXT("..")) || Name.Contains(TEXT("/")) || Name.Contains(TEXT("\\")) || Name.Contains(TEXT(":")))
+		{
+			UE_LOG(LogSimFlow, Warning, TEXT("Export file name '%s' must be a plain name, not a path."), *FileName);
+			return false;
+		}
+		if (!Name.EndsWith(Extension))
+		{
+			Name += Extension;
+		}
+
+		TMap<FName, FSimFlowScenarioRecord> Records = USimFlowStatics::GetAllScenarioRecords(SlotName, UserIndex);
+		if (Records.IsEmpty())
+		{
+			UE_LOG(LogSimFlow, Warning, TEXT("Slot '%s' has no scenario records to export."), *ResolveScenarioSlot(SlotName));
+			return false;
+		}
+		Records.KeySort(FNameLexicalLess());
+
+		const FString Path = FPaths::ConvertRelativePathToFull(FPaths::ProjectSavedDir() / TEXT("SimFlow/Exports") / Name);
+		if (!FFileHelper::SaveStringToFile(Format(Records), *Path, Encoding))
+		{
+			UE_LOG(LogSimFlow, Warning, TEXT("Could not write '%s'."), *Path);
+			return false;
+		}
+
+		UE_LOG(LogSimFlow, Log, TEXT("Exported %d scenario records to '%s'."), Records.Num(), *Path);
+		OutFilePath = Path;
+		return true;
+	}
+}
+
+bool USimFlowStatics::ExportScenarioRecordsToCsv(const FString& FileName, FString& FilePath, const FString& SlotName, int32 UserIndex)
+{
+	// With a BOM, so Excel reads non-ASCII scenario ids correctly.
+	return ExportRecords(FileName, TEXT(".csv"), SlotName, UserIndex, FilePath, FFileHelper::EEncodingOptions::ForceUTF8, RecordsToCsv);
+}
+
+bool USimFlowStatics::ExportScenarioRecordsToJson(const FString& FileName, FString& FilePath, const FString& SlotName, int32 UserIndex)
+{
+	return ExportRecords(FileName, TEXT(".json"), SlotName, UserIndex, FilePath, FFileHelper::EEncodingOptions::ForceUTF8WithoutBOM, RecordsToJson);
 }
 
 TArray<FSimFlowScenarioOption> USimFlowStatics::BuildScenarioOptions(const TArray<USimFlowAsset*>& Assets)

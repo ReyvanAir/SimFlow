@@ -1,13 +1,12 @@
 # SimFlow — modular task & flow framework for Unreal Engine 5.8
 
-**v1.1.5** repairs two things. A tag in a Zone query matched any actor wearing it,
-so a prop could shadow the zone and kill the task at start. And the editor module
-overrode a `PerformAction` overload that 5.6 deprecated, which a strict build
-refuses; the compat header now picks the location type by engine version.
-See [`CHANGELOG.md`](CHANGELOG.md).
+**v1.6.1** adds a scenario record per flow (play count, best score, last outcome and
+a run history you can export to CSV or JSON), a scenario picker widget, and scripted
+editing of flow graphs from Python. It also repairs events, task controls and the
+blackboard inside a Sub Flow. See [`CHANGELOG.md`](CHANGELOG.md).
 
-The previous release is tagged [`v1.1.3`](https://github.com/ReyvanAir/SimFlow/tree/v1.1.3),
-with a `release/1.1.3` branch alongside it.
+The previous release is 1.1.5. Its `main` is kept on the
+`backup/main-pre-1.6.1` branch.
 
 A data-driven system for building VR simulations, tutorials and any gameplay that
 is really a *sequence of things the player has to do*. Author flows in a node

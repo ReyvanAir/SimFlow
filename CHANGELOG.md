@@ -2,7 +2,11 @@
 
 All notable changes to SimFlow. Versions follow the plugin's `VersionName`.
 
-## Unreleased
+## 1.6.1
+
+Scenario records with run history and CSV/JSON export, a scenario picker, scripted
+editing of flow graphs from Python, and five Sub Flow repairs. Existing save and
+record slots load unchanged. `.uplugin` Version 9.
 
 ### Added
 
@@ -59,6 +63,18 @@ All notable changes to SimFlow. Versions follow the plugin's `VersionName`.
   task ids, sub flows, validation errors and warnings) for a tool or an AI to read.
   `Set Node Position` places a scripted node, since the position is not otherwise
   reachable from a script. Nothing at runtime changes.
+- **Run history on the scenario record, and export to CSV and JSON.** Each play
+  `Record Play` counts now also lands in the record's `Runs` list: when it ended,
+  the outcome, the score, the running time with pauses left out, and whether the
+  score was allowed to count. The last 100 are kept per scenario; the play count and
+  best score are not capped. `Record Play` gained a trailing `Elapsed Seconds` input,
+  and the component fills it from the flow. `Export Scenario Records To CSV` and
+  `Export Scenario Records To JSON` write every record in the slot to
+  `Saved/SimFlow/Exports/` and hand back the path. The CSV has one row per run; the
+  JSON nests runs under each scenario's summary. File Name must be a plain name, so a
+  Blueprint cannot write elsewhere. Existing record slots load unchanged, with an
+  empty history; plays from before this have no run entry and export as a
+  summary row.
 
 Recording and resetting are authority-only, like save and load. On a client mirror
 they log and do nothing. If the record slot turns out to hold some other save

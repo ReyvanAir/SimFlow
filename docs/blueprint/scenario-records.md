@@ -31,11 +31,13 @@ actor's name, exactly as saving does.
 | Get High Score (Flow Save Id, Slot Name, User Index) | float | `0` when nothing is stored |
 | Get Play Count (Flow Save Id, Slot Name, User Index) | int | `0` when nothing is stored |
 | Has Scenario Record (Flow Save Id, Slot Name, User Index) | bool | Tells a stored `0` from no record |
-| Get Scenario Record (Flow Save Id, Slot Name, User Index) | Struct | Best score, play count, last outcome, last played |
+| Get Scenario Record (Flow Save Id, Slot Name, User Index) | Struct | Best score, play count, last outcome, last played, runs |
 | Get All Scenario Records (Slot Name, User Index) | Map of Name to Struct | The whole table |
 | Would Beat High Score (Flow Save Id, Score, Slot Name, User Index) | bool | Asks without writing |
 | Reset Scenario Record (Flow Save Id, Slot Name, User Index) | bool | True when there was one to clear |
 | Reset All Scenario Records (Slot Name, User Index) | bool | Empties the table |
+| Export Scenario Records To CSV (File Name, Slot Name, User Index) | bool, File Path | One row per run. See [below](#run-history-and-export) |
+| Export Scenario Records To JSON (File Name, Slot Name, User Index) | bool, File Path | Summary per scenario, runs nested inside |
 
 Leave **Slot Name** empty and you get `SimFlowScenarios`. **User Index** is the
 platform user index and defaults to `0`, same as everywhere else in SimFlow.
@@ -68,6 +70,67 @@ A submitted score has to be **strictly higher** than the stored one to take its
 place. Submit 200 against a stored 200 and nothing changes: the record keeps its
 original timestamp, and `Record Play` returns `false`. That false means "did
 not beat it", not "something went wrong".
+
+## Run history and export
+
+Every play `Record Play` counts is also added to the record's **Runs** list: when it
+ended (UTC), how it ended, its score, how long the flow ran with pauses left out, and
+whether that score was allowed to count towards the best. The list keeps the last 100
+runs per scenario. `Play Count` keeps counting past that, and so does the best score.
+
+`Submit High Score` adds no run, since it is not a play.
+
+To get the runs out of the game, call either export node. Any Blueprint can do it:
+a results screen button, a debug key, or a check on `Get Play Count` after the last
+run of a session.
+
+```
+Button ▸ On Clicked ──▶ Export Scenario Records To CSV  (File Name: "Session_A")
+                   ──▶ Export Scenario Records To JSON (File Name: "Session_A")
+                   ──▶ Set Text ◀── File Path
+```
+
+Files land in `Saved/SimFlow/Exports/`: the project's `Saved` folder in the editor,
+the game's own `Saved` folder in a packaged build. **File Name** is a plain name. The
+extension is added for you, and anything with `/`, `\`, `:` or `..` is refused, so a
+Blueprint cannot write outside that folder. Leave it empty for a timestamped name
+such as `SimFlowRecords_20260929_143000`. The node returns `false` and writes nothing
+when the slot holds no records.
+
+**CSV:** one row per run, sorted by scenario, with the scenario's best score and play
+count repeated on each row so a spreadsheet can filter without a lookup:
+
+```
+Scenario,Play,EndedAtUtc,Outcome,Score,ElapsedSeconds,ScoreCounted,BestScore,PlayCount
+Drill_A,1,2026-09-29T06:10:04.512Z,Completed,80.0,42.5,true,95.0,2
+Drill_A,2,2026-09-29T06:12:31.090Z,Failed,95.0,61.2,false,95.0,2
+```
+
+`Play` is the play's number across the scenario's whole life, so it stays right after
+the oldest runs are dropped. A scenario played only before run history existed still
+gets one row, with the run columns empty and its best score and play count filled in.
+
+**JSON:** the same records, one object per scenario with its runs nested inside:
+
+```json
+{
+  "schemaVersion": 1,
+  "exportedAt": "2026-09-29T06:15:00.000Z",
+  "scenarios": {
+    "Drill_A": {
+      "bestScore": 95, "bestScoreAt": "2026-09-29T06:12:31.090Z", "playCount": 2,
+      "lastOutcome": "Failed", "lastPlayedAt": "2026-09-29T06:12:31.090Z",
+      "runs": [
+        { "endedAt": "2026-09-29T06:10:04.512Z", "outcome": "Completed", "score": 80,
+          "elapsedSeconds": 42.5, "bScoreCounted": true }
+      ]
+    }
+  }
+}
+```
+
+Dates are ISO 8601 in UTC. A date that was never set comes out empty in the CSV and
+`null` in the JSON.
 
 ## From the component
 
@@ -114,7 +177,8 @@ the warning below.
 Submitting and resetting are authority-only, like [save and
 load](control-and-save.md#save-and-load-across-every-flow). On a client mirror they
 log and do nothing. The getters read on any machine, but a client reads that
-machine's own save file, which is not the server's.
+machine's own save file, which is not the server's. The same goes for export: in a
+multiplayer session, run it on the server to get the server's runs.
 
 ## Reading costs a file read
 
@@ -141,6 +205,12 @@ its own save file. Replicate the number yourself if clients need the server's.
 
 **Scores are recorded for runs that failed.** `High Score Requires Completion` is
 off, or something calls `Submit High Score` directly.
+
+**Export returns false.** The slot has no records yet, or File Name contains a path.
+The log says which.
+
+**The export has fewer runs than Play Count.** Plays recorded before run history
+existed have no entry, and only the last 100 are kept.
 
 *Next: [Control and save](control-and-save.md) · [Blackboard nodes](blackboard-nodes.md) ·
 [Status Widget](status-widget.md)*

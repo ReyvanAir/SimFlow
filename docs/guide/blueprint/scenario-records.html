@@ -22,7 +22,7 @@
 
   <a class="brand" href="../index.html">
     <svg width="20" height="20" viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.5" aria-hidden="true"><rect x="1.4" y="2.6" width="6.4" height="4.6" rx="1"/><rect x="12.2" y="7.4" width="6.4" height="4.6" rx="1"/><rect x="1.4" y="12.8" width="6.4" height="4.6" rx="1"/><path d="M7.8 4.9h2.2a1.4 1.4 0 0 1 1.4 1.4v1.1M7.8 15.1h2.2a1.4 1.4 0 0 0 1.4-1.4v-1.4"/></svg>
-    SimFlow <span class="ver">1.1.5</span>
+    SimFlow <span class="ver">1.6.1</span>
   </a>
 
   <div class="spacer"></div>
@@ -188,11 +188,13 @@
           <tr><td>Get High Score (Flow Save Id, Slot Name, User Index)</td><td>float</td><td><code>0</code> when nothing is stored</td></tr>
           <tr><td>Get Play Count (Flow Save Id, Slot Name, User Index)</td><td>int</td><td><code>0</code> when nothing is stored</td></tr>
           <tr><td>Has Scenario Record (Flow Save Id, Slot Name, User Index)</td><td>bool</td><td>Tells a stored <code>0</code> from no record</td></tr>
-          <tr><td>Get Scenario Record (Flow Save Id, Slot Name, User Index)</td><td>Struct</td><td>Best score, play count, last outcome, last played</td></tr>
+          <tr><td>Get Scenario Record (Flow Save Id, Slot Name, User Index)</td><td>Struct</td><td>Best score, play count, last outcome, last played, runs</td></tr>
           <tr><td>Get All Scenario Records (Slot Name, User Index)</td><td>Map of Name to Struct</td><td>The whole table</td></tr>
           <tr><td>Would Beat High Score (Flow Save Id, Score, Slot Name, User Index)</td><td>bool</td><td>Asks without writing</td></tr>
           <tr><td>Reset Scenario Record (Flow Save Id, Slot Name, User Index)</td><td>bool</td><td>True when there was one to clear</td></tr>
           <tr><td>Reset All Scenario Records (Slot Name, User Index)</td><td>bool</td><td>Empties the table</td></tr>
+          <tr><td>Export Scenario Records To CSV (File Name, Slot Name, User Index)</td><td>bool, File Path</td><td>One row per run. See <a href="#export">below</a></td></tr>
+          <tr><td>Export Scenario Records To JSON (File Name, Slot Name, User Index)</td><td>bool, File Path</td><td>Summary per scenario, runs nested inside</td></tr>
         </tbody>
       </table>
     </div>
@@ -221,6 +223,48 @@ Get Play Count  ≡  Get Scenario Record ▸ Play Count</code></pre>
     <h2 id="replacement">Higher replaces, equal does not</h2>
 
     <p>A submitted score has to be <b>strictly higher</b> than the stored one to take its place. Submit 200 against a stored 200 and nothing changes: the record keeps its original timestamp, and <code>Record Play</code> returns <code>false</code>. That false means "did not beat it", not "something went wrong".</p>
+
+    <h2 id="export">Run history and export</h2>
+
+    <p>Every play <code>Record Play</code> counts is also added to the record's <b>Runs</b> list: when it ended (UTC), how it ended, its score, how long the flow ran with pauses left out, and whether that score was allowed to count towards the best. The list keeps the last 100 runs per scenario. <code>Play Count</code> keeps counting past that, and so does the best score. <code>Submit High Score</code> adds no run, since it is not a play.</p>
+
+    <p>To get the runs out of the game, call either export node. Any Blueprint can do it: a results screen button, a debug key, or a check on <code>Get Play Count</code> after the last run of a session.</p>
+
+    <figure>
+      <pre class="graph"><code>Button ▸ On Clicked ──▶ Export Scenario Records To CSV  (File Name: "Session_A")
+                   ──▶ Export Scenario Records To JSON (File Name: "Session_A")
+                   ──▶ Set Text ◀── File Path</code></pre>
+      <figcaption>Show File Path so whoever pressed the button knows where the file went.</figcaption>
+    </figure>
+
+    <p>Files land in <code>Saved/SimFlow/Exports/</code>: the project's <code>Saved</code> folder in the editor, the game's own <code>Saved</code> folder in a packaged build. <b>File Name</b> is a plain name. The extension is added for you, and anything with <code>/</code>, <code>\</code>, <code>:</code> or <code>..</code> is refused, so a Blueprint cannot write outside that folder. Leave it empty for a timestamped name such as <code>SimFlowRecords_20260929_143000</code>. The node returns <code>false</code> and writes nothing when the slot holds no records.</p>
+
+    <p><b>CSV:</b> one row per run, sorted by scenario, with the scenario's best score and play count repeated on each row so a spreadsheet can filter without a lookup.</p>
+
+<pre><code>Scenario,Play,EndedAtUtc,Outcome,Score,ElapsedSeconds,ScoreCounted,BestScore,PlayCount
+Drill_A,1,2026-09-29T06:10:04.512Z,Completed,80.0,42.5,true,95.0,2
+Drill_A,2,2026-09-29T06:12:31.090Z,Failed,95.0,61.2,false,95.0,2</code></pre>
+
+    <p><code>Play</code> is the play's number across the scenario's whole life, so it stays right after the oldest runs are dropped. A scenario played only before run history existed still gets one row, with the run columns empty and its best score and play count filled in.</p>
+
+    <p><b>JSON:</b> the same records, one object per scenario with its runs nested inside.</p>
+
+<pre><code>{
+  "schemaVersion": 1,
+  "exportedAt": "2026-09-29T06:15:00.000Z",
+  "scenarios": {
+    "Drill_A": {
+      "bestScore": 95, "bestScoreAt": "2026-09-29T06:12:31.090Z", "playCount": 2,
+      "lastOutcome": "Failed", "lastPlayedAt": "2026-09-29T06:12:31.090Z",
+      "runs": [
+        { "endedAt": "2026-09-29T06:10:04.512Z", "outcome": "Completed", "score": 80,
+          "elapsedSeconds": 42.5, "bScoreCounted": true }
+      ]
+    }
+  }
+}</code></pre>
+
+    <p>Dates are ISO 8601 in UTC. A date that was never set comes out empty in the CSV and <code>null</code> in the JSON.</p>
 
     <h2 id="component">From the component</h2>
 
@@ -261,7 +305,7 @@ Get Play Count  ≡  Get Scenario Record ▸ Play Count</code></pre>
 
     <h2 id="authority">Authority</h2>
 
-    <p>Submitting and resetting are authority-only, like <a href="control-and-save.html">save and load</a>. On a client mirror they log and do nothing. The getters read on any machine, but a client reads that machine's own save file, which is not the server's.</p>
+    <p>Submitting and resetting are authority-only, like <a href="control-and-save.html">save and load</a>. On a client mirror they log and do nothing. The getters read on any machine, but a client reads that machine's own save file, which is not the server's. The same goes for export: in a multiplayer session, run it on the server to get the server's runs.</p>
 
     <div class="warn">
       <svg class="ico" width="16" height="16" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5" aria-hidden="true"><path d="M8 2.4 15 14H1Z"/><path d="M8 6.4v3.2M8 11.6v.6"/></svg>
@@ -282,6 +326,8 @@ Get Play Count  ≡  Get Scenario Record ▸ Play Count</code></pre>
           <tr><td>Nothing is stored and the log says the slot holds something else</td><td>Another save object already owns that slot name. SimFlow refuses to overwrite it rather than destroying your data. Pick a different <code>Scenario Slot Name</code>.</td></tr>
           <tr><td>A client shows a different best than the server</td><td>Expected. Each machine reads its own save file. Replicate the number yourself if clients need the server's.</td></tr>
           <tr><td>Scores are recorded for runs that failed</td><td><code>High Score Requires Completion</code> is off, or something calls <code>Submit High Score</code> directly.</td></tr>
+          <tr><td>Export returns false</td><td>The slot has no records yet, or File Name contains a path. The log says which.</td></tr>
+          <tr><td>The export has fewer runs than Play Count</td><td>Plays recorded before run history existed have no entry, and only the last 100 are kept.</td></tr>
         </tbody>
       </table>
     </div>
@@ -295,7 +341,7 @@ Get Play Count  ≡  Get Scenario Record ▸ Play Count</code></pre>
     </nav>
 
     <div class="foot">
-      <p>SimFlow 1.1.5 &middot; User Guide &middot; Unreal Engine 5.6 and 5.8</p>
+      <p>SimFlow 1.6.1 &middot; User Guide &middot; Unreal Engine 5.6 and 5.8</p>
     </div>
   </main>
 

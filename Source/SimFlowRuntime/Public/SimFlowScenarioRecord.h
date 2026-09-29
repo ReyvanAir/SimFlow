@@ -12,6 +12,31 @@ class USimFlowAsset;
 /** Raised when a recorded score beats the stored best. PreviousBest is 0 when there was none. */
 DECLARE_DYNAMIC_MULTICAST_DELEGATE_TwoParams(FSimFlowHighScoreSignature, float, NewScore, float, PreviousBest);
 
+/** One finished attempt, as Record Play saw it. */
+USTRUCT(BlueprintType)
+struct SIMFLOWRUNTIME_API FSimFlowRunEntry
+{
+	GENERATED_BODY()
+
+	/** UTC, when the attempt ended. */
+	UPROPERTY(BlueprintReadOnly, Category = "SimFlow|Record")
+	FDateTime EndedAt = FDateTime(0);
+
+	UPROPERTY(BlueprintReadOnly, Category = "SimFlow|Record")
+	ESimFlowRunState Outcome = ESimFlowRunState::NotStarted;
+
+	UPROPERTY(BlueprintReadOnly, Category = "SimFlow|Record")
+	float Score = 0.f;
+
+	/** Time the flow spent running. Pauses do not count. */
+	UPROPERTY(BlueprintReadOnly, Category = "SimFlow|Record")
+	float ElapsedSeconds = 0.f;
+
+	/** False when this attempt was not allowed to set the best, e.g. a failed run under High Score Requires Completion. */
+	UPROPERTY(BlueprintReadOnly, Category = "SimFlow|Record")
+	bool bScoreCounted = true;
+};
+
 /**
  * What one scenario has done across every attempt: how often, how it ended last
  * time, when that was, and the best score it has ever produced.
@@ -43,6 +68,13 @@ struct SIMFLOWRUNTIME_API FSimFlowScenarioRecord
 	/** UTC, when that attempt ended. */
 	UPROPERTY(BlueprintReadWrite, Category = "SimFlow|Record")
 	FDateTime LastPlayedAt = FDateTime(0);
+
+	/**
+	 * Every attempt Record Play counted, oldest first, capped at the last 100.
+	 * Plays recorded before run history existed have no entry, so PlayCount can be larger.
+	 */
+	UPROPERTY(BlueprintReadOnly, Category = "SimFlow|Record")
+	TArray<FSimFlowRunEntry> Runs;
 };
 
 /**
@@ -109,4 +141,7 @@ public:
 namespace SimFlowScenarioDefaults
 {
 	inline const TCHAR* const SlotName = TEXT("SimFlowScenarios");
+
+	// ponytail: fixed cap keeps the slot small; make it a setting if someone needs more.
+	inline constexpr int32 MaxRunsKept = 100;
 }

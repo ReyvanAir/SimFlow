@@ -25,7 +25,9 @@ public class SimFlowRuntime : ModuleRules
 		{
 			"Slate",
 			"InputCore",
-			"Projects"
+			"Projects",
+			"Json",
+			"JsonUtilities"
 		});
 
 		if (Target.bBuildEditor)

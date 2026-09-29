@@ -82,11 +82,11 @@ public:
 
 	/**
 	 * One call at the end of an attempt: counts the play, stores how it ended and
-	 * when, and takes the score if it beats the stored best. Returns true only when
-	 * the best moved.
+	 * when, adds it to the run history, and takes the score if it beats the stored
+	 * best. Returns true only when the best moved.
 	 */
 	UFUNCTION(BlueprintCallable, Category = "SimFlow|Record")
-	static bool RecordPlay(FName FlowSaveId, float Score, ESimFlowRunState Outcome, const FString& SlotName, int32 UserIndex = 0, bool bScoreCounts = true);
+	static bool RecordPlay(FName FlowSaveId, float Score, ESimFlowRunState Outcome, const FString& SlotName, int32 UserIndex = 0, bool bScoreCounts = true, float ElapsedSeconds = 0.f);
 
 	/** Score only, no play counted. Returns true when the best moved; a tie does not. */
 	UFUNCTION(BlueprintCallable, Category = "SimFlow|Record")
@@ -127,6 +127,18 @@ public:
 	/** Empties the whole table. */
 	UFUNCTION(BlueprintCallable, Category = "SimFlow|Record")
 	static bool ResetAllScenarioRecords(const FString& SlotName, int32 UserIndex = 0);
+
+	/**
+	 * Writes every record in the slot to Saved/SimFlow/Exports/<FileName>.csv, one row
+	 * per run. FileName is a plain name; leave it empty for a timestamped one. False,
+	 * and no file, when there is nothing to export or the name tries to leave that folder.
+	 */
+	UFUNCTION(BlueprintCallable, Category = "SimFlow|Record", meta = (DisplayName = "Export Scenario Records To CSV"))
+	static bool ExportScenarioRecordsToCsv(const FString& FileName, FString& FilePath, const FString& SlotName, int32 UserIndex = 0);
+
+	/** Same as the CSV export, as .json: each scenario's summary with its runs nested inside. */
+	UFUNCTION(BlueprintCallable, Category = "SimFlow|Record", meta = (DisplayName = "Export Scenario Records To JSON"))
+	static bool ExportScenarioRecordsToJson(const FString& FileName, FString& FilePath, const FString& SlotName, int32 UserIndex = 0);
 
 	// ------------------------------------------------------- Scenario picker
 	//
