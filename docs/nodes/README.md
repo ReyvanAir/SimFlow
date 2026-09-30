@@ -5,6 +5,9 @@ A node is a box in the flow graph. Nodes control where execution goes; a
 
 Right-click in the graph to add one. The menu is grouped by the categories below.
 
+Press **C** to add a comment box, as in Blueprints. With nodes selected, the box
+wraps them.
+
 Everything on this page lives inside a flow asset. SimFlow also adds nodes to
 ordinary Blueprint graphs — `Get Primary Flow`, `Broadcast Flow Event` and the rest
 — and those are a separate set, documented in the

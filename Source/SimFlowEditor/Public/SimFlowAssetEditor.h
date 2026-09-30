@@ -74,6 +74,7 @@ private:
 	bool CanDuplicateNodes() const;
 	void SelectAllNodes();
 	bool CanSelectAllNodes() const;
+	void CreateComment();
 
 	void OnValidateFlow();
 	void RefreshValidation();

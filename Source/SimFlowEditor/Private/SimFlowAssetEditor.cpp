@@ -13,6 +13,7 @@
 #include "Framework/Commands/GenericCommands.h"
 #include "Framework/MultiBox/MultiBoxBuilder.h"
 #include "HAL/PlatformApplicationMisc.h"
+#include "Misc/EngineVersionComparison.h"
 #include "Modules/ModuleManager.h"
 #include "PropertyEditorModule.h"
 #include "IDetailsView.h"
@@ -227,6 +228,27 @@ void FSimFlowAssetEditor::BindGraphCommands()
 	GraphEditorCommands->MapAction(FGenericCommands::Get().SelectAll,
 		FExecuteAction::CreateSP(this, &FSimFlowAssetEditor::SelectAllNodes),
 		FCanExecuteAction::CreateSP(this, &FSimFlowAssetEditor::CanSelectAllNodes));
+
+	// C, as in Blueprints.
+	GraphEditorCommands->MapAction(FGraphEditorCommands::Get().CreateComment,
+		FExecuteAction::CreateSP(this, &FSimFlowAssetEditor::CreateComment));
+}
+
+void FSimFlowAssetEditor::CreateComment()
+{
+	if (!GraphEditorView.IsValid())
+	{
+		return;
+	}
+
+#if UE_VERSION_OLDER_THAN(5, 6, 0)
+	const FVector2D Location = GraphEditorView->GetPasteLocation();
+#else
+	const FVector2f Paste = GraphEditorView->GetPasteLocation2f();
+	const FVector2D Location(Paste.X, Paste.Y);
+#endif
+
+	USimFlowGraphSchema::SpawnComment(GetEditorGraph(), Location, true);
 }
 
 void FSimFlowAssetEditor::ExtendToolbar()

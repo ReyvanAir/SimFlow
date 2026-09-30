@@ -11,6 +11,7 @@
 #include "EdGraph/EdGraphPin.h"
 #include "EdGraphNode_Comment.h"
 #include "EdGraphUtilities.h"
+#include "GraphEditor.h"
 #include "ScopedTransaction.h"
 #include "UObject/UObjectIterator.h"
 
@@ -36,6 +37,13 @@ UEdGraphNode* FSimFlowSchemaAction_NewNode::PerformAction(UEdGraph* ParentGraph,
 UEdGraphNode* FSimFlowSchemaAction_NewComment::PerformAction(UEdGraph* ParentGraph, UEdGraphPin* /*FromPin*/,
 	FSimFlowGraphLocation Location, bool bSelectNewNode)
 {
+	return USimFlowGraphSchema::SpawnComment(ParentGraph, SIMFLOW_GRAPH_LOCATION_TO_VECTOR2D(Location), bSelectNewNode);
+}
+
+// ----------------------------------------------------------------- Schema
+
+UEdGraphNode_Comment* USimFlowGraphSchema::SpawnComment(UEdGraph* ParentGraph, const FVector2D& Location, bool bSelectNewNode)
+{
 	if (!ParentGraph)
 	{
 		return nullptr;
@@ -44,23 +52,27 @@ UEdGraphNode* FSimFlowSchemaAction_NewComment::PerformAction(UEdGraph* ParentGra
 	const FScopedTransaction Transaction(LOCTEXT("AddSimFlowComment", "Add Comment"));
 	ParentGraph->Modify();
 
-	const FVector2D Position = SIMFLOW_GRAPH_LOCATION_TO_VECTOR2D(Location);
-
 	UEdGraphNode_Comment* Comment = NewObject<UEdGraphNode_Comment>(ParentGraph, NAME_None, RF_Transactional);
 	Comment->CreateNewGuid();
-	Comment->NodePosX = static_cast<int32>(Position.X);
-	Comment->NodePosY = static_cast<int32>(Position.Y);
+	Comment->NodePosX = static_cast<int32>(Location.X);
+	Comment->NodePosY = static_cast<int32>(Location.Y);
 	Comment->NodeWidth = 400;
 	Comment->NodeHeight = 200;
 	Comment->NodeComment = LOCTEXT("DefaultComment", "Comment").ToString();
+
+	// Same as Blueprints: with nodes selected, the box wraps them.
+	FSlateRect Bounds;
+	const TSharedPtr<SGraphEditor> GraphEditor = SGraphEditor::FindGraphEditorForGraph(ParentGraph);
+	if (GraphEditor.IsValid() && GraphEditor->GetBoundsForSelectedNodes(Bounds, 50.f))
+	{
+		Comment->SetBounds(Bounds);
+	}
 
 	ParentGraph->AddNode(Comment, true, bSelectNewNode);
 	ParentGraph->NotifyGraphChanged();
 
 	return Comment;
 }
-
-// ----------------------------------------------------------------- Schema
 
 USimFlowGraphNode* USimFlowGraphSchema::SpawnNode(UEdGraph* ParentGraph, TSubclassOf<USimFlowNode> NodeClass,
 	const FVector2D& Location, UEdGraphPin* FromPin, bool bSelectNewNode)

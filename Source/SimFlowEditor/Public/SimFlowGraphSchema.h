@@ -87,4 +87,7 @@ public:
 	/** Spawns a node of NodeClass into ParentGraph and returns the graph node. */
 	static USimFlowGraphNode* SpawnNode(UEdGraph* ParentGraph, TSubclassOf<USimFlowNode> NodeClass,
 		const FVector2D& Location, UEdGraphPin* FromPin, bool bSelectNewNode);
+
+	/** Adds a comment box at Location, or around the selected nodes if the graph's editor has any. */
+	static class UEdGraphNode_Comment* SpawnComment(UEdGraph* ParentGraph, const FVector2D& Location, bool bSelectNewNode);
 };

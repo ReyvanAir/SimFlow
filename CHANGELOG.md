@@ -23,6 +23,10 @@ All notable changes to SimFlow. Versions follow the plugin's `VersionName`.
   `Get Node Guid String` and `Send Event By Name`. `Describe Flow` now also returns
   each node's editable settings, with the task and any conditions inside it, and each
   node's `classPath`. Nothing at runtime changes.
+- **C adds a comment box in the SimFlow graph**, as in Blueprints. With nodes
+  selected, the box wraps them. **Create Comment from Selection** in the right-click
+  menu now wraps the selection too; before, it dropped a fixed-size box at the graph
+  origin.
 
 ## 1.6.1
 
